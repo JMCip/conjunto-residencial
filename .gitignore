@@ -1,0 +1,25 @@
+# --- Secretos (credenciales de PostgreSQL) ---
+.env
+*.env
+# --- Claude Code e IDEs ---
+.claude/
+.vscode/
+.idea/
+# --- Eclipse / Java / Maven ---
+.metadata/
+.settings/
+.project
+.classpath
+bin/
+target/
+*.class
+# --- Frontend ---
+node_modules/
+dist/
+# --- VM (nunca en el repo) ---
+*.ova
+*.vdi
+*.vbox
+# --- Windows ---
+Thumbs.db
+desktop.ini
