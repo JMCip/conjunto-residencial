@@ -23,3 +23,5 @@ dist/
 # --- Windows ---
 Thumbs.db
 desktop.ini
+#db.properties --> contraseña base
+**/src/main/resources/db.properties
