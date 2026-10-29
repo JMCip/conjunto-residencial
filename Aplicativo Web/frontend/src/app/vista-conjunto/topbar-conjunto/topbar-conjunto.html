@@ -1,0 +1,19 @@
+<header class="barra-superior">
+  <nav class="migas" aria-label="Migas de pan">
+    @if (vista() === 'inicio') {
+      <span class="miga-actual" aria-current="page">Inicio</span>
+    } @else {
+      <span>Inicio</span>
+      <span class="separador" aria-hidden="true">/</span>
+      <span class="miga-actual" aria-current="page">{{ nombreVista() }}</span>
+    }
+  </nav>
+
+  <div class="acciones-topbar">
+    <span class="chip-consulta">
+      <i class="fa-solid fa-eye" aria-hidden="true"></i>
+      Solo consulta
+    </span>
+    <span class="fecha-hoy">{{ hoy() | date: 'fullDate' }}</span>
+  </div>
+</header>

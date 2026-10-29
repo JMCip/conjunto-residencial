@@ -4,24 +4,52 @@
   <artifactId>backend</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <name>conjuntoResidencial-Backend</name>
-  
-   <properties>
+
+  <properties>
     <maven.compiler.release>25</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <javalin-openapi.version>7.2.4</javalin-openapi.version>
   </properties>
 
   <dependencies>
-    <!-- Javalin y JSON + Logback logs -->
     <dependency>
       <groupId>io.javalin</groupId>
       <artifactId>javalin-bundle</artifactId>
       <version>7.2.3</version>
     </dependency>
-    <!-- el JDBC para PostgreSQL -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.7.13</version>
     </dependency>
+    <dependency>
+      <groupId>io.javalin.community.openapi</groupId>
+      <artifactId>javalin-openapi-plugin</artifactId>
+      <version>${javalin-openapi.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.javalin.community.openapi</groupId>
+      <artifactId>javalin-swagger-plugin</artifactId>
+      <version>${javalin-openapi.version}</version>
+    </dependency>
   </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.14.0</version>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>io.javalin.community.openapi</groupId>
+              <artifactId>openapi-annotation-processor</artifactId>
+              <version>${javalin-openapi.version}</version>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
 </project>

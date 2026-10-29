@@ -1,0 +1,10 @@
+<header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
+  <h1 class="titulo-pagina">Salón comunal</h1>
+  <p class="descripcion-pagina">Reservas del salón comunal por fecha y casa.</p>
+</header>
+
+<app-modulo-pendiente
+  modulo="Salón comunal"
+  descripcion="las reservas del salón con su fecha, franja horaria y estado"
+  (irA)="irA.emit($event)"
+/>

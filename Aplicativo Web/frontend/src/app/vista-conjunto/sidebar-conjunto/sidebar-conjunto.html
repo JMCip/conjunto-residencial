@@ -1,0 +1,66 @@
+<aside class="barra-lateral" [class.colapsada]="isCollapsed()">
+  <div class="cabecera-sidebar">
+    <div class="logo" aria-hidden="true">
+      <i class="fa-solid fa-house"></i>
+    </div>
+    <div class="marca">
+      <p class="nombre-marca">Conjunto Residencial</p>
+      <p class="subtitulo-marca">Administración</p>
+    </div>
+    <button
+      type="button"
+      class="boton-colapsar"
+      [attr.aria-label]="isCollapsed() ? 'Expandir menú' : 'Colapsar menú'"
+      [attr.aria-expanded]="!isCollapsed()"
+      [attr.title]="isCollapsed() ? 'Expandir menú' : 'Colapsar menú'"
+      (click)="toggleSidebar()"
+    >
+      <i
+        class="fa-solid"
+        [class.fa-chevron-left]="!isCollapsed()"
+        [class.fa-chevron-right]="isCollapsed()"
+        aria-hidden="true"
+      ></i>
+    </button>
+  </div>
+
+  <nav class="navegacion" aria-label="Secciones">
+    @for (grupo of grupos; track grupo.etiqueta) {
+      <p class="etiqueta-seccion">{{ grupo.etiqueta }}</p>
+      <ul class="lista-nav">
+        @for (item of grupo.items; track item.vista) {
+          <li>
+            <button
+              type="button"
+              class="item-nav"
+              [class.activo]="vistaActiva() === item.vista"
+              [attr.aria-current]="vistaActiva() === item.vista ? 'page' : null"
+              [attr.title]="isCollapsed() ? nombres[item.vista] : null"
+              (click)="seleccionar(item.vista)"
+            >
+              <i class="fa-solid icono-item" [class]="item.icono" aria-hidden="true"></i>
+              <span class="texto-item">{{ nombres[item.vista] }}</span>
+            </button>
+          </li>
+        }
+      </ul>
+    }
+  </nav>
+
+  <div class="pie-sidebar" [attr.title]="isCollapsed() ? textoEstadoBd() : null">
+    <span
+      class="punto-estado"
+      [class.conectado]="!!infoBd()"
+      [class.sin-conexion]="errorBd()"
+      aria-hidden="true"
+    ></span>
+    <div class="texto-pie" aria-live="polite">
+      <p class="titulo-pie">{{ textoEstadoBd() }}</p>
+      @if (infoBd(); as info) {
+        <p class="detalle-pie">{{ versionCorta() }} · {{ info.usuario }}</p>
+      } @else if (errorBd()) {
+        <p class="detalle-pie">Verifica el backend y la VM</p>
+      }
+    </div>
+  </div>
+</aside>

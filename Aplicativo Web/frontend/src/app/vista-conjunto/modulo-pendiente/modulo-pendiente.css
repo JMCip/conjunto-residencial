@@ -1,0 +1,127 @@
+.tarjeta-pendiente {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 32px;
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  text-align: center;
+}
+
+.circulo-icono {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radio-pildora);
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+  font-size: 28px;
+}
+
+.nombre-modulo {
+  margin-top: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto-secundario);
+}
+
+.titulo-pendiente {
+  margin-top: 4px;
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.texto-pendiente {
+  max-width: 520px;
+  margin-top: 8px;
+  color: var(--texto-secundario);
+}
+
+/* Lista de avance */
+.lista-avance {
+  width: 100%;
+  max-width: 460px;
+  margin-top: 28px;
+  list-style: none;
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio-icono);
+  text-align: left;
+}
+
+.paso-avance {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--borde-suave);
+  font-size: 14px;
+}
+
+.paso-avance:last-child {
+  border-bottom: none;
+}
+
+.insignia-estado {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radio-pildora);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.insignia-ok {
+  background: var(--estado-ok-bg);
+  color: var(--estado-ok-texto);
+}
+.insignia-pendiente {
+  background: var(--estado-pendiente-bg);
+  color: var(--estado-pendiente-texto);
+}
+
+/* Botones */
+.acciones-pendiente {
+  display: flex;
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.boton-primario,
+.boton-secundario {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: var(--radio-control);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-primario {
+  border: 1px solid var(--verde-bosque);
+  background: var(--verde-bosque);
+  color: var(--bg-tarjeta); /* blanco */
+}
+
+.boton-primario:hover {
+  border-color: var(--verde-bosque-oscuro);
+  background: var(--verde-bosque-oscuro);
+}
+
+.boton-secundario {
+  border: 1px solid var(--borde);
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+}
+
+.boton-secundario:hover {
+  background: var(--bg-app);
+}
+
+.boton-primario:focus-visible,
+.boton-secundario:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 2px;
+}

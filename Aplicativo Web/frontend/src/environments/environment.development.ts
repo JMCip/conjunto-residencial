@@ -1,3 +1,4 @@
 export const environment = {
-  apiUrl: '/api'
+  apiUrl: '/api',
+  usarMocks: true,
 };

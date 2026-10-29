@@ -1,0 +1,180 @@
+<header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
+  <h1 class="titulo-pagina">Facturas de administración</h1>
+  <p class="descripcion-pagina">
+    Cobros mensuales de administración de cada casa del conjunto.
+    @if (usarMocks) {
+      <span class="insignia-estado insignia-neutro">Datos de ejemplo</span>
+    }
+  </p>
+</header>
+
+@if (error()) {
+  <!-- Error -->
+  <section class="tarjeta-seccion mensaje-error animate__animated animate__fadeIn animate__faster">
+    <span class="circulo-icono circulo-error" aria-hidden="true">
+      <i class="fa-solid fa-plug-circle-xmark"></i>
+    </span>
+    <h2 class="titulo-vacio">No se pudo consultar la información</h2>
+    <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+  </section>
+} @else {
+  <!-- Métricas -->
+  <section class="rejilla-metricas" aria-label="Totales de facturación">
+    <article class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster">
+      <p class="etiqueta-metrica">Total facturado</p>
+      @if (cargando()) {
+        <span class="esqueleto esqueleto-cifra"></span>
+        <span class="esqueleto esqueleto-texto"></span>
+      } @else {
+        <p class="cifra-metrica num">
+          {{ totalFacturado() | currency: 'COP' : 'symbol' : '1.0-0' }}
+        </p>
+        <p class="contexto-metrica">{{ conteos().TODAS }} facturas en total</p>
+      }
+    </article>
+
+    <article
+      class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster"
+      style="animation-delay: 0.05s"
+    >
+      <p class="etiqueta-metrica">Recaudado</p>
+      @if (cargando()) {
+        <span class="esqueleto esqueleto-cifra"></span>
+        <span class="esqueleto esqueleto-texto"></span>
+      } @else {
+        <p class="cifra-metrica num">
+          {{ totalRecaudado() | currency: 'COP' : 'symbol' : '1.0-0' }}
+        </p>
+        <div
+          class="barra-progreso"
+          role="progressbar"
+          aria-label="Porcentaje recaudado"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          [attr.aria-valuenow]="porcentajeRecaudado()"
+        >
+          <span class="relleno-progreso" [style.width.%]="porcentajeRecaudado()"></span>
+        </div>
+        <p class="contexto-metrica contexto-positivo num">
+          {{ porcentajeRecaudado() }} % del total facturado
+        </p>
+      }
+    </article>
+
+    <article
+      class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster"
+      style="animation-delay: 0.1s"
+    >
+      <p class="etiqueta-metrica">Cartera pendiente</p>
+      @if (cargando()) {
+        <span class="esqueleto esqueleto-cifra"></span>
+        <span class="esqueleto esqueleto-texto"></span>
+      } @else {
+        <p class="cifra-metrica num">
+          {{ totalPendiente() | currency: 'COP' : 'symbol' : '1.0-0' }}
+        </p>
+        <p class="contexto-metrica" [class.contexto-atencion]="totalPendiente() > 0">
+          {{ conteos().PENDIENTE }} pendientes · {{ conteos().VENCIDA }} vencidas
+        </p>
+      }
+    </article>
+  </section>
+
+  <!-- Tabla con filtros -->
+  <section
+    class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+    aria-labelledby="titulo-tabla"
+  >
+    <div class="cabecera-tarjeta">
+      <h2 id="titulo-tabla" class="titulo-tarjeta">Facturas</h2>
+
+      <div class="controles-tabla">
+        <div class="control-segmentado" role="group" aria-label="Filtrar por estado">
+          @for (opcion of opcionesFiltro; track opcion.valor) {
+            <button
+              type="button"
+              class="boton-segmento"
+              [class.activo]="filtroEstado() === opcion.valor"
+              [attr.aria-pressed]="filtroEstado() === opcion.valor"
+              (click)="cambiarFiltro(opcion.valor)"
+            >
+              {{ opcion.texto }}
+              @if (!cargando()) {
+                <span class="conteo-segmento num">{{ conteos()[opcion.valor] }}</span>
+              }
+            </button>
+          }
+        </div>
+
+        <div class="campo-busqueda">
+          <label for="buscar-factura" class="etiqueta-campo">Buscar</label>
+          <div class="envoltura-input">
+            <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+            <input
+              #campo
+              id="buscar-factura"
+              type="search"
+              class="input-busqueda"
+              placeholder="Casa, número o periodo"
+              autocomplete="off"
+              [value]="busqueda()"
+              (input)="buscar(campo.value)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    @if (cargando()) {
+      <div class="lista-esqueleto">
+        @for (fila of [1, 2, 3, 4, 5, 6]; track fila) {
+          <span class="esqueleto esqueleto-fila"></span>
+        }
+      </div>
+    } @else if (facturasFiltradas().length === 0) {
+      <!-- Vacío -->
+      <div class="estado-vacio">
+        <span class="circulo-icono" aria-hidden="true">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+        </span>
+        <p class="titulo-vacio">No hay registros para este filtro</p>
+        <p class="texto-vacio">Prueba con otro estado o con otro texto de búsqueda.</p>
+        <button type="button" class="boton-secundario" (click)="limpiarFiltros()">
+          Ver todas las facturas
+        </button>
+      </div>
+    } @else {
+      <div class="contenedor-tabla">
+        <table class="tabla-conjunto">
+          <thead>
+            <tr>
+              <th scope="col">Número</th>
+              <th scope="col">Casa</th>
+              <th scope="col">Periodo</th>
+              <th scope="col">Vencimiento</th>
+              <th scope="col" class="col-dinero">Valor</th>
+              <th scope="col">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of facturasFiltradas(); track f.id) {
+              <tr>
+                <td class="num">{{ f.numero }}</td>
+                <td class="col-principal">{{ f.casa }}</td>
+                <td>{{ f.periodo }}</td>
+                <td class="num">{{ f.fechaVencimiento | date: 'dd/MM/y' }}</td>
+                <td class="col-dinero num">{{ f.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+                <td>
+                  <span class="insignia-estado" [class]="'insignia-' + estiloFactura[f.estado]">
+                    {{ etiquetaFactura[f.estado] }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+    }
+  </section>
+}
