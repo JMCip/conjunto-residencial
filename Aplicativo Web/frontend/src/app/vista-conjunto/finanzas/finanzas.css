@@ -1,0 +1,353 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Cabecera de página */
+.titulo-pagina {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.descripcion-pagina {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--texto-secundario);
+}
+
+/* Métricas */
+.rejilla-metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.tarjeta-metrica {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+}
+
+.etiqueta-metrica {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.cifra-metrica {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.contexto-metrica {
+  font-size: 13px;
+  color: var(--texto-secundario);
+}
+
+.contexto-positivo {
+  color: var(--estado-ok-texto);
+}
+
+.contexto-atencion {
+  color: var(--estado-pendiente-texto);
+}
+
+.barra-progreso {
+  height: 6px;
+  margin-top: 4px;
+  border-radius: var(--radio-pildora);
+  background: var(--borde-suave);
+  overflow: hidden;
+}
+
+.relleno-progreso {
+  display: block;
+  height: 100%;
+  border-radius: var(--radio-pildora);
+  background: var(--verde-hoja);
+}
+
+/* Tarjeta de sección */
+.tarjeta-seccion {
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  overflow: hidden;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.titulo-tarjeta {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+.controles-tabla {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+/* Control segmentado */
+.control-segmentado {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radio-icono);
+  background: var(--bg-app);
+}
+
+.boton-segmento {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radio-control);
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-segmento:hover {
+  color: var(--texto);
+}
+
+.boton-segmento.activo {
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+  box-shadow: var(--sombra-suave);
+}
+
+.conteo-segmento {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texto-secundario);
+}
+
+/* Buscador */
+.campo-busqueda {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.etiqueta-campo {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.envoltura-input {
+  position: relative;
+}
+
+.icono-input {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.input-busqueda {
+  width: 260px;
+  padding: 10px 14px 10px 38px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background: var(--bg-tarjeta);
+  font-size: 15px;
+}
+
+.input-busqueda::placeholder {
+  color: var(--texto-secundario);
+}
+
+/* Foco visible en todos los controles */
+.input-busqueda:focus-visible,
+.boton-segmento:focus-visible,
+.boton-secundario:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+}
+
+/* Insignias de estado */
+.insignia-estado {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radio-pildora);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.insignia-ok {
+  background: var(--estado-ok-bg);
+  color: var(--estado-ok-texto);
+}
+.insignia-pendiente {
+  background: var(--estado-pendiente-bg);
+  color: var(--estado-pendiente-texto);
+}
+.insignia-alerta {
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+}
+.insignia-neutro {
+  background: var(--estado-neutro-bg);
+  color: var(--estado-neutro-texto);
+}
+
+/* Tabla */
+.contenedor-tabla {
+  overflow-x: auto;
+}
+
+.tabla-conjunto {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.tabla-conjunto th {
+  padding: 12px 20px;
+  background: var(--bg-suave);
+  color: var(--texto-secundario);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabla-conjunto td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.tabla-conjunto tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-conjunto tbody tr:hover {
+  background: var(--bg-suave);
+}
+
+.tabla-conjunto .col-dinero {
+  text-align: right;
+}
+
+.col-principal {
+  font-weight: 600;
+}
+
+.pie-tabla {
+  padding: 12px 20px;
+  border-top: 1px solid var(--borde-suave);
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+/* Esqueletos de carga */
+.esqueleto {
+  display: block;
+  border-radius: var(--radio-esqueleto);
+  background: var(--borde-suave);
+}
+
+.esqueleto-cifra {
+  width: 60%;
+  height: 34px;
+}
+.esqueleto-texto {
+  width: 80%;
+  height: 14px;
+}
+.esqueleto-fila {
+  width: 100%;
+  height: 22px;
+}
+
+.lista-esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+/* Vacío y error */
+.estado-vacio,
+.mensaje-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.circulo-icono {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+  border-radius: var(--radio-pildora);
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+  font-size: 28px;
+}
+
+.circulo-error {
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+}
+
+.titulo-vacio {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.texto-vacio {
+  max-width: 420px;
+  color: var(--texto-secundario);
+}
+
+.boton-secundario {
+  min-height: 44px;
+  margin-top: 12px;
+  padding: 10px 20px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-secundario:hover {
+  background: var(--bg-app);
+}

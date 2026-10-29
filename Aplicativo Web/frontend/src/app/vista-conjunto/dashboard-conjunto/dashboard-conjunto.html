@@ -1,0 +1,205 @@
+<header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
+  <h1 class="titulo-pagina">Resumen del conjunto</h1>
+  <p class="descripcion-pagina">
+    <span class="mes-actual">{{ hoy() | date: 'MMMM y' }}</span>
+    · Administración del conjunto residencial
+  </p>
+</header>
+
+<!-- Métricas -->
+<section class="rejilla-metricas" aria-label="Métricas del conjunto">
+  @for (m of metricas(); track m.etiqueta; let i = $index) {
+    <article
+      class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster"
+      [style.animation-delay.s]="i * 0.05"
+    >
+      <p class="etiqueta-metrica">{{ m.etiqueta }}</p>
+      @if (cargando()) {
+        <span class="esqueleto esqueleto-cifra"></span>
+        <span class="esqueleto esqueleto-texto"></span>
+      } @else if (m.valor === null) {
+        <p class="cifra-metrica cifra-vacia">Sin datos</p>
+        <p class="contexto-metrica">{{ m.contexto }}</p>
+      } @else {
+        <p class="cifra-metrica num">
+          @if (m.esMoneda) {
+            {{ m.valor | currency: 'COP' : 'symbol' : '1.0-0' }}
+          } @else {
+            {{ m.valor | number }}
+          }
+        </p>
+        <p
+          class="contexto-metrica"
+          [class.contexto-positivo]="m.tono === 'positivo'"
+          [class.contexto-atencion]="m.tono === 'atencion'"
+        >
+          {{ m.contexto }}
+        </p>
+      }
+      @if (m.ejemplo && !cargando()) {
+        <span class="insignia-estado insignia-neutro insignia-ejemplo">Datos de ejemplo</span>
+      }
+    </article>
+  }
+</section>
+
+<div class="rejilla-paneles">
+  <!-- Últimas facturas -->
+  <section
+    class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+    aria-labelledby="titulo-facturas"
+  >
+    <div class="cabecera-tarjeta">
+      <div class="titulo-con-insignia">
+        <h2 id="titulo-facturas" class="titulo-tarjeta">Últimas facturas</h2>
+        @if (usarMocks) {
+          <span class="insignia-estado insignia-neutro">Datos de ejemplo</span>
+        }
+      </div>
+      <button type="button" class="enlace-ver" (click)="irA.emit('finanzas')">Ver todas</button>
+    </div>
+
+    @if (cargando()) {
+      <div class="lista-esqueleto">
+        @for (fila of [1, 2, 3, 4]; track fila) {
+          <span class="esqueleto esqueleto-fila"></span>
+        }
+      </div>
+    } @else if (errorFacturas()) {
+      <div class="mensaje-error">
+        <i class="fa-solid fa-plug-circle-xmark" aria-hidden="true"></i>
+        <div>
+          <p class="titulo-error">No se pudo consultar la información</p>
+          <p class="pista-error">Verifica que el backend esté corriendo.</p>
+        </div>
+      </div>
+    } @else {
+      <div class="contenedor-tabla">
+        <table class="tabla-conjunto">
+          <thead>
+            <tr>
+              <th scope="col">Casa</th>
+              <th scope="col">Periodo</th>
+              <th scope="col" class="col-dinero">Valor</th>
+              <th scope="col">Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (f of ultimasFacturas(); track f.id) {
+              <tr>
+                <td class="col-principal">{{ f.casa }}</td>
+                <td>{{ f.periodo }}</td>
+                <td class="col-dinero num">{{ f.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+                <td>
+                  <span class="insignia-estado" [class]="'insignia-' + estiloFactura[f.estado]">
+                    {{ etiquetaFactura[f.estado] }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="celda-vacia">No hay facturas registradas.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+
+  <!-- Próximas reservas -->
+  <section
+    class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+    aria-labelledby="titulo-reservas"
+  >
+    <div class="cabecera-tarjeta">
+      <h2 id="titulo-reservas" class="titulo-tarjeta">Próximas reservas del salón</h2>
+      <button type="button" class="enlace-ver" (click)="irA.emit('salon-comunal')">
+        Ver todas
+      </button>
+    </div>
+
+    @if (cargando()) {
+      <div class="lista-esqueleto">
+        @for (fila of [1, 2, 3]; track fila) {
+          <span class="esqueleto esqueleto-fila"></span>
+        }
+      </div>
+    } @else {
+      @if (proximasReservas().length > 0) {
+        <ul class="lista-reservas">
+          @for (r of proximasReservas(); track r.id) {
+            <li class="fila-reserva">
+              <div class="caja-fecha">
+                <span class="dia-fecha num">{{ r.fecha | date: 'd' }}</span>
+                <span class="mes-fecha">{{ r.fecha | date: 'MMM' }}</span>
+              </div>
+              <div>
+                <p class="titulo-reserva">{{ r.motivo }} · {{ r.casa }}</p>
+                <p class="franja-reserva num">{{ r.horaInicio }} – {{ r.horaFin }}</p>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="estado-vacio">
+          <span class="circulo-icono" aria-hidden="true">
+            <i class="fa-solid fa-calendar-check"></i>
+          </span>
+          <p class="titulo-vacio">Sin reservas para mostrar</p>
+          <p class="texto-vacio">
+            Las reservas aparecerán cuando el módulo Salón comunal esté conectado
+          </p>
+        </div>
+      }
+    }
+  </section>
+</div>
+
+<!-- Estado de la conexión -->
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-conexion"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-conexion" class="titulo-tarjeta">Estado de la conexión</h2>
+  </div>
+
+  <div class="cuerpo-conexion" aria-live="polite">
+    <div class="filas-servicio">
+      <div class="fila-servicio">
+        <span class="nombre-servicio">
+          <i class="fa-solid fa-server" aria-hidden="true"></i>
+          Backend
+        </span>
+        <span class="insignia-estado" [class]="'insignia-' + estiloConexion[estadoBackend()]">
+          {{ textoConexion[estadoBackend()] }}
+        </span>
+      </div>
+      <div class="fila-servicio">
+        <span class="nombre-servicio">
+          <i class="fa-solid fa-database" aria-hidden="true"></i>
+          Base de datos
+        </span>
+        <span class="insignia-estado" [class]="'insignia-' + estiloConexion[estadoBd()]">
+          {{ textoConexion[estadoBd()] }}
+        </span>
+      </div>
+    </div>
+
+    <dl class="datos-conexion">
+      <div class="dato-conexion">
+        <dt>Usuario</dt>
+        <dd>{{ infoBd()?.usuario ?? '—' }}</dd>
+      </div>
+      <div class="dato-conexion">
+        <dt>Base</dt>
+        <dd>{{ infoBd()?.base ?? '—' }}</dd>
+      </div>
+      <div class="dato-conexion">
+        <dt>Versión</dt>
+        <dd>{{ infoBd()?.version ?? '—' }}</dd>
+      </div>
+    </dl>
+  </div>
+</section>

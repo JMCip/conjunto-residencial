@@ -1,0 +1,51 @@
+.barra-superior {
+  height: var(--topbar-alto);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 40px;
+  background: var(--bg-app);
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.migas {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.miga-actual {
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.acciones-topbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.chip-consulta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-pildora);
+  background: var(--bg-tarjeta);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.chip-consulta i {
+  color: var(--verde-bosque);
+}
+
+.fecha-hoy {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}

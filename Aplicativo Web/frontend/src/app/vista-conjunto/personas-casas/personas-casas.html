@@ -1,0 +1,12 @@
+<header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
+  <h1 class="titulo-pagina">Personas y casas</h1>
+  <p class="descripcion-pagina">
+    Propietarios, arrendatarios, residentes y visitantes de cada casa del conjunto.
+  </p>
+</header>
+
+<app-modulo-pendiente
+  modulo="Personas y casas"
+  descripcion="el listado de casas con su propietario y las personas que viven en cada una"
+  (irA)="irA.emit($event)"
+/>

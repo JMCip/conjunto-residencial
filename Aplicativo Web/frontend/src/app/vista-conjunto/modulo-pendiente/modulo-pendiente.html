@@ -1,0 +1,30 @@
+<section
+  class="tarjeta-pendiente animate__animated animate__fadeInUp animate__faster"
+  [attr.aria-label]="'Módulo ' + modulo() + ' pendiente de conexión'"
+>
+  <span class="circulo-icono" aria-hidden="true">
+    <i class="fa-solid fa-database"></i>
+  </span>
+
+  <p class="nombre-modulo">Módulo {{ modulo() }}</p>
+  <h2 class="titulo-pendiente">Este módulo todavía no tiene datos</h2>
+  <p class="texto-pendiente">Cuando esté conectado a la base, aquí verás {{ descripcion() }}.</p>
+
+  <ul class="lista-avance">
+    @for (paso of pasos; track paso.nombre) {
+      <li class="paso-avance">
+        <span>{{ paso.nombre }}</span>
+        <span class="insignia-estado" [class]="'insignia-' + paso.estilo">{{ paso.estado }}</span>
+      </li>
+    }
+  </ul>
+
+  <div class="acciones-pendiente">
+    <button type="button" class="boton-primario" (click)="irA.emit('inicio')">
+      Volver al inicio
+    </button>
+    <button type="button" class="boton-secundario" (click)="irA.emit('finanzas')">
+      Ver Finanzas
+    </button>
+  </div>
+</section>

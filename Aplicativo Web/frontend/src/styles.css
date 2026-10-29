@@ -1,1 +1,84 @@
-/* You can add global styles to this file, and also import other style files */
+/* Estilos globales del Conjunto Residencial — "Verde parque" (ver DESIGN.md) */
+
+:root {
+  /* Marca */
+  --verde-bosque: #1e4d3b;
+  --verde-bosque-oscuro: #163a2c;
+  --verde-hoja: #2f7a5b;
+  --verde-menta: #7fd1a6;
+  --verde-claro: #e3f1ea;
+
+  /* Superficies */
+  --bg-app: #f3f5f1;
+  --bg-suave: #f7f9f6;
+  --bg-tarjeta: #ffffff;
+  --borde: #dde3da;
+  --borde-suave: #e6ebe3;
+
+  /* Texto */
+  --texto: #1b2420;
+  --texto-secundario: #5b6b63;
+  --texto-sidebar: #dceae2;
+  --texto-sidebar-tenue: #c9ddd3;
+
+  /* Estados */
+  --estado-ok-bg: #e3f1ea;
+  --estado-ok-texto: #1e5e44;
+  --estado-pendiente-bg: #fcefd6;
+  --estado-pendiente-texto: #7a4e0b;
+  --estado-alerta-bg: #fbe6e0;
+  --estado-alerta-texto: #9a3520;
+  --estado-neutro-bg: #f3f5f1;
+  --estado-neutro-texto: #5b6b63;
+
+  /* Tipografía */
+  --fuente: 'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* Formas */
+  --radio-tarjeta: 12px;
+  --radio-control: 8px;
+  --radio-pildora: 9999px;
+  --sombra-suave: 0 1px 2px rgba(0, 0, 0, 0.12);
+
+  /* Layout */
+  --sidebar-ancho: 260px;
+  --sidebar-colapsado: 72px;
+  --topbar-alto: 64px;
+  --contenido-max: 1280px;
+
+  /* Extras: valores que DESIGN.md usa en línea, convertidos en variables */
+  --punto-sin-conexion: #f2a48f;
+  --sidebar-hover: rgba(255, 255, 255, 0.08);
+  --sidebar-activo: rgba(255, 255, 255, 0.14);
+  --radio-icono: 10px;
+  --radio-esqueleto: 6px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  background: var(--bg-app);
+  color: var(--texto);
+  font-family: var(--fuente);
+  font-size: 15px;
+  overflow: hidden; /* el scroll lo hace solo la zona de contenido */
+}
+
+/* Botones e inputs heredan la fuente (el navegador les pone otra por defecto) */
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+/* Números alineados en columnas */
+.num {
+  font-variant-numeric: tabular-nums;
+}

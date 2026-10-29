@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
-import { Estado } from './pages/estado/estado';
+import { VistaConjunto } from './vista-conjunto/vista-conjunto';
 
 export const routes: Routes = [
-  { path: '', component: Estado }
+  { path: '', component: VistaConjunto },
+  { path: '**', redirectTo: '' },
 ];

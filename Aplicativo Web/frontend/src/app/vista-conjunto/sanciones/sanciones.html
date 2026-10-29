@@ -1,0 +1,10 @@
+<header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
+  <h1 class="titulo-pagina">Sanciones</h1>
+  <p class="descripcion-pagina">Sanciones impuestas a casas y residentes del conjunto.</p>
+</header>
+
+<app-modulo-pendiente
+  modulo="Sanciones"
+  descripcion="las sanciones con su motivo, su valor y si ya se pagaron"
+  (irA)="irA.emit($event)"
+/>

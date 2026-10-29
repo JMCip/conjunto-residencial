@@ -1,0 +1,215 @@
+/* El host no crea caja propia: el <aside> participa directo en el flex del contenedor */
+:host {
+  display: contents;
+}
+
+.barra-lateral {
+  width: var(--sidebar-ancho);
+  height: 100vh;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 16px;
+  background: var(--verde-bosque);
+  color: var(--bg-tarjeta); /* blanco */
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+
+.barra-lateral.colapsada {
+  width: var(--sidebar-colapsado);
+  padding: 20px 12px;
+}
+
+/* Cabecera: logo + marca + botón para colapsar */
+.cabecera-sidebar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.colapsada .cabecera-sidebar {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.logo {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radio-icono);
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+  font-size: 18px;
+}
+
+.marca {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.nombre-marca {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.subtitulo-marca {
+  font-size: 13px;
+  color: var(--texto-sidebar-tenue);
+}
+
+.boton-colapsar {
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: var(--radio-control);
+  background: transparent;
+  color: var(--texto-sidebar);
+  cursor: pointer;
+}
+
+.boton-colapsar:hover {
+  background: var(--sidebar-hover);
+}
+
+/* Navegación */
+.navegacion {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.etiqueta-seccion {
+  margin: 16px 12px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--texto-sidebar-tenue);
+  white-space: nowrap;
+}
+
+.etiqueta-seccion:first-child {
+  margin-top: 0;
+}
+
+.lista-nav {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item-nav {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  border: none;
+  border-radius: var(--radio-control);
+  background: transparent;
+  color: var(--texto-sidebar);
+  font-size: 15px;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.item-nav:hover {
+  background: var(--sidebar-hover);
+}
+
+.item-nav.activo {
+  background: var(--sidebar-activo);
+  color: var(--bg-tarjeta); /* blanco */
+  font-weight: 600;
+}
+
+.icono-item {
+  width: 20px;
+  flex-shrink: 0;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Foco visible sobre fondo oscuro: el menta es el único verde que contrasta aquí */
+.boton-colapsar:focus-visible,
+.item-nav:focus-visible {
+  outline: 2px solid var(--verde-menta);
+  outline-offset: 1px;
+}
+
+/* Pie con el estado de la base */
+.pie-sidebar {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--radio-icono);
+  background: var(--sidebar-hover);
+}
+
+.punto-estado {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  margin-top: 5px;
+  border-radius: var(--radio-pildora);
+  background: var(--texto-sidebar-tenue);
+}
+
+.punto-estado.conectado {
+  background: var(--verde-menta);
+}
+
+.punto-estado.sin-conexion {
+  background: var(--punto-sin-conexion);
+}
+
+.texto-pie {
+  min-width: 0;
+}
+
+.titulo-pie {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.detalle-pie {
+  font-size: 13px;
+  color: var(--texto-sidebar-tenue);
+}
+
+/* Colapsado: solo íconos centrados */
+.colapsada .marca,
+.colapsada .etiqueta-seccion,
+.colapsada .texto-item,
+.colapsada .texto-pie {
+  display: none;
+}
+
+.colapsada .lista-nav {
+  margin-bottom: 12px;
+}
+
+.colapsada .item-nav {
+  justify-content: center;
+  padding: 0;
+}
+
+.colapsada .pie-sidebar {
+  justify-content: center;
+  padding: 14px 0;
+}
+
+.colapsada .punto-estado {
+  margin-top: 0;
+}

@@ -1,0 +1,30 @@
+<div class="contenedor-app">
+  <app-sidebar-conjunto [vistaActiva]="vistaActual()" (vistaSeleccionada)="cambiarVista($event)" />
+  <div class="contenido-principal">
+    <app-topbar-conjunto [vista]="vistaActual()" />
+    <main class="zona-scroll" #zona>
+      <div class="contenido-limitado">
+        @switch (vistaActual()) {
+          @case ('inicio') {
+            <app-dashboard-conjunto (irA)="cambiarVista($event)" />
+          }
+          @case ('personas-casas') {
+            <app-personas-casas (irA)="cambiarVista($event)" />
+          }
+          @case ('finanzas') {
+            <app-finanzas />
+          }
+          @case ('parqueadero') {
+            <app-parqueadero (irA)="cambiarVista($event)" />
+          }
+          @case ('salon-comunal') {
+            <app-salon-comunal (irA)="cambiarVista($event)" />
+          }
+          @case ('sanciones') {
+            <app-sanciones (irA)="cambiarVista($event)" />
+          }
+        }
+      </div>
+    </main>
+  </div>
+</div>

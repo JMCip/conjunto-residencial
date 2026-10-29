@@ -1,0 +1,22 @@
+<div class="contenedor-notificaciones" aria-live="polite">
+  @for (aviso of notificacionService.avisos(); track aviso.id) {
+    <div
+      class="notificacion animate__animated animate__fadeInRight animate__faster"
+      [class]="'notificacion-' + aviso.tipo"
+    >
+      <i class="fa-solid icono-notificacion" [class]="iconos[aviso.tipo]" aria-hidden="true"></i>
+      <div class="texto-notificacion">
+        <p class="titulo-notificacion">{{ aviso.titulo }}</p>
+        <p class="mensaje-notificacion">{{ aviso.mensaje }}</p>
+      </div>
+      <button
+        type="button"
+        class="boton-cerrar"
+        aria-label="Cerrar aviso"
+        (click)="notificacionService.cerrar(aviso.id)"
+      >
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,398 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Cabecera de página */
+.titulo-pagina {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.descripcion-pagina {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--texto-secundario);
+}
+
+/* "octubre 2026" → "Octubre 2026" */
+.mes-actual {
+  display: inline-block;
+}
+
+.mes-actual::first-letter {
+  text-transform: uppercase;
+}
+
+/* Métricas */
+.rejilla-metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.tarjeta-metrica {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 20px;
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+}
+
+.etiqueta-metrica {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.cifra-metrica {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.cifra-vacia {
+  font-size: 22px;
+  color: var(--texto-secundario);
+}
+
+.contexto-metrica {
+  font-size: 13px;
+  color: var(--texto-secundario);
+}
+
+.contexto-positivo {
+  color: var(--estado-ok-texto);
+}
+
+.contexto-atencion {
+  color: var(--estado-pendiente-texto);
+}
+
+.insignia-ejemplo {
+  margin-top: 4px;
+}
+
+/* Paneles en dos columnas */
+.rejilla-paneles {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
+  align-items: start;
+}
+
+/* Tarjeta de sección */
+.tarjeta-seccion {
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  overflow: hidden;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.titulo-con-insignia {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.titulo-tarjeta {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.enlace-ver {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: var(--verde-bosque);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.enlace-ver:hover {
+  color: var(--verde-bosque-oscuro);
+  text-decoration: underline;
+}
+
+.enlace-ver:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+  border-radius: var(--radio-control);
+}
+
+/* Insignias de estado */
+.insignia-estado {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radio-pildora);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.insignia-ok {
+  background: var(--estado-ok-bg);
+  color: var(--estado-ok-texto);
+}
+.insignia-pendiente {
+  background: var(--estado-pendiente-bg);
+  color: var(--estado-pendiente-texto);
+}
+.insignia-alerta {
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+}
+.insignia-neutro {
+  background: var(--estado-neutro-bg);
+  color: var(--estado-neutro-texto);
+}
+
+/* Tabla */
+.contenedor-tabla {
+  overflow-x: auto;
+}
+
+.tabla-conjunto {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.tabla-conjunto th {
+  padding: 12px 20px;
+  background: var(--bg-suave);
+  color: var(--texto-secundario);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+}
+
+.tabla-conjunto td {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.tabla-conjunto tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-conjunto tbody tr:hover {
+  background: var(--bg-suave);
+}
+
+.tabla-conjunto .col-dinero {
+  text-align: right;
+}
+
+.col-principal {
+  font-weight: 600;
+}
+
+.celda-vacia {
+  color: var(--texto-secundario);
+  text-align: center;
+}
+
+/* Esqueletos de carga */
+.esqueleto {
+  display: block;
+  border-radius: var(--radio-esqueleto);
+  background: var(--borde-suave);
+}
+
+.esqueleto-cifra {
+  width: 60%;
+  height: 34px;
+}
+.esqueleto-texto {
+  width: 80%;
+  height: 14px;
+}
+.esqueleto-fila {
+  width: 100%;
+  height: 22px;
+}
+
+.lista-esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+/* Error dentro de una tarjeta */
+.mensaje-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 24px 20px;
+}
+
+.mensaje-error i {
+  font-size: 20px;
+  color: var(--estado-alerta-texto);
+}
+
+.titulo-error {
+  font-weight: 600;
+}
+
+.pista-error {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+/* Estado vacío */
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.circulo-icono {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: var(--radio-pildora);
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+  font-size: 22px;
+}
+
+.titulo-vacio {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.texto-vacio {
+  max-width: 320px;
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+/* Próximas reservas */
+.lista-reservas {
+  list-style: none;
+}
+
+.fila-reserva {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.fila-reserva:last-child {
+  border-bottom: none;
+}
+
+.caja-fecha {
+  width: 48px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 0;
+  border-radius: var(--radio-control);
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+}
+
+.dia-fecha {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.mes-fecha {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.titulo-reserva {
+  font-weight: 600;
+}
+
+.franja-reserva {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+/* Estado de la conexión */
+.cuerpo-conexion {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  padding: 20px;
+}
+
+.filas-servicio {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fila-servicio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nombre-servicio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.nombre-servicio i {
+  width: 18px;
+  color: var(--verde-bosque);
+  text-align: center;
+}
+
+.datos-conexion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 24px;
+  border-left: 1px solid var(--borde-suave);
+}
+
+.dato-conexion {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.dato-conexion dt {
+  color: var(--texto-secundario);
+}
+
+.dato-conexion dd {
+  overflow-wrap: anywhere;
+}
