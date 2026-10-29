@@ -2,6 +2,7 @@ package co.edu.unbosque;
 
 import co.edu.unbosque.config.ConexionBD;
 import co.edu.unbosque.controller.CasaController;
+import co.edu.unbosque.controller.PersonaController;
 import io.javalin.Javalin;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
@@ -16,6 +17,7 @@ public class App {
 
     public static void main(String[] args) {
         CasaController casaController = new CasaController();
+        PersonaController pController = new PersonaController();
 
         Javalin.create(config -> {
             config.registerPlugin(new OpenApiPlugin(openApi -> {}));
@@ -36,13 +38,19 @@ public class App {
                 }
             });
 
-            //---------------------------------------- Casa -----------------
+            //------------------------------ Casa ----------------------------
             config.routes.get("/api/casas", ctx -> casaController.listar(ctx));
-
             config.routes.exception(SQLException.class, (e, conx) ->
                     conx.status(500).json(Map.of(
                             "error", "Error en la consulta de la BD",
                             "Descripcion", e.getMessage())));
+            
+            //----------------------------- Persona --------------------------
+            config.routes.get("/api/personas", ctx -> pController.listar(ctx));
+            config.routes.exception(SQLException.class, (e, conx)->
+            		conx.status(500).json(Map.of(
+            				"error", "Error en la consulta de la BD", "Descripcion", e.getMessage()))); 
+            
         }).start(8080);
     }
 }
