@@ -70,13 +70,27 @@ public class App {
                 }
             });
 
-            //------------------------------ Casa ----------------------------
-            config.routes.get("/api/casas", ctx -> casaController.listar(ctx));
-            config.routes.exception(SQLException.class, (e, conx) ->
+            //------------------------------ Manejo de errores de BD ----------------------------
+            config.routes.exception(SQLException.class, (e, conx) -> {
+                String estado = e.getSQLState();
+                if ("23505".equals(estado)) {
+                    conx.status(409).json(Map.of("error", "Ya existe un registro con esa llave"));
+                } else if ("23503".equals(estado)) {
+                    conx.status(409).json(Map.of("error", "Operación no permitida: hay datos relacionados"));
+                } else {
                     conx.status(500).json(Map.of(
                             "error", "Error en la consulta de la BD",
-                            "Descripcion", e.getMessage())));
-            
+                            "Descripcion", e.getMessage()));
+                }
+            });
+
+            //------------------------------ Casa ----------------------------
+            config.routes.get("/api/casas", ctx -> casaController.listar(ctx));
+            config.routes.post("/api/casas", ctx -> casaController.crear(ctx));
+            config.routes.put("/api/casas/{manzana}/{numero}", ctx -> casaController.actualizar(ctx));
+            config.routes.delete("/api/casas/{manzana}/{numero}", ctx -> casaController.eliminar(ctx));
+
+       
             //----------------------------- Persona --------------------------
             config.routes.get("/api/personas", ctx -> pController.listar(ctx));
             config.routes.exception(SQLException.class, (e, conx)->
