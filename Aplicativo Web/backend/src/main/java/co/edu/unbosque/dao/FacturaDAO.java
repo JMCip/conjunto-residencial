@@ -12,13 +12,20 @@ import java.util.List;
 public class FacturaDAO {
 	
 	private static final String LISTAR = """
-			SELECT f.numero_factura, f.periodo, f.fecha_emision, f.fecha_vencimiento, f.estado, f.total,
+			SELECT f.numero_factura, f.periodo, f.fecha_emision, f.fecha_vencimiento, f.estado,
+			       COALESCE(t.total, 0) AS total,
 			       f.casa_numero, f.casa_manzana,
-			       COALESCE(SUM(p.valor), 0) AS total_pagado,
-			       f.total - COALESCE(SUM(p.valor), 0) AS saldo
+			       COALESCE(p.pagado, 0) AS total_pagado,
+			       COALESCE(t.total, 0) - COALESCE(p.pagado, 0) AS saldo
 			FROM factura f
-			LEFT JOIN pago p ON p.factura_numero_factura = f.numero_factura
-			GROUP BY f.numero_factura
+			LEFT JOIN (SELECT factura_numero_factura, SUM(valor) AS total
+			           FROM detalle_factura
+			           GROUP BY factura_numero_factura) t
+			       ON t.factura_numero_factura = f.numero_factura
+			LEFT JOIN (SELECT factura_numero_factura, SUM(valor) AS pagado
+			           FROM pago
+			           GROUP BY factura_numero_factura) p
+			       ON p.factura_numero_factura = f.numero_factura
 			ORDER BY f.periodo, f.casa_manzana, f.casa_numero
 			""";
 	

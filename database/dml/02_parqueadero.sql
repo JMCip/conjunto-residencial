@@ -14,32 +14,38 @@ INSERT INTO vehiculo (placa, marca, modelo, tipo, persona_tipo_documento, person
 ('STU234', 'Nissan',    2018, 'CARRO', 'CC', '1141414141'),
 ('VWX567', 'Hyundai',   2023, 'CARRO', 'CC', '1181818181');
 
--- CELDA_PARQUEADERO
+-- CELDA_PARQUEADERO (estado: OCUPADA si tiene un parqueo abierto)
 INSERT INTO celda_parqueadero (tipo, estado) VALUES
-('CARRO',     'ASIGNADA'),
-('CARRO',     'ASIGNADA'),
-('CARRO',     'ASIGNADA'),
-('CARRO',     'ASIGNADA'),
-('CARRO',     'ASIGNADA'),
-('CARRO',     'ASIGNADA'),
-('CARRO',     'DISPONIBLE'),
-('MOTO',      'ASIGNADA'),
-('MOTO',      'ASIGNADA'),
-('VISITANTE', 'DISPONIBLE'),
-('VISITANTE', 'DISPONIBLE'),
-('VISITANTE', 'DISPONIBLE');
+('PROPIA',    'OCUPADA'),     -- 1
+('PROPIA',    'DESOCUPADA'),  -- 2
+('PROPIA',    'OCUPADA'),     -- 3
+('PROPIA',    'OCUPADA'),     -- 4
+('PROPIA',    'DESOCUPADA'),  -- 5
+('PROPIA',    'DESOCUPADA'),  -- 6
+('PROPIA',    'DESOCUPADA'),  -- 7
+('PROPIA',    'OCUPADA'),     -- 8
+('PROPIA',    'DESOCUPADA'),  -- 9
+('VISITANTE', 'DESOCUPADA'),  -- 10
+('VISITANTE', 'OCUPADA'),     -- 11
+('VISITANTE', 'DESOCUPADA'),  -- 12
+('PROPIA',    'DESOCUPADA'),  -- 13
+('ADICIONAL', 'DESOCUPADA'),  -- 14
+('ADICIONAL', 'DESOCUPADA');  -- 15 (libre, se puede solicitar)
 
 -- ASIGNACION_CELDA
 INSERT INTO asignacion_celda (fecha_inicio, fecha_fin, casa_numero, casa_manzana, celda_parqueadero_id_celda) VALUES
-('2015-04-01', NULL,         1, 1, 1),
-('2016-08-01', NULL,         2, 1, 2),
-('2015-01-01', NULL,         4, 1, 3),
-('2023-02-05', NULL,         5, 1, 4),
-('2019-10-01', NULL,         1, 2, 5),
-('2025-06-05', NULL,         4, 2, 6),
-('2016-04-10', '2024-06-30', 3, 2, 7),
-('2024-01-20', NULL,         3, 1, 8),
-('2024-07-05', NULL,         3, 2, 9);
+('2015-04-01', NULL,         1, 1, 1),   -- 1
+('2016-08-01', NULL,         2, 1, 2),   -- 2
+('2015-01-01', NULL,         4, 1, 3),   -- 3
+('2023-02-05', NULL,         5, 1, 4),   -- 4
+('2019-10-01', NULL,         1, 2, 5),   -- 5
+('2025-06-05', NULL,         4, 2, 6),   -- 6
+('2016-04-10', '2024-06-30', 3, 2, 7),   -- 7 (historial: propia anterior de 3/2)
+('2024-01-20', NULL,         3, 1, 8),   -- 8
+('2024-07-05', NULL,         3, 2, 9),   -- 9
+('2015-03-01', NULL,         2, 2, 13),  -- 10 propia de 2/2
+('2024-07-10', NULL,         5, 2, 7),   -- 11 propia de 5/2
+('2026-01-01', NULL,         1, 1, 14);  -- 12 adicional de 1/1
 
 -- PARQUEO
 INSERT INTO parqueo (fecha_hora_entrada, fecha_hora_salida, vehiculo_placa, celda_parqueadero_id_celda) VALUES

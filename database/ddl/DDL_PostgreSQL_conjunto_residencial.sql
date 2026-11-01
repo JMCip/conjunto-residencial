@@ -183,7 +183,6 @@ CREATE TABLE factura (
     estado                VARCHAR(20)  NOT NULL,
     periodo               VARCHAR(10)  NOT NULL,
     fecha_emision         DATE  NOT NULL,
-    total                 NUMERIC(12,2),
     casa_numero           NUMERIC  NOT NULL,
     casa_manzana          NUMERIC  NOT NULL,
     CONSTRAINT factura_pk PRIMARY KEY (numero_factura)

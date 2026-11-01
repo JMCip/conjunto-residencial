@@ -77,13 +77,14 @@ public class App {
                     conx.status(409).json(Map.of("error", "Ya existe un registro con esa llave"));
                 } else if ("23503".equals(estado)) {
                     conx.status(409).json(Map.of("error", "Operación no permitida: hay datos relacionados"));
+                } else if ("23514".equals(estado)) {
+                    conx.status(400).json(Map.of("error", "El dato no cumple una regla de la base de datos"));
                 } else {
                     conx.status(500).json(Map.of(
                             "error", "Error en la consulta de la BD",
                             "Descripcion", e.getMessage()));
                 }
             });
-
             //------------------------------ Casa ----------------------------
             config.routes.get("/api/casas", ctx -> casaController.listar(ctx));
             config.routes.post("/api/casas", ctx -> casaController.crear(ctx));
@@ -93,9 +94,6 @@ public class App {
        
             //----------------------------- Persona --------------------------
             config.routes.get("/api/personas", ctx -> pController.listar(ctx));
-            config.routes.exception(SQLException.class, (e, conx)->
-            		conx.status(500).json(Map.of(
-            				"error", "Error en la consulta de la BD", "Descripcion", e.getMessage()))); 
             
             //----------------------------- Roles de persona --------------------------
             config.routes.get("/api/propietarios", ctx -> rolController.listarPropietarios(ctx));
