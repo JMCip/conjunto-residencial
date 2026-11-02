@@ -104,6 +104,10 @@ public class App {
 
 	        //----------------------------- Persona --------------------------
 	        config.routes.get("/api/personas", ctx -> pController.listar(ctx));
+	        config.routes.get("/api/personas/{tipoDocumento}/{numeroDocumento}", ctx -> pController.consultar(ctx));
+	        config.routes.post("/api/personas", ctx -> pController.crear(ctx));
+	        config.routes.put("/api/personas/{tipoDocumento}/{numeroDocumento}", ctx -> pController.actualizar(ctx));
+	        config.routes.delete("/api/personas/{tipoDocumento}/{numeroDocumento}", ctx -> pController.eliminar(ctx));
 
 	        //----------------------------- Roles de persona --------------------------
 	        config.routes.get("/api/propietarios", ctx -> rolController.listarPropietarios(ctx));

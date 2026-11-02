@@ -41,4 +41,82 @@ public class PersonaDAO {
 				rs.getString("segundo_apellido")			
 				);
 	}
+	
+	private static final String BUSCAR = """
+			SELECT tipo_documento, numero_documento, correo, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido
+			FROM persona
+			WHERE tipo_documento = ?
+			AND numero_documento = ?
+			""";
+
+	public Persona buscar(String tipoDoc, String numeroDoc) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(BUSCAR)) {
+			ps.setString(1, tipoDoc);
+			ps.setString(2, numeroDoc);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() ? mapear(rs) : null;
+			}
+		}
+	}
+
+	private static final String INSERTAR = """
+			INSERT INTO persona (tipo_documento, numero_documento, correo, primer_nombre, segundo_nombre, primer_apellido, segundo_apellido)
+			VALUES (?, ?, ?, ?, ?, ?, ?)
+			""";
+
+	public void insertar(Persona p) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(INSERTAR)) {
+			ps.setString(1, p.getTipoDocumento());
+			ps.setString(2, p.getNumeroDocumento());
+			ps.setString(3, p.getCorreo());
+			ps.setString(4, p.getPrimerNombre());
+			ps.setString(5, p.getSegunoNombre());
+			ps.setString(6, p.getPrimerApellido());
+			ps.setString(7, p.getSegundoApellido());
+			ps.executeUpdate();
+		}
+	}
+
+	private static final String ACTUALIZAR = """
+			UPDATE persona
+			SET correo = ?,
+			    primer_nombre = ?,
+			    segundo_nombre = ?,
+			    primer_apellido = ?,
+			    segundo_apellido = ?
+			WHERE tipo_documento = ?
+			AND numero_documento = ?
+			""";
+
+	public boolean actualizar(Persona p) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(ACTUALIZAR)) {
+			ps.setString(1, p.getCorreo());
+			ps.setString(2, p.getPrimerNombre());
+			ps.setString(3, p.getSegunoNombre());
+			ps.setString(4, p.getPrimerApellido());
+			ps.setString(5, p.getSegundoApellido());
+			ps.setString(6, p.getTipoDocumento());
+			ps.setString(7, p.getNumeroDocumento());
+			return ps.executeUpdate() > 0;
+		}
+	}
+
+	private static final String ELIMINAR = """
+			DELETE FROM persona
+			WHERE tipo_documento = ?
+			AND numero_documento = ?
+			""";
+
+	public boolean eliminar(String tipoDoc, String numeroDoc) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(ELIMINAR)) {
+			ps.setString(1, tipoDoc);
+			ps.setString(2, numeroDoc);
+			return ps.executeUpdate() > 0;
+		}
+	}
+	
 }
