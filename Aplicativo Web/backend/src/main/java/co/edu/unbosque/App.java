@@ -145,6 +145,10 @@ public class App {
 	        config.routes.put("/api/arriendos/{id}", ctx -> arriendoController.actualizar(ctx));
 	        config.routes.delete("/api/arriendos/{id}", ctx -> arriendoController.eliminar(ctx));
 	        config.routes.get("/api/residencias", ctx -> residenciaController.listar(ctx));
+	        config.routes.get("/api/residencias/{id}", ctx -> residenciaController.consultar(ctx));
+	        config.routes.post("/api/residencias", ctx -> residenciaController.crear(ctx));
+	        config.routes.put("/api/residencias/{id}", ctx -> residenciaController.actualizar(ctx));
+	        config.routes.delete("/api/residencias/{id}", ctx -> residenciaController.eliminar(ctx));
 	        config.routes.get("/api/visitas", ctx -> visitaController.listar(ctx));
 	        config.routes.get("/api/visitas/{id}", ctx -> visitaController.consultar(ctx));
 	        config.routes.post("/api/visitas", ctx -> visitaController.crear(ctx));
@@ -167,12 +171,15 @@ public class App {
 	        config.routes.get("/api/conceptos", ctx -> conceptoCobroController.listar(ctx));
 	        
 
-	      
+	        config.routes.get("/api/facturas", ctx -> facturaController.listar(ctx));
+	        config.routes.post("/api/facturas", ctx -> facturaController.crear(ctx));
+	        config.routes.post("/api/facturas/marcar-vencidas", ctx -> facturaController.marcarVencidas(ctx));
+	        config.routes.put("/api/facturas/{id}", ctx -> facturaController.actualizar(ctx));
+	        config.routes.delete("/api/facturas/{id}", ctx -> facturaController.eliminar(ctx));
 	        
 	        
 	        config.routes.get("/api/detalles-factura", ctx -> detalleFacturaController.listar(ctx));
 	        config.routes.get("/api/pagos", ctx -> pagoController.listar(ctx));
-	        
 	        
 	    }).start(8080);
 	}
