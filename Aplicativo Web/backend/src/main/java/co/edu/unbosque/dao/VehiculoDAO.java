@@ -40,4 +40,75 @@ public class VehiculoDAO {
 				rs.getString("persona_numero_documento")
 				);
 	}
+	
+	private static final String BUSCAR = """
+			SELECT placa, marca, modelo, tipo, persona_tipo_documento, persona_numero_documento
+			FROM vehiculo
+			WHERE placa = ?
+			""";
+
+	public Vehiculo buscar(String placa) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(BUSCAR)) {
+			ps.setString(1, placa);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() ? mapear(rs) : null;
+			}
+		}
+	}
+
+	private static final String INSERTAR = """
+			INSERT INTO vehiculo (placa, marca, modelo, tipo, persona_tipo_documento, persona_numero_documento)
+			VALUES (?, ?, ?, ?, ?, ?)
+			""";
+
+	public void insertar(Vehiculo v) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(INSERTAR)) {
+			ps.setString(1, v.getPlaca());
+			ps.setString(2, v.getMarca());
+			ps.setObject(3, v.getModelo());
+			ps.setString(4, v.getTipo());
+			ps.setString(5, v.getPersonaTipoDocumento());
+			ps.setString(6, v.getPersonaNumeroDocumento());
+			ps.executeUpdate();
+		}
+	}
+
+	private static final String ACTUALIZAR = """
+			UPDATE vehiculo
+			SET marca = ?,
+			    modelo = ?,
+			    tipo = ?,
+			    persona_tipo_documento = ?,
+			    persona_numero_documento = ?
+			WHERE placa = ?
+			""";
+
+	public boolean actualizar(Vehiculo v) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(ACTUALIZAR)) {
+			ps.setString(1, v.getMarca());
+			ps.setObject(2, v.getModelo());
+			ps.setString(3, v.getTipo());
+			ps.setString(4, v.getPersonaTipoDocumento());
+			ps.setString(5, v.getPersonaNumeroDocumento());
+			ps.setString(6, v.getPlaca());
+			return ps.executeUpdate() > 0;
+		}
+	}
+
+	private static final String ELIMINAR = """
+			DELETE FROM vehiculo
+			WHERE placa = ?
+			""";
+
+	public boolean eliminar(String placa) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(ELIMINAR)) {
+			ps.setString(1, placa);
+			return ps.executeUpdate() > 0;
+		}
+	}
+	
 }
