@@ -183,6 +183,10 @@ public class App {
 	        
 	        
 	        config.routes.get("/api/detalles-factura", ctx -> detalleFacturaController.listar(ctx));
+	        config.routes.post("/api/detalles-factura", ctx -> detalleFacturaController.crear(ctx));
+	        config.routes.put("/api/detalles-factura/{factura}/{linea}", ctx -> detalleFacturaController.actualizar(ctx));
+	        config.routes.delete("/api/detalles-factura/{factura}/{linea}", ctx -> detalleFacturaController.eliminar(ctx));
+	        
 	        config.routes.get("/api/pagos", ctx -> pagoController.listar(ctx));
 	        
 	    }).start(8080);

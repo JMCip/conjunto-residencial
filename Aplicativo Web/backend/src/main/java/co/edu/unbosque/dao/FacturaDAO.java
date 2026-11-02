@@ -15,7 +15,11 @@ public class FacturaDAO {
 
 
 	private static final String LISTAR = """
-			SELECT f.numero_factura, f.periodo, f.fecha_emision, f.fecha_vencimiento, f.estado,
+			SELECT f.numero_factura, 
+					f.periodo, 
+					f.fecha_emision, 
+					f.fecha_vencimiento, 
+					f.estado,
 			       COALESCE(t.total, 0) AS total,
 			       f.casa_numero, f.casa_manzana,
 			       COALESCE(p.pagado, 0) AS total_pagado,
