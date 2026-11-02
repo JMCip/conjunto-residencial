@@ -135,6 +135,10 @@ public class App {
 
 	        //----------------------------- Casas --------------------------
 	        config.routes.get("/api/posesiones", ctx -> posesionController.listar(ctx));
+	        config.routes.get("/api/posesiones/{id}", ctx -> posesionController.consultar(ctx));
+	        config.routes.post("/api/posesiones", ctx -> posesionController.crear(ctx));
+	        config.routes.put("/api/posesiones/{id}", ctx -> posesionController.actualizar(ctx));
+	        config.routes.delete("/api/posesiones/{id}", ctx -> posesionController.eliminar(ctx));
 	        config.routes.get("/api/arriendos", ctx -> arriendoController.listar(ctx));
 	        config.routes.get("/api/residencias", ctx -> residenciaController.listar(ctx));
 	        config.routes.get("/api/visitas", ctx -> visitaController.listar(ctx));
