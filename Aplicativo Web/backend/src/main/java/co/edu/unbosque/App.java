@@ -146,6 +146,10 @@ public class App {
 	        config.routes.delete("/api/arriendos/{id}", ctx -> arriendoController.eliminar(ctx));
 	        config.routes.get("/api/residencias", ctx -> residenciaController.listar(ctx));
 	        config.routes.get("/api/visitas", ctx -> visitaController.listar(ctx));
+	        config.routes.get("/api/visitas/{id}", ctx -> visitaController.consultar(ctx));
+	        config.routes.post("/api/visitas", ctx -> visitaController.crear(ctx));
+	        config.routes.put("/api/visitas/{id}", ctx -> visitaController.actualizar(ctx));
+	        config.routes.delete("/api/visitas/{id}", ctx -> visitaController.eliminar(ctx));
 
 	        //----------------------------- Salón comunal --------------------------
 	        config.routes.get("/api/reservas", ctx -> reservaSalonController.listar(ctx));
