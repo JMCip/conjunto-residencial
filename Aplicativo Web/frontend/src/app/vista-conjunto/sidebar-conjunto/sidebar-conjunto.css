@@ -4,6 +4,7 @@
 }
 
 .barra-lateral {
+  position: relative; /* referencia del botón de colapsar, que sobresale por el borde */
   width: var(--sidebar-ancho);
   height: 100vh;
   flex-shrink: 0;
@@ -14,7 +15,6 @@
   background: var(--verde-bosque);
   color: var(--bg-tarjeta); /* blanco */
   transition: width 0.2s ease;
-  overflow: hidden;
 }
 
 .barra-lateral.colapsada {
@@ -30,8 +30,7 @@
 }
 
 .colapsada .cabecera-sidebar {
-  flex-direction: column;
-  gap: 8px;
+  justify-content: center;
 }
 
 .logo {
@@ -49,6 +48,7 @@
 .marca {
   flex: 1;
   min-width: 0;
+  overflow: hidden; /* durante la animación de colapsar, el texto no se sale */
   white-space: nowrap;
 }
 
@@ -62,19 +62,34 @@
   color: var(--texto-sidebar-tenue);
 }
 
+/* Botón circular sobre el borde derecho, centrado con el logo: no le quita espacio al nombre */
 .boton-colapsar {
-  width: 44px;
-  height: 44px;
-  flex-shrink: 0;
-  border: none;
-  border-radius: var(--radio-control);
-  background: transparent;
-  color: var(--texto-sidebar);
+  position: absolute;
+  top: 26px;
+  right: -14px;
+  z-index: 10;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-pildora);
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+  box-shadow: var(--sombra-suave);
+  font-size: 12px;
   cursor: pointer;
 }
 
+/* Área de clic de 44 × 44 alrededor del círculo */
+.boton-colapsar::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
 .boton-colapsar:hover {
-  background: var(--sidebar-hover);
+  background: var(--verde-claro);
 }
 
 /* Navegación */
@@ -156,6 +171,7 @@
   padding: 14px;
   border-radius: var(--radio-icono);
   background: var(--sidebar-hover);
+  overflow: hidden; /* durante la animación de colapsar, el texto no se sale */
 }
 
 .punto-estado {
