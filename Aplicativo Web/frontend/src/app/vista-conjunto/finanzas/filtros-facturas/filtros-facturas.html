@@ -1,0 +1,35 @@
+<div class="controles-tabla">
+  <div class="control-segmentado" role="group" aria-label="Filtrar por estado">
+    @for (opcion of opcionesFiltro; track opcion.valor) {
+      <button
+        type="button"
+        class="boton-segmento"
+        [class.activo]="filtroEstado() === opcion.valor"
+        [attr.aria-pressed]="filtroEstado() === opcion.valor"
+        (click)="cambiarFiltro.emit(opcion.valor)"
+      >
+        {{ opcion.texto }}
+        @if (!cargando()) {
+          <span class="conteo-segmento num">{{ conteos()[opcion.valor] }}</span>
+        }
+      </button>
+    }
+  </div>
+
+  <div class="campo-busqueda">
+    <label for="buscar-factura" class="etiqueta-campo">Buscar</label>
+    <div class="envoltura-input">
+      <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+      <input
+        #campo
+        id="buscar-factura"
+        type="search"
+        class="input-busqueda"
+        placeholder="Casa, número o periodo"
+        autocomplete="off"
+        [value]="busqueda()"
+        (input)="buscar.emit(campo.value)"
+      />
+    </div>
+  </div>
+</div>

@@ -1,0 +1,35 @@
+<div class="superposicion-modal animate__animated animate__fadeIn animate__faster">
+  <div
+    class="caja-dialogo"
+    role="alertdialog"
+    aria-modal="true"
+    aria-labelledby="titulo-dialogo"
+    aria-describedby="mensaje-dialogo"
+  >
+    <span class="circulo-icono" aria-hidden="true">
+      <i class="fa-solid fa-trash-can"></i>
+    </span>
+    <h2 id="titulo-dialogo" class="titulo-dialogo">{{ titulo() }}</h2>
+    <p id="mensaje-dialogo" class="mensaje-dialogo">{{ mensaje() }}</p>
+
+    <div class="acciones-dialogo">
+      <button
+        #cancelarBtn
+        type="button"
+        class="boton-secundario"
+        [disabled]="procesando()"
+        (click)="cancelar.emit()"
+      >
+        Cancelar
+      </button>
+      <button
+        type="button"
+        class="boton-peligro"
+        [disabled]="procesando()"
+        (click)="confirmar.emit()"
+      >
+        {{ procesando() ? 'Eliminando…' : textoConfirmar() }}
+      </button>
+    </div>
+  </div>
+</div>

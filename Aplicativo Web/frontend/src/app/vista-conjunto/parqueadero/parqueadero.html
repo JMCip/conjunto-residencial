@@ -1,10 +1,23 @@
 <header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
   <h1 class="titulo-pagina">Parqueadero</h1>
-  <p class="descripcion-pagina">Parqueaderos del conjunto y su asignación a cada casa.</p>
+  <p class="descripcion-pagina">
+    Vehículos de los residentes, celdas del parqueadero, a qué casa está asignada cada una y
+    las entradas y salidas.
+  </p>
 </header>
 
-<app-modulo-pendiente
-  modulo="Parqueadero"
-  descripcion="los parqueaderos de carros, motos y visitantes, y a qué casa está asignado cada uno"
-  (irA)="irA.emit($event)"
-/>
+<nav class="control-segmentado" aria-label="Pestañas de Parqueadero">
+  @for (p of pestanas; track p.ruta) {
+    <a
+      class="boton-segmento"
+      [routerLink]="p.ruta"
+      routerLinkActive="activo"
+      ariaCurrentWhenActive="page"
+    >
+      <i class="fa-solid" [class]="p.icono" aria-hidden="true"></i>
+      {{ p.texto }}
+    </a>
+  }
+</nav>
+
+<router-outlet />

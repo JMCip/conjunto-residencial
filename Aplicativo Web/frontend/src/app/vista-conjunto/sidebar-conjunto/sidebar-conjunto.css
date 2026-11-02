@@ -1,4 +1,4 @@
-/* El host no crea caja propia: el <aside> participa directo en el flex del contenedor */
+
 :host {
   display: contents;
 }
@@ -22,7 +22,7 @@
   padding: 20px 12px;
 }
 
-/* Cabecera: logo + marca + botón para colapsar */
+
 .cabecera-sidebar {
   display: flex;
   align-items: center;
@@ -119,6 +119,7 @@
   color: var(--texto-sidebar);
   font-size: 15px;
   text-align: left;
+  text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
 }
@@ -140,14 +141,14 @@
   text-align: center;
 }
 
-/* Foco visible sobre fondo oscuro: el menta es el único verde que contrasta aquí */
+
 .boton-colapsar:focus-visible,
 .item-nav:focus-visible {
   outline: 2px solid var(--verde-menta);
   outline-offset: 1px;
 }
 
-/* Pie con el estado de la base */
+
 .pie-sidebar {
   display: flex;
   align-items: flex-start;
@@ -188,7 +189,7 @@
   color: var(--texto-sidebar-tenue);
 }
 
-/* Colapsado: solo íconos centrados */
+
 .colapsada .marca,
 .colapsada .etiqueta-seccion,
 .colapsada .texto-item,

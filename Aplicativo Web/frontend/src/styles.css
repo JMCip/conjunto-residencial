@@ -1,4 +1,4 @@
-/* Estilos globales del Conjunto Residencial — "Verde parque" (ver DESIGN.md) */
+/* Estilos globales del Conjunto Residencial */
 
 :root {
   /* Marca */
@@ -39,6 +39,7 @@
   --radio-control: 8px;
   --radio-pildora: 9999px;
   --sombra-suave: 0 1px 2px rgba(0, 0, 0, 0.12);
+  --fondo-modal: rgba(27, 36, 32, 0.45); /* --texto con transparencia, detrás de modales */
 
   /* Layout */
   --sidebar-ancho: 260px;
@@ -46,7 +47,7 @@
   --topbar-alto: 64px;
   --contenido-max: 1280px;
 
-  /* Extras: valores que DESIGN.md usa en línea, convertidos en variables */
+
   --punto-sin-conexion: #f2a48f;
   --sidebar-hover: rgba(255, 255, 255, 0.08);
   --sidebar-activo: rgba(255, 255, 255, 0.14);
@@ -67,10 +68,10 @@ body {
   color: var(--texto);
   font-family: var(--fuente);
   font-size: 15px;
-  overflow: hidden; /* el scroll lo hace solo la zona de contenido */
+  overflow: hidden; /* el scroll solo para la zona de contenido */
 }
 
-/* Botones e inputs heredan la fuente (el navegador les pone otra por defecto) */
+/* Botones e inputs */
 button,
 input,
 select {

@@ -1,0 +1,60 @@
+<section class="rejilla-metricas" aria-label="Totales de facturación">
+  <article class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster">
+    <p class="etiqueta-metrica">Total facturado</p>
+    @if (cargando()) {
+      <span class="esqueleto esqueleto-cifra"></span>
+      <span class="esqueleto esqueleto-texto"></span>
+    } @else {
+      <p class="cifra-metrica num">
+        {{ totalFacturado() | currency: 'COP' : 'symbol' : '1.0-0' }}
+      </p>
+      <p class="contexto-metrica">{{ facturas().length }} facturas en total</p>
+    }
+  </article>
+
+  <article
+    class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster"
+    style="animation-delay: 0.05s"
+  >
+    <p class="etiqueta-metrica">Recaudado</p>
+    @if (cargando()) {
+      <span class="esqueleto esqueleto-cifra"></span>
+      <span class="esqueleto esqueleto-texto"></span>
+    } @else {
+      <p class="cifra-metrica num">
+        {{ totalRecaudado() | currency: 'COP' : 'symbol' : '1.0-0' }}
+      </p>
+      <div
+        class="barra-progreso"
+        role="progressbar"
+        aria-label="Porcentaje recaudado"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        [attr.aria-valuenow]="porcentajeRecaudado()"
+      >
+        <span class="relleno-progreso" [style.width.%]="porcentajeRecaudado()"></span>
+      </div>
+      <p class="contexto-metrica contexto-positivo num">
+        {{ porcentajeRecaudado() }} % del total facturado
+      </p>
+    }
+  </article>
+
+  <article
+    class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster"
+    style="animation-delay: 0.1s"
+  >
+    <p class="etiqueta-metrica">Cartera pendiente</p>
+    @if (cargando()) {
+      <span class="esqueleto esqueleto-cifra"></span>
+      <span class="esqueleto esqueleto-texto"></span>
+    } @else {
+      <p class="cifra-metrica num">
+        {{ totalPendiente() | currency: 'COP' : 'symbol' : '1.0-0' }}
+      </p>
+      <p class="contexto-metrica" [class.contexto-atencion]="totalPendiente() > 0">
+        {{ pendientes() }} pendientes · {{ vencidas() }} vencidas
+      </p>
+    }
+  </article>
+</section>

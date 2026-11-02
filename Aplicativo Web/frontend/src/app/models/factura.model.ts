@@ -1,11 +1,30 @@
-/** Factura de administración de una casa (provisional hasta tener el Modelo Relacional). */
+/** Estados posibles de una factura (valores que usa la base). */
+export type EstadoFactura = 'PAGADA' | 'PENDIENTE' | 'VENCIDA' | 'ABONADA';
+
+
 export interface FacturaModel {
-  id: number;
-  numero: string;
-  idCasa: number;
-  casa: string;
+  numeroFactura: number;
   periodo: string;
-  valor: number;
+  fechaEmision: string;
   fechaVencimiento: string;
-  estado: 'PAGADA' | 'PENDIENTE' | 'VENCIDA';
+  estado: EstadoFactura;
+  total: number | null;
+  casaNumero: number;
+  casaManzana: number;
+  totalPagado: number;
+  saldo: number | null;
 }
+
+export const ETIQUETA_FACTURA: Record<EstadoFactura, string> = {
+  PAGADA: 'Pagada',
+  PENDIENTE: 'Pendiente',
+  VENCIDA: 'Vencida',
+  ABONADA: 'Abonada',
+};
+
+export const ESTILO_FACTURA: Record<EstadoFactura, 'ok' | 'pendiente' | 'alerta'> = {
+  PAGADA: 'ok',
+  PENDIENTE: 'pendiente',
+  VENCIDA: 'alerta',
+  ABONADA: 'pendiente',
+};

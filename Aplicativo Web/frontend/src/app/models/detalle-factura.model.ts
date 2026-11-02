@@ -1,7 +1,9 @@
-/** Línea de una factura: un concepto cobrado (provisional hasta tener el Modelo Relacional). */
 export interface DetalleFacturaModel {
-  id: number;
-  idFactura: number;
-  concepto: string;
+  numeroFactura: number;
+  numeroLinea: number;
+  idConcepto: number;
   valor: number;
+  idAsignacion: number | null;
+  idReserva: number | null;
+  idSancion: number | null;
 }

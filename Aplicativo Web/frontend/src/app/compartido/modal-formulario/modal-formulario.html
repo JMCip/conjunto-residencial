@@ -1,0 +1,43 @@
+<div class="superposicion-modal animate__animated animate__fadeIn animate__faster">
+  <div class="caja-modal" role="dialog" aria-modal="true" aria-labelledby="titulo-modal">
+    <div class="cabecera-modal">
+      <h2 id="titulo-modal" class="titulo-modal">{{ titulo() }}</h2>
+      <button
+        type="button"
+        class="boton-cerrar"
+        aria-label="Cerrar"
+        [disabled]="guardando()"
+        (click)="cerrar.emit()"
+      >
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+      </button>
+    </div>
+
+    <form class="formulario-modal" novalidate (submit)="enviar($event)">
+      <div class="cuerpo-modal">
+        <ng-content />
+      </div>
+
+      @if (error()) {
+        <p class="error-formulario" role="alert">
+          <i class="fa-solid fa-circle-exclamation" aria-hidden="true"></i>
+          {{ error() }}
+        </p>
+      }
+
+      <div class="pie-modal">
+        <button
+          type="button"
+          class="boton-secundario"
+          [disabled]="guardando()"
+          (click)="cerrar.emit()"
+        >
+          Cancelar
+        </button>
+        <button type="submit" class="boton-primario" [disabled]="guardando()">
+          {{ guardando() ? 'Guardando…' : textoGuardar() }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

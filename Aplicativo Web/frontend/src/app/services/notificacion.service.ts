@@ -4,10 +4,7 @@ import { NotificacionModel, TipoNotificacion } from '../models/notificacion.mode
 /** Milisegundos que un aviso permanece en pantalla antes de quitarse solo. */
 const DURACION_MS = 5000;
 
-/**
- * Servicio de avisos flotantes (reemplaza a ngx-toastr).
- * Guarda los avisos en un signal; el componente Notificaciones los dibuja.
- */
+
 @Injectable({ providedIn: 'root' })
 export class NotificacionService {
   /** Lista interna de avisos visibles. Solo este servicio la modifica. */

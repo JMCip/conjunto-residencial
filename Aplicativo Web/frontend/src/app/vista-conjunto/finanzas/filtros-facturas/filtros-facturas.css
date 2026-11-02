@@ -1,0 +1,95 @@
+:host {
+  display: block;
+}
+
+.controles-tabla {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+
+.control-segmentado {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radio-icono);
+  background: var(--bg-app);
+}
+
+.boton-segmento {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radio-control);
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-segmento:hover {
+  color: var(--texto);
+}
+
+.boton-segmento.activo {
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+  box-shadow: var(--sombra-suave);
+}
+
+.conteo-segmento {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--texto-secundario);
+}
+
+
+.campo-busqueda {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.etiqueta-campo {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.envoltura-input {
+  position: relative;
+}
+
+.icono-input {
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  transform: translateY(-50%);
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.input-busqueda {
+  width: 260px;
+  padding: 10px 14px 10px 38px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background: var(--bg-tarjeta);
+  font-size: 15px;
+}
+
+.input-busqueda::placeholder {
+  color: var(--texto-secundario);
+}
+
+
+.input-busqueda:focus-visible,
+.boton-segmento:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+}

@@ -1,0 +1,178 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-visitas"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-visitas" class="titulo-tarjeta">Visitas</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-visita" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-visita"
+            type="search"
+            class="input-busqueda"
+            placeholder="Casa o visitante"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva visita
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarVisitas()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (visitasFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-door-open"></i>
+      </span>
+      @if (visitas().length === 0) {
+        <p class="titulo-vacio">Todavía no hay visitas registradas</p>
+        <p class="texto-vacio">Registra la primera con el botón "Nueva visita".</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otra casa o con otro visitante.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todas las visitas
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Casa</th>
+            <th scope="col">Visitante</th>
+            <th scope="col">Entrada</th>
+            <th scope="col">Salida</th>
+            <th scope="col" class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of visitasFiltradas(); track r.idVisita) {
+            <tr>
+              <td class="col-principal">{{ nombreCasa(r.casaManzana, r.casaNumero) }}</td>
+              <td>{{ visitante(r) }}</td>
+              <td class="num">{{ r.fechaEntrada | date: 'dd/MM/y' }}</td>
+              <td class="num">
+                @if (r.fechaSalida) {
+                  {{ r.fechaSalida | date: 'dd/MM/y' }}
+                } @else {
+                  <span class="insignia-estado insignia-ok">En curso</span>
+                }
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Editar visita de ' + visitante(r)"
+                  title="Editar"
+                  (click)="abrirModalEditar(r)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  [attr.aria-label]="'Eliminar visita de ' + visitante(r)"
+                  title="Eliminar"
+                  (click)="pedirEliminar(r)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modoModal(); as modo) {
+  <app-modal-formulario
+    [titulo]="modo === 'crear' ? 'Nueva visita' : 'Editar visita'"
+    [textoGuardar]="modo === 'crear' ? 'Registrar visita' : 'Guardar cambios'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="campo-casa" class="etiqueta-campo">Casa</label>
+      <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
+        <option value="" disabled>Elige una casa</option>
+        @for (c of casas(); track c.manzana + '-' + c.numero) {
+          <option [value]="llaveCasa(c.manzana, c.numero)">
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="campo-visitante" class="etiqueta-campo">Visitante</label>
+      <select id="campo-visitante" name="visitante" class="input-formulario"
+              [(ngModel)]="formVisitante">
+        <option value="" disabled>Elige un visitante</option>
+        @for (p of visitantes(); track p.tipoDocumento + p.numeroDocumento) {
+          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
+            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
+          </option>
+        }
+      </select>
+      <p class="ayuda-campo-normal">Solo aparecen las personas con rol Visitante (pestaña Personas).</p>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-entrada" class="etiqueta-campo">Fecha de entrada</label>
+        <input id="campo-entrada" name="fechaEntrada" type="date"
+               class="input-formulario num" [(ngModel)]="formFechaEntrada" />
+      </div>
+      <div class="campo">
+        <label for="campo-salida" class="etiqueta-campo">Fecha de salida (opcional)</label>
+        <input id="campo-salida" name="fechaSalida" type="date"
+               class="input-formulario num" [(ngModel)]="formFechaSalida" />
+      </div>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (visitaAEliminar(); as r) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la visita?"
+    [mensaje]="'Se eliminará la visita de ' + visitante(r) + ' en ' + nombreCasa(r.casaManzana, r.casaNumero) + '. Esta acción no se puede deshacer.'"
+    textoConfirmar="Eliminar visita"
+    [procesando]="eliminando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="cancelarEliminar()"
+  />
+}

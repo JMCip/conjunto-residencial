@@ -1,19 +1,15 @@
-import { Component, output } from '@angular/core';
-import { Vista } from '../../models/vista.enum';
-import { ModuloPendiente } from '../modulo-pendiente/modulo-pendiente';
+import { Component } from '@angular/core';
+import { GestionSanciones } from './gestion-sanciones/gestion-sanciones';
 
 /**
  * @component Sanciones
- * @description Sanciones a casas y residentes.
- * Mientras no haya endpoint ni mock, muestra el módulo pendiente.
+ * @description Sección Sanciones: cabecera y el CRUD de sanciones a las casas. Como solo tiene
+ * un recurso, no lleva pestañas internas.
  */
 @Component({
   selector: 'app-sanciones',
-  imports: [ModuloPendiente],
+  imports: [GestionSanciones],
   templateUrl: './sanciones.html',
   styleUrl: './sanciones.css',
 })
-export class Sanciones {
-  /** Pide al contenedor cambiar de sección. */
-  readonly irA = output<Vista>();
-}
+export class Sanciones {}

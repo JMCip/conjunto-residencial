@@ -1,0 +1,149 @@
+:host {
+  display: block;
+}
+
+/* Tarjeta de sección */
+.tarjeta-seccion {
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  overflow: hidden;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.titulo-tarjeta {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.enlace-ver {
+  min-height: 44px;
+  padding: 0 4px;
+  border: none;
+  background: transparent;
+  color: var(--verde-bosque);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.enlace-ver:hover {
+  color: var(--verde-bosque-oscuro);
+  text-decoration: underline;
+}
+
+.enlace-ver:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+  border-radius: var(--radio-control);
+}
+
+/* Esqueletos de carga */
+.esqueleto {
+  display: block;
+  border-radius: var(--radio-esqueleto);
+  background: var(--borde-suave);
+}
+
+.esqueleto-fila {
+  width: 100%;
+  height: 22px;
+}
+
+.lista-esqueleto {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+
+/* Estado vacío */
+.estado-vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 24px;
+  text-align: center;
+}
+
+.circulo-icono {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: var(--radio-pildora);
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+  font-size: 22px;
+}
+
+.titulo-vacio {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+.texto-vacio {
+  max-width: 320px;
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+/* Lista de reservas */
+.lista-reservas {
+  list-style: none;
+}
+
+.fila-reserva {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.fila-reserva:last-child {
+  border-bottom: none;
+}
+
+.caja-fecha {
+  width: 48px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 0;
+  border-radius: var(--radio-control);
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+}
+
+.dia-fecha {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.mes-fecha {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.titulo-reserva {
+  font-weight: 600;
+}
+
+.franja-reserva {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}

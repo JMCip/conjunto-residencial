@@ -1,10 +1,10 @@
-/* La app ocupa toda la ventana: sidebar a la izquierda, columna principal a la derecha */
+
 .contenedor-app {
   display: flex;
   height: 100vh;
 }
 
-/* min-width: 0 deja que las tablas anchas hagan scroll horizontal en vez de empujar el layout */
+
 .contenido-principal {
   flex: 1;
   display: flex;
@@ -12,7 +12,7 @@
   min-width: 0;
 }
 
-/* Solo esta zona hace scroll; la topbar se queda fija arriba */
+
 .zona-scroll {
   flex: 1;
   overflow-y: auto;

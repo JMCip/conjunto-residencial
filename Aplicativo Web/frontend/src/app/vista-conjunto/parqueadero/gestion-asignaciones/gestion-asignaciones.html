@@ -1,0 +1,178 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-asignaciones"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-asignaciones" class="titulo-tarjeta">Asignaciones de celdas</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-asignacion" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-asignacion"
+            type="search"
+            class="input-busqueda"
+            placeholder="Celda o casa"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva asignación
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarAsignaciones()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (asignacionesFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-link"></i>
+      </span>
+      @if (asignaciones().length === 0) {
+        <p class="titulo-vacio">Todavía no hay celdas asignadas</p>
+        <p class="texto-vacio">Asigna la primera con el botón "Nueva asignación".</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otra celda o con otra casa.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todas las asignaciones
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Celda</th>
+            <th scope="col">Casa</th>
+            <th scope="col">Inicio</th>
+            <th scope="col">Fin</th>
+            <th scope="col" class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of asignacionesFiltradas(); track a.idAsignacion) {
+            <tr>
+              <td class="col-principal num">{{ nombreCelda(a.idCelda) }}</td>
+              <td>{{ nombreCasa(a.casaManzana, a.casaNumero) }}</td>
+              <td class="num">{{ a.fechaInicio | date: 'dd/MM/y' }}</td>
+              <td class="num">
+                @if (a.fechaFin) {
+                  {{ a.fechaFin | date: 'dd/MM/y' }}
+                } @else {
+                  <span class="insignia-estado insignia-ok">Vigente</span>
+                }
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Editar asignación de ' + nombreCelda(a.idCelda)"
+                  title="Editar"
+                  (click)="abrirModalEditar(a)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  [attr.aria-label]="'Eliminar asignación de ' + nombreCelda(a.idCelda)"
+                  title="Eliminar"
+                  (click)="pedirEliminar(a)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modoModal(); as modo) {
+  <app-modal-formulario
+    [titulo]="modo === 'crear' ? 'Nueva asignación de celda' : 'Editar asignación'"
+    [textoGuardar]="modo === 'crear' ? 'Asignar celda' : 'Guardar cambios'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-celda" class="etiqueta-campo">Celda</label>
+        <select id="campo-celda" name="celda" class="input-formulario" [(ngModel)]="formCelda">
+          <option [ngValue]="null" disabled>Elige una celda</option>
+          @for (c of celdas(); track c.idCelda) {
+            <option [ngValue]="c.idCelda">
+              {{ nombreCelda(c.idCelda) }} · {{ etiquetaCelda[c.tipo] ?? c.tipo }} ·
+              {{ etiquetaCelda[c.estado] ?? c.estado }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="campo-casa" class="etiqueta-campo">Casa</label>
+        <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
+          <option value="" disabled>Elige una casa</option>
+          @for (c of casas(); track c.manzana + '-' + c.numero) {
+            <option [value]="llaveCasa(c.manzana, c.numero)">
+              {{ nombreCasa(c.manzana, c.numero) }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-inicio" class="etiqueta-campo">Fecha de inicio</label>
+        <input id="campo-inicio" name="fechaInicio" type="date"
+               class="input-formulario num" [(ngModel)]="formFechaInicio" />
+      </div>
+      <div class="campo">
+        <label for="campo-fin" class="etiqueta-campo">Fecha de fin (opcional)</label>
+        <input id="campo-fin" name="fechaFin" type="date"
+               class="input-formulario num" [(ngModel)]="formFechaFin" />
+      </div>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (asignacionAEliminar(); as a) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la asignación?"
+    [mensaje]="'Se quitará la ' + nombreCelda(a.idCelda) + ' a ' + nombreCasa(a.casaManzana, a.casaNumero) + '. Esta acción no se puede deshacer.'"
+    textoConfirmar="Eliminar asignación"
+    [procesando]="eliminando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="cancelarEliminar()"
+  />
+}
