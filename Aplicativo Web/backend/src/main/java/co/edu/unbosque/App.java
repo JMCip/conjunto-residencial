@@ -122,8 +122,8 @@ public class App {
 	        config.routes.put("/api/telefonos/{tipoDocumento}/{numeroDocumento}/{telefono}", ctx -> telefonoController.actualizar(ctx));
 	        config.routes.delete("/api/telefonos/{tipoDocumento}/{numeroDocumento}/{telefono}", ctx -> telefonoController.eliminar(ctx));
 
+	     
 	        //----------------------------- Parqueadero --------------------------
-	        config.routes.get("/api/vehiculos", ctx -> vehiculoController.listar(ctx));
 	        config.routes.get("/api/vehiculos", ctx -> vehiculoController.listar(ctx));
 	        config.routes.get("/api/vehiculos/{placa}", ctx -> vehiculoController.consultar(ctx));
 	        config.routes.post("/api/vehiculos", ctx -> vehiculoController.crear(ctx));
