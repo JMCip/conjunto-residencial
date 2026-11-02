@@ -53,13 +53,13 @@ public class App {
 	    FacturaController facturaController = new FacturaController();
 	    DetalleFacturaController detalleFacturaController = new DetalleFacturaController();
 	    PagoController pagoController = new PagoController();
-	
+
 	    Javalin.create(config -> {
 	        config.registerPlugin(new OpenApiPlugin(openApi -> {}));
 	        config.registerPlugin(new SwaggerPlugin());
-	
+
 	        config.routes.get("/api/estado", ctx -> ctx.result("Backend del Conjunto Residencial funcionando"));
-	
+
 	        config.routes.get("/api/bd/prueba", ctx -> {
 	            String sql = "SELECT current_user, current_database(), version()";
 	            try (Connection cox = ConexionBD.obtenerConexion();
@@ -72,15 +72,15 @@ public class App {
 	                        "version", rs.getString(3)));
 	            }
 	        });
-	
+
 	        config.routes.exception(DatoInvalidoException.class, (e, conx) ->
-            	conx.status(400).json(Map.of("error", e.getMessage())));
+	            conx.status(400).json(Map.of("error", e.getMessage())));
 	        config.routes.exception(RecursoNoEncontradoException.class, (e, conx) ->
-            	conx.status(404).json(Map.of("error", e.getMessage())));
+	            conx.status(404).json(Map.of("error", e.getMessage())));
 	        config.routes.exception(ConflictoException.class, (e, conx) ->
-            	conx.status(409).json(Map.of("error", e.getMessage())));
+	            conx.status(409).json(Map.of("error", e.getMessage())));
 	        config.routes.exception(com.fasterxml.jackson.core.JsonProcessingException.class, (e, conx) ->
-	        	conx.status(400).json(Map.of("error", "El cuerpo de la petición falta o no es un JSON válido")));
+	            conx.status(400).json(Map.of("error", "El cuerpo de la petición falta o no es un JSON válido")));
 	        //------------------------------ Manejo de errores de BD ----------------------------
 	        config.routes.exception(SQLException.class, (e, conx) -> {
 	            String estado = e.getSQLState();
@@ -95,53 +95,55 @@ public class App {
 	                        "error", "Error en la consulta de la BD",
 	                        "Descripcion", e.getMessage()));
 	            }
-	            
 	        });
 	        //------------------------------ Casa ----------------------------
 	        config.routes.get("/api/casas", ctx -> casaController.listar(ctx));
 	        config.routes.post("/api/casas", ctx -> casaController.crear(ctx));
 	        config.routes.put("/api/casas/{manzana}/{numero}", ctx -> casaController.actualizar(ctx));
 	        config.routes.delete("/api/casas/{manzana}/{numero}", ctx -> casaController.eliminar(ctx));
-	
-	   
+
 	        //----------------------------- Persona --------------------------
 	        config.routes.get("/api/personas", ctx -> pController.listar(ctx));
-	        
+
 	        //----------------------------- Roles de persona --------------------------
 	        config.routes.get("/api/propietarios", ctx -> rolController.listarPropietarios(ctx));
 	        config.routes.get("/api/arrendatarios", ctx -> rolController.listarArrendatarios(ctx));
 	        config.routes.get("/api/residentes", ctx -> rolController.listarResidentes(ctx));
 	        config.routes.get("/api/visitantes", ctx -> rolController.listarVisitantes(ctx));
-	
-	        //----------------------------- Personas --------------------------
+
+	        //----------------------------- Telefono --------------------------
 	        config.routes.get("/api/telefonos", ctx -> telefonoController.listar(ctx));
-	
+	        config.routes.get("/api/telefonos/{tipoDocumento}/{numeroDocumento}/{telefono}", ctx -> telefonoController.consultar(ctx));
+	        config.routes.post("/api/telefonos", ctx -> telefonoController.crear(ctx));
+	        config.routes.put("/api/telefonos/{tipoDocumento}/{numeroDocumento}/{telefono}", ctx -> telefonoController.actualizar(ctx));
+	        config.routes.delete("/api/telefonos/{tipoDocumento}/{numeroDocumento}/{telefono}", ctx -> telefonoController.eliminar(ctx));
+
 	        //----------------------------- Parqueadero --------------------------
 	        config.routes.get("/api/vehiculos", ctx -> vehiculoController.listar(ctx));
 	        config.routes.get("/api/celdas", ctx -> celdaParqueaderoController.listar(ctx));
 	        config.routes.get("/api/asignaciones-celda", ctx -> asignacionCeldaController.listar(ctx));
 	        config.routes.get("/api/parqueos", ctx -> parqueoController.listar(ctx));
-	
+
 	        //----------------------------- Casas --------------------------
 	        config.routes.get("/api/posesiones", ctx -> posesionController.listar(ctx));
 	        config.routes.get("/api/arriendos", ctx -> arriendoController.listar(ctx));
 	        config.routes.get("/api/residencias", ctx -> residenciaController.listar(ctx));
 	        config.routes.get("/api/visitas", ctx -> visitaController.listar(ctx));
-	
+
 	        //----------------------------- Salón comunal --------------------------
 	        config.routes.get("/api/reservas", ctx -> reservaSalonController.listar(ctx));
-            config.routes.post("/api/reservas", ctx -> reservaSalonController.crear(ctx));
-            config.routes.put("/api/reservas/{id}", ctx -> reservaSalonController.actualizar(ctx));
-            config.routes.delete("/api/reservas/{id}", ctx -> reservaSalonController.eliminar(ctx));
-	
+	        config.routes.post("/api/reservas", ctx -> reservaSalonController.crear(ctx));
+	        config.routes.put("/api/reservas/{id}", ctx -> reservaSalonController.actualizar(ctx));
+	        config.routes.delete("/api/reservas/{id}", ctx -> reservaSalonController.eliminar(ctx));
+
 	        //----------------------------- Sanciones --------------------------
 	        config.routes.get("/api/sanciones", ctx -> sancionController.listar(ctx));
-	
+
 	        //----------------------------- Finanzas --------------------------
 	        config.routes.get("/api/conceptos", ctx -> conceptoCobroController.listar(ctx));
 	        config.routes.get("/api/facturas", ctx -> facturaController.listar(ctx));
 	        config.routes.get("/api/detalles-factura", ctx -> detalleFacturaController.listar(ctx));
 	        config.routes.get("/api/pagos", ctx -> pagoController.listar(ctx));
 	    }).start(8080);
-    }
+	}
 }
