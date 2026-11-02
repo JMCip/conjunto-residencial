@@ -140,6 +140,10 @@ public class App {
 	        config.routes.put("/api/posesiones/{id}", ctx -> posesionController.actualizar(ctx));
 	        config.routes.delete("/api/posesiones/{id}", ctx -> posesionController.eliminar(ctx));
 	        config.routes.get("/api/arriendos", ctx -> arriendoController.listar(ctx));
+	        config.routes.get("/api/arriendos/{id}", ctx -> arriendoController.consultar(ctx));
+	        config.routes.post("/api/arriendos", ctx -> arriendoController.crear(ctx));
+	        config.routes.put("/api/arriendos/{id}", ctx -> arriendoController.actualizar(ctx));
+	        config.routes.delete("/api/arriendos/{id}", ctx -> arriendoController.eliminar(ctx));
 	        config.routes.get("/api/residencias", ctx -> residenciaController.listar(ctx));
 	        config.routes.get("/api/visitas", ctx -> visitaController.listar(ctx));
 
