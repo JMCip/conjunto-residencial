@@ -132,6 +132,10 @@ public class App {
 	        config.routes.get("/api/celdas", ctx -> celdaParqueaderoController.listar(ctx));
 	        config.routes.get("/api/asignaciones-celda", ctx -> asignacionCeldaController.listar(ctx));
 	        config.routes.get("/api/parqueos", ctx -> parqueoController.listar(ctx));
+	        config.routes.get("/api/parqueos/{id}", ctx -> parqueoController.consultar(ctx));
+	        config.routes.post("/api/parqueos", ctx -> parqueoController.crear(ctx));
+	        config.routes.put("/api/parqueos/{id}", ctx -> parqueoController.actualizar(ctx));
+	        config.routes.delete("/api/parqueos/{id}", ctx -> parqueoController.eliminar(ctx));
 
 	        //----------------------------- Casas --------------------------
 	        config.routes.get("/api/posesiones", ctx -> posesionController.listar(ctx));
