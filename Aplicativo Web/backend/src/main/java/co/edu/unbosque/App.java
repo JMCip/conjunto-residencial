@@ -124,6 +124,11 @@ public class App {
 
 	        //----------------------------- Parqueadero --------------------------
 	        config.routes.get("/api/vehiculos", ctx -> vehiculoController.listar(ctx));
+	        config.routes.get("/api/vehiculos", ctx -> vehiculoController.listar(ctx));
+	        config.routes.get("/api/vehiculos/{placa}", ctx -> vehiculoController.consultar(ctx));
+	        config.routes.post("/api/vehiculos", ctx -> vehiculoController.crear(ctx));
+	        config.routes.put("/api/vehiculos/{placa}", ctx -> vehiculoController.actualizar(ctx));
+	        config.routes.delete("/api/vehiculos/{placa}", ctx -> vehiculoController.eliminar(ctx));
 	        config.routes.get("/api/celdas", ctx -> celdaParqueaderoController.listar(ctx));
 	        config.routes.get("/api/asignaciones-celda", ctx -> asignacionCeldaController.listar(ctx));
 	        config.routes.get("/api/parqueos", ctx -> parqueoController.listar(ctx));
@@ -142,6 +147,9 @@ public class App {
 
 	        //----------------------------- Sanciones --------------------------
 	        config.routes.get("/api/sanciones", ctx -> sancionController.listar(ctx));
+	        config.routes.post("/api/sanciones", ctx -> sancionController.crear(ctx));
+	        config.routes.put("/api/sanciones/{id}", ctx -> sancionController.actualizar(ctx));
+	        config.routes.delete("/api/sanciones/{id}", ctx -> sancionController.eliminar(ctx));
 
 	        //----------------------------- Finanzas --------------------------
 	        config.routes.get("/api/conceptos", ctx -> conceptoCobroController.listar(ctx));
