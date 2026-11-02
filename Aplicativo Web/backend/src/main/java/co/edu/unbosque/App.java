@@ -173,6 +173,9 @@ public class App {
 
 	      //----------------------------- Finanzas --------------------------
 	        config.routes.get("/api/conceptos", ctx -> conceptoCobroController.listar(ctx));
+	        config.routes.post("/api/conceptos", ctx -> conceptoCobroController.crear(ctx));
+	        config.routes.put("/api/conceptos/{id}", ctx -> conceptoCobroController.actualizar(ctx));
+	        config.routes.delete("/api/conceptos/{id}", ctx -> conceptoCobroController.eliminar(ctx));
 	        
 
 	        config.routes.get("/api/facturas", ctx -> facturaController.listar(ctx));
