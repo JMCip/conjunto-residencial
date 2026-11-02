@@ -1,4 +1,5 @@
-import { Component, computed, inject, input, OnInit, output, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NOMBRES_VISTA, Vista } from '../../models/vista.enum';
 import { InfoBdModel } from '../../models/info-bd.model';
 import { EstadoService } from '../../services/estado.service';
@@ -15,7 +16,7 @@ interface GrupoMenu {
   items: ItemMenu[];
 }
 
-/** Estructura fija del menú (DESIGN.md: GENERAL, COMUNIDAD, ADMINISTRACIÓN). */
+/** Estructura fija del menú: General, Comunidad y Administración. */
 const GRUPOS_MENU: GrupoMenu[] = [
   { etiqueta: 'General', items: [{ vista: 'inicio', icono: 'fa-table-cells-large' }] },
   {
@@ -39,21 +40,16 @@ const GRUPOS_MENU: GrupoMenu[] = [
  * @component SidebarConjunto
  * @description Menú lateral verde bosque: marca, secciones agrupadas, botón para colapsar
  * y, en el pie, el estado real de la conexión con la base de datos.
+ * Cada ítem es un enlace a su ruta; `routerLinkActive` marca el de la URL actual.
  */
 @Component({
   selector: 'app-sidebar-conjunto',
-  imports: [],
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar-conjunto.html',
   styleUrl: './sidebar-conjunto.css',
 })
 export class SidebarConjunto implements OnInit {
   private estadoService = inject(EstadoService);
-
-  /** Sección que está viendo el usuario (la marca como activa). */
-  readonly vistaActiva = input.required<Vista>();
-
-  /** Avisa al contenedor qué sección se eligió. */
-  readonly vistaSeleccionada = output<Vista>();
 
   /** true cuando el menú está colapsado (solo íconos). */
   protected readonly isCollapsed = signal(false);
@@ -93,13 +89,5 @@ export class SidebarConjunto implements OnInit {
   /** Colapsa o expande el menú. */
   toggleSidebar(): void {
     this.isCollapsed.update((valor) => !valor);
-  }
-
-  /**
-   * Avisa al contenedor la sección elegida.
-   * @param vista Sección a mostrar.
-   */
-  seleccionar(vista: Vista): void {
-    this.vistaSeleccionada.emit(vista);
   }
 }

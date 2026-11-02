@@ -1,0 +1,107 @@
+:host {
+  display: block;
+}
+
+.tarjeta-seccion {
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  overflow: hidden;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.titulo-tarjeta {
+  font-size: 17px;
+  font-weight: 700;
+}
+
+/* Insignias de estado */
+.insignia-estado {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radio-pildora);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.insignia-ok {
+  background: var(--estado-ok-bg);
+  color: var(--estado-ok-texto);
+}
+.insignia-pendiente {
+  background: var(--estado-pendiente-bg);
+  color: var(--estado-pendiente-texto);
+}
+.insignia-alerta {
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+}
+.insignia-neutro {
+  background: var(--estado-neutro-bg);
+  color: var(--estado-neutro-texto);
+}
+
+.cuerpo-conexion {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 24px;
+  padding: 20px;
+}
+
+.filas-servicio {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.fila-servicio {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.nombre-servicio {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+}
+
+.nombre-servicio i {
+  width: 18px;
+  color: var(--verde-bosque);
+  text-align: center;
+}
+
+.datos-conexion {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 24px;
+  border-left: 1px solid var(--borde-suave);
+}
+
+.dato-conexion {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 12px;
+  font-size: 14px;
+}
+
+.dato-conexion dt {
+  color: var(--texto-secundario);
+}
+
+.dato-conexion dd {
+  overflow-wrap: anywhere;
+}

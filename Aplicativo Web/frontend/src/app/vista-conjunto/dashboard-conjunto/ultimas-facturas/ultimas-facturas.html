@@ -1,0 +1,58 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-facturas"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-facturas" class="titulo-tarjeta">Últimas facturas</h2>
+    <button type="button" class="enlace-ver" (click)="verTodas.emit()">Ver todas</button>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="mensaje-error">
+      <i class="fa-solid fa-plug-circle-xmark" aria-hidden="true"></i>
+      <div>
+        <p class="titulo-error">No se pudo consultar la información</p>
+        <p class="pista-error">Verifica que el backend esté corriendo.</p>
+      </div>
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Casa</th>
+            <th scope="col">Periodo</th>
+            <th scope="col" class="col-dinero">Valor</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of facturas(); track f.numeroFactura) {
+            <tr>
+              <td class="col-principal">Casa {{ f.casaNumero }} · Mz {{ f.casaManzana }}</td>
+              <td>{{ f.periodo }}</td>
+              <td class="col-dinero num">
+                {{ f.total ?? 0 | currency: 'COP' : 'symbol' : '1.0-0' }}
+              </td>
+              <td>
+                <span class="insignia-estado" [class]="'insignia-' + estiloFactura[f.estado]">
+                  {{ etiquetaFactura[f.estado] }}
+                </span>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="4" class="celda-vacia">No hay facturas registradas.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>

@@ -10,7 +10,6 @@ import { registerLocaleData } from '@angular/common';
 import localeEsCo from '@angular/common/locales/es-CO';
 import { routes } from './app.routes';
 
-// Datos de idioma de Colombia para los pipes de moneda y fecha
 registerLocaleData(localeEsCo);
 
 export const appConfig: ApplicationConfig = {

@@ -1,19 +1,33 @@
-import { Component, output } from '@angular/core';
-import { Vista } from '../../models/vista.enum';
-import { ModuloPendiente } from '../modulo-pendiente/modulo-pendiente';
+import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+/** Pestaña interna: su ruta hija (/parqueadero/<ruta>), su texto y su ícono. */
+interface Pestana {
+  ruta: string;
+  texto: string;
+  icono: string;
+}
+
+/** Pestañas de la sección, en orden. */
+const PESTANAS: Pestana[] = [
+  { ruta: 'vehiculos', texto: 'Vehículos', icono: 'fa-car' },
+  { ruta: 'celdas', texto: 'Celdas', icono: 'fa-square-parking' },
+  { ruta: 'asignaciones', texto: 'Asignaciones', icono: 'fa-link' },
+  { ruta: 'parqueos', texto: 'Parqueos', icono: 'fa-clock' },
+];
 
 /**
  * @component Parqueadero
- * @description Parqueaderos del conjunto y su asignación.
- * Mientras no haya endpoint ni mock, muestra el módulo pendiente.
+ * @description Sección Parqueadero. Muestra la cabecera y un control segmentado con una pestaña
+ * por recurso; cada pestaña es una ruta hija que se pinta en su <router-outlet>.
  */
 @Component({
   selector: 'app-parqueadero',
-  imports: [ModuloPendiente],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './parqueadero.html',
   styleUrl: './parqueadero.css',
 })
 export class Parqueadero {
-  /** Pide al contenedor cambiar de sección. */
-  readonly irA = output<Vista>();
+  /** Pestañas del control segmentado (constante). */
+  protected readonly pestanas = PESTANAS;
 }

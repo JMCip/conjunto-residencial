@@ -1,0 +1,45 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-reservas"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-reservas" class="titulo-tarjeta">Próximas reservas del salón</h2>
+    <button type="button" class="enlace-ver" (click)="verTodas.emit()">Ver todas</button>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (reservas().length > 0) {
+    <ul class="lista-reservas">
+      @for (r of reservas(); track r.idReserva) {
+        <li class="fila-reserva">
+          <div class="caja-fecha">
+            <span class="dia-fecha num">{{ r.fechaReserva | date: 'd' }}</span>
+            <span class="mes-fecha">{{ r.fechaReserva | date: 'MMM' }}</span>
+          </div>
+          <div>
+            <p class="titulo-reserva">Casa {{ r.casaNumero }} · Mz {{ r.casaManzana }}</p>
+            <!-- horaInicio/horaFinal llegan como 'AAAA-MM-DD HH:mm:ss': slice saca 'HH:mm' -->
+            <p class="franja-reserva num">
+              {{ r.horaInicio | slice: 11 : 16 }} – {{ r.horaFinal | slice: 11 : 16 }}
+            </p>
+          </div>
+        </li>
+      }
+    </ul>
+  } @else {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-calendar-check"></i>
+      </span>
+      <p class="titulo-vacio">Sin reservas para mostrar</p>
+      <p class="texto-vacio">
+        No hay reservas del salón comunal desde hoy
+      </p>
+    </div>
+  }
+</section>

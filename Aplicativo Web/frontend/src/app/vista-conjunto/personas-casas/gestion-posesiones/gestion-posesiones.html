@@ -1,0 +1,187 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-posesiones"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-posesiones" class="titulo-tarjeta">Posesiones</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-posesion" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-posesion"
+            type="search"
+            class="input-busqueda"
+            placeholder="Casa o propietario"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva posesión
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarPosesiones()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (posesionesFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-key"></i>
+      </span>
+      @if (posesiones().length === 0) {
+        <p class="titulo-vacio">Todavía no hay posesiones registradas</p>
+        <p class="texto-vacio">Registra la primera con el botón "Nueva posesión".</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otra casa o con otro propietario.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todas las posesiones
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Casa</th>
+            <th scope="col">Propietario</th>
+            <th scope="col" class="col-numero">Porcentaje</th>
+            <th scope="col">Compra</th>
+            <th scope="col">Venta</th>
+            <th scope="col" class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of posesionesFiltradas(); track p.idPosesion) {
+            <tr>
+              <td class="col-principal">{{ nombreCasa(p.casaManzana, p.casaNumero) }}</td>
+              <td>{{ propietario(p) }}</td>
+              <td class="col-numero num">{{ p.porcentaje | number: '1.0-2' }} %</td>
+              <td class="num">{{ p.fechaCompra | date: 'dd/MM/y' }}</td>
+              <td class="num">
+                @if (p.fechaVenta) {
+                  {{ p.fechaVenta | date: 'dd/MM/y' }}
+                } @else {
+                  <span class="insignia-estado insignia-ok">Vigente</span>
+                }
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Editar posesión de ' + nombreCasa(p.casaManzana, p.casaNumero)"
+                  title="Editar"
+                  (click)="abrirModalEditar(p)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  [attr.aria-label]="'Eliminar posesión de ' + nombreCasa(p.casaManzana, p.casaNumero)"
+                  title="Eliminar"
+                  (click)="pedirEliminar(p)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modoModal(); as modo) {
+  <app-modal-formulario
+    [titulo]="modo === 'crear' ? 'Nueva posesión' : 'Editar posesión'"
+    [textoGuardar]="modo === 'crear' ? 'Registrar posesión' : 'Guardar cambios'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-casa" class="etiqueta-campo">Casa</label>
+        <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
+          <option value="" disabled>Elige una casa</option>
+          @for (c of casas(); track c.manzana + '-' + c.numero) {
+            <option [value]="llaveCasa(c.manzana, c.numero)">
+              {{ nombreCasa(c.manzana, c.numero) }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="campo-porcentaje" class="etiqueta-campo">Porcentaje (%)</label>
+        <input id="campo-porcentaje" name="porcentaje" type="number" min="0" max="100" step="0.01"
+               class="input-formulario num" [(ngModel)]="formPorcentaje" />
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="campo-propietario" class="etiqueta-campo">Propietario</label>
+      <select id="campo-propietario" name="propietario" class="input-formulario"
+              [(ngModel)]="formPropietario">
+        <option value="" disabled>Elige un propietario</option>
+        @for (p of propietarios(); track p.tipoDocumento + p.numeroDocumento) {
+          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
+            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
+          </option>
+        }
+      </select>
+      <p class="ayuda-campo-normal">Solo aparecen las personas con rol Propietario (pestaña Personas).</p>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-compra" class="etiqueta-campo">Fecha de compra</label>
+        <input id="campo-compra" name="fechaCompra" type="date"
+               class="input-formulario num" [(ngModel)]="formFechaCompra" />
+      </div>
+      <div class="campo">
+        <label for="campo-venta" class="etiqueta-campo">Fecha de venta (opcional)</label>
+        <input id="campo-venta" name="fechaVenta" type="date"
+               class="input-formulario num" [(ngModel)]="formFechaVenta" />
+      </div>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (posesionAEliminar(); as p) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la posesión?"
+    [mensaje]="'Se eliminará la posesión de ' + propietario(p) + ' sobre ' + nombreCasa(p.casaManzana, p.casaNumero) + '. Esta acción no se puede deshacer.'"
+    textoConfirmar="Eliminar posesión"
+    [procesando]="eliminando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="cancelarEliminar()"
+  />
+}

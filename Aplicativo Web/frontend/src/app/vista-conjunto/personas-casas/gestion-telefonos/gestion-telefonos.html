@@ -1,0 +1,158 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-telefonos"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-telefonos" class="titulo-tarjeta">Teléfonos</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-telefono" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-telefono"
+            type="search"
+            class="input-busqueda"
+            placeholder="Número o persona"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nuevo teléfono
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarTelefonos()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (telefonosFiltrados().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-phone"></i>
+      </span>
+      @if (telefonos().length === 0) {
+        <p class="titulo-vacio">Todavía no hay teléfonos registrados</p>
+        <p class="texto-vacio">Registra el primero con el botón "Nuevo teléfono".</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otro número o con otro nombre.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todos los teléfonos
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Persona</th>
+            <th scope="col">Documento</th>
+            <th scope="col" class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (t of telefonosFiltrados(); track t.telefono) {
+            <tr>
+              <td class="col-principal num">{{ t.telefono }}</td>
+              <td>{{ duenio(t) }}</td>
+              <td class="col-secundaria num col-documento">
+                {{ t.personaTipoDocumento }} {{ t.personaNumeroDocumento }}
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Editar teléfono ' + t.telefono"
+                  title="Editar"
+                  (click)="abrirModalEditar(t)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  [attr.aria-label]="'Eliminar teléfono ' + t.telefono"
+                  title="Eliminar"
+                  (click)="pedirEliminar(t)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modoModal(); as modo) {
+  <app-modal-formulario
+    [titulo]="modo === 'crear' ? 'Nuevo teléfono' : 'Editar teléfono'"
+    [textoGuardar]="modo === 'crear' ? 'Registrar teléfono' : 'Guardar cambios'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="campo-persona" class="etiqueta-campo">Persona</label>
+      <select id="campo-persona" name="persona" class="input-formulario" [(ngModel)]="formPersona">
+        <option value="" disabled>Elige una persona</option>
+        @for (p of personas(); track p.tipoDocumento + p.numeroDocumento) {
+          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
+            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
+          </option>
+        }
+      </select>
+    </div>
+    <div class="campo">
+      <label for="campo-telefono" class="etiqueta-campo">Teléfono</label>
+      <input
+        id="campo-telefono"
+        name="telefono"
+        type="tel"
+        inputmode="numeric"
+        maxlength="20"
+        class="input-formulario num"
+        placeholder="Ej: 3001234567"
+        [(ngModel)]="formTelefono"
+      />
+    </div>
+  </app-modal-formulario>
+}
+
+@if (telefonoAEliminar(); as t) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar el teléfono?"
+    [mensaje]="'Se eliminará el teléfono ' + t.telefono + ' de ' + duenio(t) + '. Esta acción no se puede deshacer.'"
+    textoConfirmar="Eliminar teléfono"
+    [procesando]="eliminando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="cancelarEliminar()"
+  />
+}

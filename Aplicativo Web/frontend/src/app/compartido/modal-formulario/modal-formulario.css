@@ -1,0 +1,133 @@
+.superposicion-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--fondo-modal);
+}
+
+.caja-modal {
+  width: 520px;
+  max-width: 100%;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  background: var(--bg-tarjeta);
+  overflow: hidden;
+}
+
+.cabecera-modal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.titulo-modal {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.boton-cerrar {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radio-control);
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.boton-cerrar:hover {
+  background: var(--bg-app);
+  color: var(--texto);
+}
+
+.formulario-modal {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.cuerpo-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.error-formulario {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 20px 16px;
+  padding: 10px 14px;
+  border-radius: var(--radio-control);
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.pie-modal {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--borde-suave);
+  background: var(--bg-suave);
+}
+
+/* Botones */
+.boton-primario,
+.boton-secundario {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: var(--radio-control);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-primario {
+  border: 1px solid var(--verde-bosque);
+  background: var(--verde-bosque);
+  color: var(--bg-tarjeta); /* blanco */
+}
+
+.boton-primario:hover:not(:disabled) {
+  border-color: var(--verde-bosque-oscuro);
+  background: var(--verde-bosque-oscuro);
+}
+
+.boton-secundario {
+  border: 1px solid var(--borde);
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+}
+
+.boton-secundario:hover:not(:disabled) {
+  background: var(--bg-app);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.boton-primario:focus-visible,
+.boton-secundario:focus-visible,
+.boton-cerrar:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 2px;
+}

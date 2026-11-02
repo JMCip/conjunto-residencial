@@ -1,0 +1,92 @@
+.superposicion-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 950;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--fondo-modal);
+}
+
+.caja-dialogo {
+  width: 420px;
+  max-width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 28px 24px 24px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  background: var(--bg-tarjeta);
+  text-align: center;
+}
+
+.circulo-icono {
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 4px;
+  border-radius: var(--radio-pildora);
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+  font-size: 22px;
+}
+
+.titulo-dialogo {
+  font-size: 19px;
+  font-weight: 700;
+}
+
+.mensaje-dialogo {
+  color: var(--texto-secundario);
+}
+
+.acciones-dialogo {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.boton-secundario,
+.boton-peligro {
+  min-height: 44px;
+  padding: 10px 20px;
+  border-radius: var(--radio-control);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-secundario {
+  border: 1px solid var(--borde);
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+}
+
+.boton-secundario:hover:not(:disabled) {
+  background: var(--bg-app);
+}
+
+/* Terracota de "alerta": la única acción destructiva de la app */
+.boton-peligro {
+  border: 1px solid var(--estado-alerta-texto);
+  background: var(--estado-alerta-texto);
+  color: var(--bg-tarjeta); /* blanco */
+}
+
+.boton-peligro:hover:not(:disabled) {
+  filter: brightness(0.9);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.boton-secundario:focus-visible,
+.boton-peligro:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 2px;
+}

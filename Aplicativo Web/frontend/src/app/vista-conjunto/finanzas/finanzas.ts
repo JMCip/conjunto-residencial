@@ -1,32 +1,10 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
-import { environment } from '../../../environments/environment';
 import { FacturaModel } from '../../models/factura.model';
 import { FacturaService } from '../../services/factura.service';
 import { NotificacionService } from '../../services/notificacion.service';
-
-/** Filtro del control segmentado. */
-type FiltroEstado = 'TODAS' | FacturaModel['estado'];
-
-/** Botones del control segmentado, en orden. */
-const OPCIONES_FILTRO: { valor: FiltroEstado; texto: string }[] = [
-  { valor: 'TODAS', texto: 'Todas' },
-  { valor: 'PAGADA', texto: 'Pagadas' },
-  { valor: 'PENDIENTE', texto: 'Pendientes' },
-  { valor: 'VENCIDA', texto: 'Vencidas' },
-];
-
-/** Texto e insignia de cada estado de factura. */
-const ETIQUETA_FACTURA: Record<FacturaModel['estado'], string> = {
-  PAGADA: 'Pagada',
-  PENDIENTE: 'Pendiente',
-  VENCIDA: 'Vencida',
-};
-const ESTILO_FACTURA: Record<FacturaModel['estado'], 'ok' | 'pendiente' | 'alerta'> = {
-  PAGADA: 'ok',
-  PENDIENTE: 'pendiente',
-  VENCIDA: 'alerta',
-};
+import { TotalesFinanzas } from './totales-finanzas/totales-finanzas';
+import { FiltroEstado, FiltrosFacturas } from './filtros-facturas/filtros-facturas';
+import { TablaFacturas } from './tabla-facturas/tabla-facturas';
 
 /**
  * Pasa un texto a minúsculas y sin tildes, para que "salon" encuentre "Salón".
@@ -42,11 +20,12 @@ function normalizar(texto: string): string {
 
 /**
  * @component Finanzas
- * @description Muestra las facturas del conjunto con totales, filtro por estado y buscador.
+ * @description Pantalla de facturas. Consulta las facturas, guarda el filtro y la búsqueda,
+ * y reparte los datos entre sus subcomponentes (totales, filtros y tabla).
  */
 @Component({
   selector: 'app-finanzas',
-  imports: [CurrencyPipe, DatePipe],
+  imports: [TotalesFinanzas, FiltrosFacturas, TablaFacturas],
   templateUrl: './finanzas.html',
   styleUrl: './finanzas.css',
 })
@@ -69,14 +48,6 @@ export class Finanzas implements OnInit {
   /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
-  /** true si las facturas son datos de ejemplo (constante del environment). */
-  protected readonly usarMocks = environment.usarMocks;
-
-  /** Diccionarios y opciones (constantes). */
-  protected readonly opcionesFiltro = OPCIONES_FILTRO;
-  protected readonly etiquetaFactura = ETIQUETA_FACTURA;
-  protected readonly estiloFactura = ESTILO_FACTURA;
-
   /** Cuántas facturas hay de cada estado (para los botones del filtro). */
   protected readonly conteos = computed<Record<FiltroEstado, number>>(() => {
     const lista = this.facturas();
@@ -85,6 +56,7 @@ export class Finanzas implements OnInit {
       PAGADA: lista.filter((f) => f.estado === 'PAGADA').length,
       PENDIENTE: lista.filter((f) => f.estado === 'PENDIENTE').length,
       VENCIDA: lista.filter((f) => f.estado === 'VENCIDA').length,
+      ABONADA: lista.filter((f) => f.estado === 'ABONADA').length,
     };
   });
 
@@ -94,29 +66,17 @@ export class Finanzas implements OnInit {
     const texto = normalizar(this.busqueda());
     return this.facturas()
       .filter((f) => filtro === 'TODAS' || f.estado === filtro)
-      .filter((f) => !texto || normalizar(`${f.casa} ${f.numero} ${f.periodo}`).includes(texto))
-      .sort((a, b) => b.fechaVencimiento.localeCompare(a.fechaVencimiento) || a.id - b.id);
-  });
-
-  /** Suma de todas las facturas. */
-  protected readonly totalFacturado = computed(() =>
-    this.facturas().reduce((total, f) => total + f.valor, 0),
-  );
-
-  /** Suma de las facturas pagadas. */
-  protected readonly totalRecaudado = computed(() =>
-    this.facturas()
-      .filter((f) => f.estado === 'PAGADA')
-      .reduce((total, f) => total + f.valor, 0),
-  );
-
-  /** Lo que falta por cobrar (pendientes + vencidas). */
-  protected readonly totalPendiente = computed(() => this.totalFacturado() - this.totalRecaudado());
-
-  /** Porcentaje recaudado, de 0 a 100, sin decimales. */
-  protected readonly porcentajeRecaudado = computed(() => {
-    const total = this.totalFacturado();
-    return total === 0 ? 0 : Math.round((this.totalRecaudado() / total) * 100);
+      .filter(
+        (f) =>
+          !texto ||
+          normalizar(
+            `casa ${f.casaNumero} mz ${f.casaManzana} ${f.numeroFactura} ${f.periodo}`,
+          ).includes(texto),
+      )
+      .sort(
+        (a, b) =>
+          b.fechaVencimiento.localeCompare(a.fechaVencimiento) || a.numeroFactura - b.numeroFactura,
+      );
   });
 
   /** "1 factura" o "6 facturas" para el pie de la tabla. */
@@ -135,7 +95,7 @@ export class Finanzas implements OnInit {
   cargarFacturas(): void {
     this.cargando.set(true);
     this.error.set(null);
-    this.facturaService.getTodas().subscribe({
+    this.facturaService.getTodos().subscribe({
       next: (datos) => {
         this.facturas.set(datos);
         this.cargando.set(false);

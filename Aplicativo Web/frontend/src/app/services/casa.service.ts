@@ -1,29 +1,34 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, of } from 'rxjs';
+import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { CasaModel } from '../models/casa.model';
+import { RespuestaApiModel } from '../models/respuesta-api.model';
 
-/** Ruta provisional del recurso (se confirma cuando el backend la publique). */
-const RUTA = '/casas';
-
-/**
- * Servicio que consulta las casas del conjunto.
- * Todavía no tiene mock: con usarMocks en true devuelve una lista vacía (módulo pendiente).
- */
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class CasaService {
   private cliente: HttpClient = inject(HttpClient);
 
-  /** URL base del recurso. Relativa: el proxy la reenvía al backend. */
-  private readonly urlbase = `${environment.apiUrl}${RUTA}`;
+  private readonly urlbase = `${environment.apiUrl}/casas`;
 
-  /**
-   * Obtiene todas las casas.
-   * @returns Observable con la lista de casas.
-   */
-  getTodas(): Observable<CasaModel[]> {
-    if (environment.usarMocks) return of([]);
+  getTodos(): Observable<CasaModel[]> {
     return this.cliente.get<CasaModel[]>(this.urlbase);
+  }
+
+  postCrear(casa: CasaModel): Observable<RespuestaApiModel> {
+    return this.cliente.post<RespuestaApiModel>(this.urlbase, casa);
+  }
+
+  putActualizar(casa: CasaModel): Observable<RespuestaApiModel> {
+    return this.cliente.put<RespuestaApiModel>(
+      `${this.urlbase}/${casa.manzana}/${casa.numero}`,
+      casa,
+    );
+  }
+
+  deleteEliminar(manzana: number, numero: number): Observable<RespuestaApiModel> {
+    return this.cliente.delete<RespuestaApiModel>(`${this.urlbase}/${manzana}/${numero}`);
   }
 }

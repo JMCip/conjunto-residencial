@@ -1,19 +1,36 @@
-import { Component, output } from '@angular/core';
-import { Vista } from '../../models/vista.enum';
-import { ModuloPendiente } from '../modulo-pendiente/modulo-pendiente';
+import { Component } from '@angular/core';
+import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+
+/** Pestaña interna: su ruta hija (/personas-casas/<ruta>), su texto y su ícono. */
+interface Pestana {
+  ruta: string;
+  texto: string;
+  icono: string;
+}
+
+/** Pestañas de la sección, en orden. */
+const PESTANAS: Pestana[] = [
+  { ruta: 'casas', texto: 'Casas', icono: 'fa-house' },
+  { ruta: 'personas', texto: 'Personas', icono: 'fa-user' },
+  { ruta: 'telefonos', texto: 'Teléfonos', icono: 'fa-phone' },
+  { ruta: 'posesiones', texto: 'Posesiones', icono: 'fa-key' },
+  { ruta: 'arriendos', texto: 'Arriendos', icono: 'fa-file-signature' },
+  { ruta: 'residencias', texto: 'Residencias', icono: 'fa-bed' },
+  { ruta: 'visitas', texto: 'Visitas', icono: 'fa-door-open' },
+];
 
 /**
  * @component PersonasCasas
- * @description Propietarios, arrendatarios, residentes, visitantes y casas del conjunto.
- * Mientras no haya endpoint ni mock, muestra el módulo pendiente.
+ * @description Sección Personas y casas. Muestra la cabecera y un control segmentado con una
+ * pestaña por recurso; cada pestaña es una ruta hija que se pinta en su <router-outlet>.
  */
 @Component({
   selector: 'app-personas-casas',
-  imports: [ModuloPendiente],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet],
   templateUrl: './personas-casas.html',
   styleUrl: './personas-casas.css',
 })
 export class PersonasCasas {
-  /** Pide al contenedor cambiar de sección. */
-  readonly irA = output<Vista>();
+  /** Pestañas del control segmentado (constante). */
+  protected readonly pestanas = PESTANAS;
 }

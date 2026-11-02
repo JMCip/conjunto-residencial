@@ -1,0 +1,185 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-parqueos"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-parqueos" class="titulo-tarjeta">Parqueos</h2>
+
+    <div class="controles-tabla">
+      <label class="casilla">
+        <input type="checkbox" [checked]="soloAdentro()" (change)="soloAdentro.set(!soloAdentro())" />
+        Solo los que siguen adentro
+      </label>
+      <div class="campo-busqueda">
+        <label for="buscar-parqueo" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-parqueo"
+            type="search"
+            class="input-busqueda"
+            placeholder="Placa o celda"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Registrar entrada
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarParqueos()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (parqueosFiltrados().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-clock"></i>
+      </span>
+      @if (parqueos().length === 0) {
+        <p class="titulo-vacio">Todavía no hay parqueos registrados</p>
+        <p class="texto-vacio">Registra el primero con el botón "Registrar entrada".</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para este filtro</p>
+        <p class="texto-vacio">Prueba con otra placa o quita "Solo los que siguen adentro".</p>
+        <button
+          type="button"
+          class="boton-secundario"
+          (click)="busqueda.set(''); soloAdentro.set(false)"
+        >
+          Ver todos los parqueos
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Placa</th>
+            <th scope="col">Vehículo</th>
+            <th scope="col">Celda</th>
+            <th scope="col">Entrada</th>
+            <th scope="col">Salida</th>
+            <th scope="col" class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of parqueosFiltrados(); track p.idParqueo) {
+            <tr>
+              <td class="col-principal num">{{ p.vehiculoPlaca }}</td>
+              <td class="col-secundaria">{{ descripcionVehiculo(p.vehiculoPlaca) || '—' }}</td>
+              <td class="num">{{ nombreCelda(p.idCelda) }}</td>
+              <td class="num col-fecha">{{ textoFechaHora(p.fechaHoraEntrada) }}</td>
+              <td class="num col-fecha">
+                @if (p.fechaHoraSalida) {
+                  {{ textoFechaHora(p.fechaHoraSalida) }}
+                } @else {
+                  <span class="insignia-estado insignia-pendiente">Adentro</span>
+                }
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Editar parqueo de ' + p.vehiculoPlaca"
+                  title="Editar"
+                  (click)="abrirModalEditar(p)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  [attr.aria-label]="'Eliminar parqueo de ' + p.vehiculoPlaca"
+                  title="Eliminar"
+                  (click)="pedirEliminar(p)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modoModal(); as modo) {
+  <app-modal-formulario
+    [titulo]="modo === 'crear' ? 'Registrar entrada' : 'Editar parqueo'"
+    [textoGuardar]="modo === 'crear' ? 'Registrar' : 'Guardar cambios'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-vehiculo" class="etiqueta-campo">Vehículo</label>
+        <select id="campo-vehiculo" name="vehiculo" class="input-formulario" [(ngModel)]="formPlaca">
+          <option value="" disabled>Elige un vehículo</option>
+          @for (v of vehiculos(); track v.placa) {
+            <option [value]="v.placa">{{ v.placa }} · {{ descripcionVehiculo(v.placa) }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="campo-celda" class="etiqueta-campo">Celda</label>
+        <select id="campo-celda" name="celda" class="input-formulario" [(ngModel)]="formCelda">
+          <option [ngValue]="null" disabled>Elige una celda</option>
+          @for (c of celdas(); track c.idCelda) {
+            <option [ngValue]="c.idCelda">
+              {{ nombreCelda(c.idCelda) }} · {{ etiquetaCelda[c.tipo] ?? c.tipo }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-entrada" class="etiqueta-campo">Entrada</label>
+        <input id="campo-entrada" name="entrada" type="datetime-local"
+               class="input-formulario num" [(ngModel)]="formEntrada" />
+      </div>
+      <div class="campo">
+        <label for="campo-salida" class="etiqueta-campo">Salida (vacío = sigue adentro)</label>
+        <input id="campo-salida" name="salida" type="datetime-local"
+               class="input-formulario num" [(ngModel)]="formSalida" />
+      </div>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (parqueoAEliminar(); as p) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar el parqueo?"
+    [mensaje]="'Se eliminará el registro de ' + p.vehiculoPlaca + ' en la ' + nombreCelda(p.idCelda) + ' (entrada ' + textoFechaHora(p.fechaHoraEntrada) + '). Esta acción no se puede deshacer.'"
+    textoConfirmar="Eliminar parqueo"
+    [procesando]="eliminando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="cancelarEliminar()"
+  />
+}

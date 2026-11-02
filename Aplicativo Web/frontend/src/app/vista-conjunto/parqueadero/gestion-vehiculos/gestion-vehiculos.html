@@ -1,0 +1,185 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-vehiculos"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-vehiculos" class="titulo-tarjeta">Vehículos</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-vehiculo" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-vehiculo"
+            type="search"
+            class="input-busqueda"
+            placeholder="Placa, marca o dueño"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nuevo vehículo
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarVehiculos()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (vehiculosFiltrados().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-car"></i>
+      </span>
+      @if (vehiculos().length === 0) {
+        <p class="titulo-vacio">Todavía no hay vehículos registrados</p>
+        <p class="texto-vacio">Registra el primero con el botón "Nuevo vehículo".</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otra placa, marca o dueño.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todos los vehículos
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Placa</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Marca</th>
+            <th scope="col" class="col-numero">Modelo</th>
+            <th scope="col">Dueño</th>
+            <th scope="col" class="col-acciones">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of vehiculosFiltrados(); track v.placa) {
+            <tr>
+              <td class="col-principal num">{{ v.placa }}</td>
+              <td>
+                <span class="insignia-estado insignia-neutro">
+                  <i class="fa-solid" [class]="v.tipo === 'MOTO' ? 'fa-motorcycle' : 'fa-car'" aria-hidden="true"></i>
+                  {{ etiquetaTipo[v.tipo] ?? v.tipo }}
+                </span>
+              </td>
+              <td>{{ v.marca ?? '—' }}</td>
+              <td class="col-numero num">{{ v.modelo ?? '—' }}</td>
+              <td>{{ duenio(v) }}</td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Editar vehículo ' + v.placa"
+                  title="Editar"
+                  (click)="abrirModalEditar(v)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  [attr.aria-label]="'Eliminar vehículo ' + v.placa"
+                  title="Eliminar"
+                  (click)="pedirEliminar(v)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modoModal(); as modo) {
+  <app-modal-formulario
+    [titulo]="modo === 'crear' ? 'Nuevo vehículo' : 'Editar vehículo ' + formPlaca()"
+    [textoGuardar]="modo === 'crear' ? 'Registrar vehículo' : 'Guardar cambios'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-placa" class="etiqueta-campo">Placa</label>
+        <input id="campo-placa" name="placa" type="text" maxlength="10"
+               class="input-formulario num campo-placa" placeholder="Ej: ABC123"
+               [disabled]="modo === 'editar'" [(ngModel)]="formPlaca" />
+      </div>
+      <div class="campo">
+        <label for="campo-tipo" class="etiqueta-campo">Tipo</label>
+        <select id="campo-tipo" name="tipo" class="input-formulario" [(ngModel)]="formTipo">
+          @for (t of tiposVehiculo; track t) {
+            <option [value]="t">{{ etiquetaTipo[t] }}</option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (modo === 'editar') {
+      <p class="ayuda-campo">La placa no se puede cambiar: identifica al vehículo.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="campo-marca" class="etiqueta-campo">Marca (opcional)</label>
+        <input id="campo-marca" name="marca" type="text" maxlength="20"
+               class="input-formulario" placeholder="Ej: Mazda" [(ngModel)]="formMarca" />
+      </div>
+      <div class="campo">
+        <label for="campo-modelo" class="etiqueta-campo">Modelo / año (opcional)</label>
+        <input id="campo-modelo" name="modelo" type="number" min="1950" max="2100" step="1"
+               class="input-formulario num" placeholder="Ej: 2022" [(ngModel)]="formModelo" />
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="campo-persona" class="etiqueta-campo">Dueño</label>
+      <select id="campo-persona" name="persona" class="input-formulario" [(ngModel)]="formPersona">
+        <option value="" disabled>Elige una persona</option>
+        @for (p of personas(); track p.tipoDocumento + p.numeroDocumento) {
+          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
+            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
+          </option>
+        }
+      </select>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (vehiculoAEliminar(); as v) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar el vehículo?"
+    [mensaje]="'Se eliminará el vehículo ' + v.placa + ' de ' + duenio(v) + '. Esta acción no se puede deshacer.'"
+    textoConfirmar="Eliminar vehículo"
+    [procesando]="eliminando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="cancelarEliminar()"
+  />
+}

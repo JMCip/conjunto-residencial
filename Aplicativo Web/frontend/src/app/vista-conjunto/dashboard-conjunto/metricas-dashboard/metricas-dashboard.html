@@ -1,0 +1,32 @@
+<section class="rejilla-metricas" aria-label="Métricas del conjunto">
+  @for (m of metricas(); track m.etiqueta; let i = $index) {
+    <article
+      class="tarjeta-metrica animate__animated animate__fadeInUp animate__faster"
+      [style.animation-delay.s]="i * 0.05"
+    >
+      <p class="etiqueta-metrica">{{ m.etiqueta }}</p>
+      @if (cargando()) {
+        <span class="esqueleto esqueleto-cifra"></span>
+        <span class="esqueleto esqueleto-texto"></span>
+      } @else if (m.valor === null) {
+        <p class="cifra-metrica cifra-vacia">Sin datos</p>
+        <p class="contexto-metrica">{{ m.contexto }}</p>
+      } @else {
+        <p class="cifra-metrica num">
+          @if (m.esMoneda) {
+            {{ m.valor | currency: 'COP' : 'symbol' : '1.0-0' }}
+          } @else {
+            {{ m.valor | number }}
+          }
+        </p>
+        <p
+          class="contexto-metrica"
+          [class.contexto-positivo]="m.tono === 'positivo'"
+          [class.contexto-atencion]="m.tono === 'atencion'"
+        >
+          {{ m.contexto }}
+        </p>
+      }
+    </article>
+  }
+</section>

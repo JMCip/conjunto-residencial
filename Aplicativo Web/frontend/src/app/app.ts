@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Notificaciones } from './notificaciones/notificaciones';
+import { Notificaciones } from './compartido/notificaciones/notificaciones';
 
 /**
  * @component App

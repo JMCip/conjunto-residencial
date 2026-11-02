@@ -1,19 +1,15 @@
-import { Component, output } from '@angular/core';
-import { Vista } from '../../models/vista.enum';
-import { ModuloPendiente } from '../modulo-pendiente/modulo-pendiente';
+import { Component } from '@angular/core';
+import { GestionReservas } from './gestion-reservas/gestion-reservas';
 
 /**
  * @component SalonComunal
- * @description Reservas del salón comunal.
- * Mientras no haya endpoint ni mock, muestra el módulo pendiente.
+ * @description Sección Salón comunal: cabecera y el CRUD de reservas. Como solo tiene un
+ * recurso, no lleva pestañas internas.
  */
 @Component({
   selector: 'app-salon-comunal',
-  imports: [ModuloPendiente],
+  imports: [GestionReservas],
   templateUrl: './salon-comunal.html',
   styleUrl: './salon-comunal.css',
 })
-export class SalonComunal {
-  /** Pide al contenedor cambiar de sección. */
-  readonly irA = output<Vista>();
-}
+export class SalonComunal {}
