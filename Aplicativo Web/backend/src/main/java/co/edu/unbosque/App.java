@@ -163,11 +163,17 @@ public class App {
 	        config.routes.put("/api/sanciones/{id}", ctx -> sancionController.actualizar(ctx));
 	        config.routes.delete("/api/sanciones/{id}", ctx -> sancionController.eliminar(ctx));
 
-	        //----------------------------- Finanzas --------------------------
+	      //----------------------------- Finanzas --------------------------
 	        config.routes.get("/api/conceptos", ctx -> conceptoCobroController.listar(ctx));
-	        config.routes.get("/api/facturas", ctx -> facturaController.listar(ctx));
+	        
+
+	      
+	        
+	        
 	        config.routes.get("/api/detalles-factura", ctx -> detalleFacturaController.listar(ctx));
 	        config.routes.get("/api/pagos", ctx -> pagoController.listar(ctx));
+	        
+	        
 	    }).start(8080);
 	}
 }
