@@ -9,10 +9,12 @@ import co.edu.unbosque.exception.RecursoNoEncontradoException;
 
 import co.edu.unbosque.dao.VehiculoDAO;
 import co.edu.unbosque.model.Vehiculo;
+import java.util.Set;
 
 public class VehiculoService {
 	
 	private final VehiculoDAO vehiculoDao = new VehiculoDAO();
+	private static final Set<String> TIPOS = Set.of("CARRO", "MOTO");
 	
 	public List<Vehiculo> listar() throws SQLException {
 		return vehiculoDao.listar();
@@ -54,6 +56,10 @@ public class VehiculoService {
 				|| v.getPersonaTipoDocumento() == null || v.getPersonaTipoDocumento().isBlank()
 				|| v.getPersonaNumeroDocumento() == null || v.getPersonaNumeroDocumento().isBlank()) {
 			throw new DatoInvalidoException("tipo, personaTipoDocumento y personaNumeroDocumento son obligatorios");
+		}
+		v.setTipo(v.getTipo().trim().toUpperCase());
+		if (!TIPOS.contains(v.getTipo())) {
+			throw new DatoInvalidoException("tipo debe ser CARRO o MOTO");
 		}
 		if (v.getModelo() != null && (v.getModelo() < 1900 || v.getModelo() > Year.now().getValue() + 1)) {
 			throw new DatoInvalidoException("modelo debe ser un año entre 1900 y " + (Year.now().getValue() + 1));

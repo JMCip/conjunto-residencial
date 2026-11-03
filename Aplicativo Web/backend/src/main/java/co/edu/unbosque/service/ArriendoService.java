@@ -8,13 +8,15 @@ import java.time.format.DateTimeParseException;
 import co.edu.unbosque.exception.ConflictoException;
 import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
-
+import java.util.Set;
 import co.edu.unbosque.dao.ArriendoDAO;
 import co.edu.unbosque.model.Arriendo;
+
 
 public class ArriendoService {
 	
 	private final ArriendoDAO arriendoDao = new ArriendoDAO();
+	private static final Set<String> ESTADOS = Set.of("VIGENTE", "FINALIZADO");
 	
 	public List<Arriendo> listar() throws SQLException {
 		return arriendoDao.listar();
@@ -77,6 +79,10 @@ public class ArriendoService {
 		}
 		if (a.getEstadoContrato() == null || a.getEstadoContrato().isBlank()) {
 			throw new DatoInvalidoException("estadoContrato es obligatorio");
+		}
+		a.setEstadoContrato(a.getEstadoContrato().trim().toUpperCase());
+		if (!ESTADOS.contains(a.getEstadoContrato())) {
+			throw new DatoInvalidoException("estadoContrato debe ser VIGENTE o FINALIZADO");
 		}
 		if (a.getFechaFin() != null && a.getFechaFin().isBlank()) {
 			a.setFechaFin(null);
