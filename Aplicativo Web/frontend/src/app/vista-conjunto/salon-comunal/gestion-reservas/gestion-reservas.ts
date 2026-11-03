@@ -1,20 +1,16 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
-  DatosReservaSalon,
   ESTADOS_RESERVA,
   ESTILO_RESERVA,
   ETIQUETA_RESERVA,
   ReservaSalonModel,
 } from '../../../models/reserva-salon.model';
-import { CasaModel, llaveCasa, nombreCasa, separarLlaveCasa } from '../../../models/casa.model';
+import { CasaModel, nombreCasa } from '../../../models/casa.model';
 import { ReservaSalonService } from '../../../services/reserva-salon.service';
 import { CasaService } from '../../../services/casa.service';
 import { NotificacionService } from '../../../services/notificacion.service';
-import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
-import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
 import { extraerError } from '../../../compartido/extraer-error';
 
 /** Filtro del control segmentado: todas o un estado. */
@@ -27,7 +23,7 @@ type FiltroReserva = 'TODAS' | ReservaSalonModel['estado'];
  */
 @Component({
   selector: 'app-gestion-reservas',
-  imports: [CurrencyPipe, DatePipe, DecimalPipe, FormsModule, ModalFormulario, DialogoConfirmar],
+  imports: [CurrencyPipe, DatePipe, DecimalPipe],
   templateUrl: './gestion-reservas.html',
   styleUrl: './gestion-reservas.css',
 })
@@ -72,49 +68,11 @@ export class GestionReservas implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  // ---------- Modal de crear / editar ----------
-
-  protected readonly modoModal = signal<'crear' | 'editar' | null>(null);
-  private idEditando = 0;
-  protected readonly formCasa = signal('');
-  protected readonly formFecha = signal('');
-  protected readonly formHoraInicio = signal('');
-  protected readonly formHoraFinal = signal('');
-  protected readonly formValorPorHora = signal<number | null>(null);
-  protected readonly formDeposito = signal<number | null>(null);
-  protected readonly formEstado = signal<ReservaSalonModel['estado']>('CONFIRMADA');
-  protected readonly errorFormulario = signal<string | null>(null);
-  protected readonly guardando = signal(false);
-
-  /** Horas entre inicio y final mientras se llena el formulario (null si falta algo). */
-  protected readonly horasCalculadas = computed(() => {
-    const inicio = this.formHoraInicio();
-    const final = this.formHoraFinal();
-    if (!inicio || !final) return null;
-    const minutos = (h: string) => Number(h.slice(0, 2)) * 60 + Number(h.slice(3, 5));
-    const horas = (minutos(final) - minutos(inicio)) / 60;
-    return horas > 0 ? horas : null;
-  });
-
-  /** Vista previa del total: horas × valor por hora (lo mismo que calcula el backend). */
-  protected readonly totalCalculado = computed(() => {
-    const horas = this.horasCalculadas();
-    const valor = this.formValorPorHora();
-    return horas !== null && valor !== null ? horas * valor : null;
-  });
-
-  // ---------- Diálogo de eliminar ----------
-
-  protected readonly reservaAEliminar = signal<ReservaSalonModel | null>(null);
-  protected readonly eliminando = signal(false);
-
   /** Constantes y funciones para la plantilla. */
-  protected readonly estadosReserva = ESTADOS_RESERVA;
   protected readonly etiquetaReserva = ETIQUETA_RESERVA;
   protected readonly estiloReserva = ESTILO_RESERVA;
   protected readonly opcionesFiltro: FiltroReserva[] = ['TODAS', ...ESTADOS_RESERVA];
   protected readonly nombreCasa = nombreCasa;
-  protected readonly llaveCasa = llaveCasa;
 
   ngOnInit(): void {
     this.cargarReservas();
@@ -158,153 +116,5 @@ export class GestionReservas implements OnInit {
    */
   franja(r: ReservaSalonModel): string {
     return `${r.horaInicio.slice(11, 16)} – ${r.horaFinal.slice(11, 16)}`;
-  }
-
-  /** Abre el modal vacío, con los valores de la última reserva como sugerencia. */
-  abrirModalCrear(): void {
-    const ultima = [...this.reservas()].sort((a, b) => b.horaInicio.localeCompare(a.horaInicio))[0];
-    this.idEditando = 0;
-    this.formCasa.set('');
-    this.formFecha.set('');
-    this.formHoraInicio.set('');
-    this.formHoraFinal.set('');
-    this.formValorPorHora.set(ultima?.valorPorHora ?? null);
-    this.formDeposito.set(ultima?.valorDeposito ?? null);
-    this.formEstado.set('CONFIRMADA');
-    this.errorFormulario.set(null);
-    this.modoModal.set('crear');
-  }
-
-  /**
-   * Abre el modal con los datos de una reserva.
-   * @param r Reserva elegida en la tabla.
-   */
-  abrirModalEditar(r: ReservaSalonModel): void {
-    this.idEditando = r.idReserva;
-    this.formCasa.set(llaveCasa(r.casaManzana, r.casaNumero));
-    this.formFecha.set(r.fechaReserva);
-    this.formHoraInicio.set(r.horaInicio.slice(11, 16));
-    this.formHoraFinal.set(r.horaFinal.slice(11, 16));
-    this.formValorPorHora.set(r.valorPorHora);
-    this.formDeposito.set(r.valorDeposito);
-    this.formEstado.set(r.estado);
-    this.errorFormulario.set(null);
-    this.modoModal.set('editar');
-  }
-
-  /** Cierra el modal sin guardar. */
-  cerrarModal(): void {
-    this.modoModal.set(null);
-  }
-
-  /** Valida y llama a crear o actualizar. */
-  guardar(): void {
-    const error = this.validar();
-    this.errorFormulario.set(error);
-    if (error) return;
-
-    const datos = this.datosFormulario();
-    const creando = this.modoModal() === 'crear';
-    const peticion = creando
-      ? this.reservaService.postCrear(datos)
-      : this.reservaService.putActualizar(this.idEditando, datos);
-
-    this.guardando.set(true);
-    peticion.subscribe({
-      next: () => {
-        this.guardando.set(false);
-        this.modoModal.set(null);
-        this.notificacionService.exito(
-          `Reserva de ${nombreCasa(datos.casaManzana, datos.casaNumero)} ${creando ? 'registrada' : 'actualizada'} correctamente.`,
-        );
-        this.cargarReservas();
-      },
-      error: (err) => {
-        this.guardando.set(false);
-        this.errorFormulario.set(
-          extraerError(err, `No se pudo ${creando ? 'registrar' : 'actualizar'} la reserva.`),
-        );
-      },
-    });
-  }
-
-  /** Pide confirmación antes de eliminar. */
-  pedirEliminar(r: ReservaSalonModel): void {
-    this.reservaAEliminar.set(r);
-  }
-
-  /** Cierra el diálogo sin eliminar. */
-  cancelarEliminar(): void {
-    this.reservaAEliminar.set(null);
-  }
-
-  /** Envía el DELETE de la reserva confirmada. */
-  confirmarEliminar(): void {
-    const r = this.reservaAEliminar();
-    if (!r) return;
-    this.eliminando.set(true);
-    this.reservaService.deleteEliminar(r.idReserva).subscribe({
-      next: () => {
-        this.eliminando.set(false);
-        this.reservaAEliminar.set(null);
-        this.notificacionService.exito('Reserva eliminada correctamente.');
-        this.cargarReservas();
-      },
-      error: (err) => {
-        this.eliminando.set(false);
-        this.reservaAEliminar.set(null);
-        this.notificacionService.error(
-          extraerError(err, 'No se pudo eliminar la reserva.'),
-          'No se eliminó',
-        );
-      },
-    });
-  }
-
-  /** Arma el JSON que se envía: hora_inicio y hora_final son TIMESTAMP "AAAA-MM-DD HH:mm:ss". */
-  private datosFormulario(): DatosReservaSalon {
-    const casa = separarLlaveCasa(this.formCasa());
-    const fecha = this.formFecha();
-    return {
-      fechaReserva: fecha,
-      horaInicio: `${fecha} ${this.formHoraInicio()}:00`,
-      horaFinal: `${fecha} ${this.formHoraFinal()}:00`,
-      valorDeposito: this.formDeposito()!,
-      valorPorHora: this.formValorPorHora()!,
-      estado: this.formEstado(),
-      casaManzana: casa.manzana,
-      casaNumero: casa.numero,
-    };
-  }
-
-  /**
-   * Revisa los campos antes de enviar, incluida la regla de que dos franjas no se crucen.
-   * @returns Mensaje del primer problema, o null si todo está bien.
-   */
-  private validar(): string | null {
-    if (!this.formCasa()) return 'Elige la casa.';
-    if (!this.formFecha()) return 'Escribe la fecha de la reserva.';
-    if (!this.formHoraInicio() || !this.formHoraFinal()) return 'Escribe la hora de inicio y la final.';
-    if (this.horasCalculadas() === null) return 'La hora final debe ser después de la de inicio.';
-    const valor = this.formValorPorHora();
-    if (valor === null || valor <= 0) return 'El valor por hora debe ser mayor que 0.';
-    const deposito = this.formDeposito();
-    if (deposito === null || deposito < 0) return 'Escribe el valor del depósito (0 si no aplica).';
-
-    // Dos franjas no pueden cruzarse; las reservas canceladas no ocupan la franja.
-    if (this.formEstado() !== 'CANCELADA') {
-      const { horaInicio, horaFinal } = this.datosFormulario();
-      const cruce = this.reservas().find(
-        (r) =>
-          r.idReserva !== this.idEditando &&
-          r.estado !== 'CANCELADA' &&
-          horaInicio < r.horaFinal &&
-          horaFinal > r.horaInicio,
-      );
-      if (cruce) {
-        return `Esa franja se cruza con la reserva de ${nombreCasa(cruce.casaManzana, cruce.casaNumero)} (${this.franja(cruce)}).`;
-      }
-    }
-    return null;
   }
 }

@@ -1,24 +1,18 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import {
-  aInputFechaHora,
-  desdeInputFechaHora,
   ParqueoModel,
   textoFechaHora,
 } from '../../../models/parqueo.model';
 import { ETIQUETA_TIPO_VEHICULO, VehiculoModel } from '../../../models/vehiculo.model';
 import {
   CeldaParqueaderoModel,
-  ETIQUETA_CELDA,
   nombreCelda,
 } from '../../../models/celda-parqueadero.model';
 import { ParqueoService } from '../../../services/parqueo.service';
 import { VehiculoService } from '../../../services/vehiculo.service';
 import { CeldaParqueaderoService } from '../../../services/celda-parqueadero.service';
 import { NotificacionService } from '../../../services/notificacion.service';
-import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
-import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
 import { extraerError } from '../../../compartido/extraer-error';
 
 /**
@@ -28,7 +22,7 @@ import { extraerError } from '../../../compartido/extraer-error';
  */
 @Component({
   selector: 'app-gestion-parqueos',
-  imports: [FormsModule, ModalFormulario, DialogoConfirmar],
+  imports: [],
   templateUrl: './gestion-parqueos.html',
   styleUrl: './gestion-parqueos.css',
 })
@@ -79,25 +73,8 @@ export class GestionParqueos implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  // ---------- Modal de crear / editar ----------
-
-  protected readonly modoModal = signal<'crear' | 'editar' | null>(null);
-  private idEditando = 0;
-  protected readonly formPlaca = signal('');
-  protected readonly formCelda = signal<number | null>(null);
-  protected readonly formEntrada = signal('');
-  protected readonly formSalida = signal('');
-  protected readonly errorFormulario = signal<string | null>(null);
-  protected readonly guardando = signal(false);
-
-  // ---------- Diálogo de eliminar ----------
-
-  protected readonly parqueoAEliminar = signal<ParqueoModel | null>(null);
-  protected readonly eliminando = signal(false);
-
   /** Constantes y funciones para la plantilla. */
   protected readonly nombreCelda = nombreCelda;
-  protected readonly etiquetaCelda = ETIQUETA_CELDA;
   protected readonly textoFechaHora = textoFechaHora;
 
   ngOnInit(): void {
@@ -138,120 +115,5 @@ export class GestionParqueos implements OnInit {
     const v = this.vehiculoPorPlaca().get(placa);
     if (!v) return '';
     return [ETIQUETA_TIPO_VEHICULO[v.tipo] ?? v.tipo, v.marca].filter(Boolean).join(' · ');
-  }
-
-  /** Abre el modal vacío, con la entrada en la hora actual. */
-  abrirModalCrear(): void {
-    const ahora = new Date();
-    ahora.setMinutes(ahora.getMinutes() - ahora.getTimezoneOffset());
-    this.idEditando = 0;
-    this.formPlaca.set('');
-    this.formCelda.set(null);
-    this.formEntrada.set(ahora.toISOString().slice(0, 16));
-    this.formSalida.set('');
-    this.errorFormulario.set(null);
-    this.modoModal.set('crear');
-  }
-
-  /**
-   * Abre el modal con los datos de un parqueo (por ejemplo, para registrar la salida).
-   * @param p Parqueo elegido en la tabla.
-   */
-  abrirModalEditar(p: ParqueoModel): void {
-    this.idEditando = p.idParqueo;
-    this.formPlaca.set(p.vehiculoPlaca);
-    this.formCelda.set(p.idCelda);
-    this.formEntrada.set(aInputFechaHora(p.fechaHoraEntrada));
-    this.formSalida.set(aInputFechaHora(p.fechaHoraSalida));
-    this.errorFormulario.set(null);
-    this.modoModal.set('editar');
-  }
-
-  /** Cierra el modal sin guardar. */
-  cerrarModal(): void {
-    this.modoModal.set(null);
-  }
-
-  /** Valida y llama a crear o actualizar. */
-  guardar(): void {
-    const error = this.validar();
-    this.errorFormulario.set(error);
-    if (error) return;
-
-    const datos = {
-      fechaHoraEntrada: desdeInputFechaHora(this.formEntrada())!,
-      fechaHoraSalida: desdeInputFechaHora(this.formSalida()),
-      vehiculoPlaca: this.formPlaca(),
-      idCelda: Number(this.formCelda()),
-    };
-    const creando = this.modoModal() === 'crear';
-    const peticion = creando
-      ? this.parqueoService.postCrear(datos)
-      : this.parqueoService.putActualizar({ idParqueo: this.idEditando, ...datos });
-
-    this.guardando.set(true);
-    peticion.subscribe({
-      next: () => {
-        this.guardando.set(false);
-        this.modoModal.set(null);
-        this.notificacionService.exito(
-          `Parqueo de ${datos.vehiculoPlaca} ${creando ? 'registrado' : 'actualizado'} correctamente.`,
-        );
-        this.cargarParqueos();
-      },
-      error: (err) => {
-        this.guardando.set(false);
-        this.errorFormulario.set(
-          extraerError(err, `No se pudo ${creando ? 'registrar' : 'actualizar'} el parqueo.`),
-        );
-      },
-    });
-  }
-
-  /** Pide confirmación antes de eliminar. */
-  pedirEliminar(p: ParqueoModel): void {
-    this.parqueoAEliminar.set(p);
-  }
-
-  /** Cierra el diálogo sin eliminar. */
-  cancelarEliminar(): void {
-    this.parqueoAEliminar.set(null);
-  }
-
-  /** Envía el DELETE del parqueo confirmado. */
-  confirmarEliminar(): void {
-    const p = this.parqueoAEliminar();
-    if (!p) return;
-    this.eliminando.set(true);
-    this.parqueoService.deleteEliminar(p.idParqueo).subscribe({
-      next: () => {
-        this.eliminando.set(false);
-        this.parqueoAEliminar.set(null);
-        this.notificacionService.exito('Parqueo eliminado correctamente.');
-        this.cargarParqueos();
-      },
-      error: (err) => {
-        this.eliminando.set(false);
-        this.parqueoAEliminar.set(null);
-        this.notificacionService.error(
-          extraerError(err, 'No se pudo eliminar el parqueo.'),
-          'No se eliminó',
-        );
-      },
-    });
-  }
-
-  /**
-   * Revisa los campos antes de enviar.
-   * @returns Mensaje del primer problema, o null si todo está bien.
-   */
-  private validar(): string | null {
-    if (!this.formPlaca()) return 'Elige el vehículo.';
-    if (this.formCelda() === null) return 'Elige la celda.';
-    if (!this.formEntrada()) return 'Escribe la fecha y hora de entrada.';
-    if (this.formSalida() && this.formSalida() <= this.formEntrada()) {
-      return 'La salida debe ser después de la entrada.';
-    }
-    return null;
   }
 }

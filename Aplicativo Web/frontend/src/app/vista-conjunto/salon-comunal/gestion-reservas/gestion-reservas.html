@@ -22,10 +22,6 @@
           </button>
         }
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nueva reserva
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (reservas().length === 0) {
         <p class="titulo-vacio">Todavía no hay reservas del salón</p>
-        <p class="texto-vacio">Registra la primera con el botón "Nueva reserva".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para este filtro</p>
         <p class="texto-vacio">No hay reservas con ese estado.</p>
@@ -75,7 +70,6 @@
             <th scope="col" class="col-numero">Total</th>
             <th scope="col" class="col-numero">Depósito</th>
             <th scope="col">Estado</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -93,26 +87,6 @@
                   {{ etiquetaReserva[r.estado] }}
                 </span>
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar reserva del ' + (r.fechaReserva | date: 'dd/MM/y')"
-                  title="Editar"
-                  (click)="abrirModalEditar(r)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar reserva del ' + (r.fechaReserva | date: 'dd/MM/y')"
-                  title="Eliminar"
-                  (click)="pedirEliminar(r)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -121,87 +95,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="modo === 'crear' ? 'Nueva reserva del salón' : 'Editar reserva'"
-    [textoGuardar]="modo === 'crear' ? 'Registrar reserva' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-casa" class="etiqueta-campo">Casa</label>
-        <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
-          <option value="" disabled>Elige una casa</option>
-          @for (c of casas(); track c.manzana + '-' + c.numero) {
-            <option [value]="llaveCasa(c.manzana, c.numero)">
-              {{ nombreCasa(c.manzana, c.numero) }}
-            </option>
-          }
-        </select>
-      </div>
-      <div class="campo">
-        <label for="campo-estado" class="etiqueta-campo">Estado</label>
-        <select id="campo-estado" name="estado" class="input-formulario" [(ngModel)]="formEstado">
-          @for (e of estadosReserva; track e) {
-            <option [value]="e">{{ etiquetaReserva[e] }}</option>
-          }
-        </select>
-      </div>
-    </div>
-
-    <div class="fila-campos fila-tres">
-      <div class="campo">
-        <label for="campo-fecha" class="etiqueta-campo">Fecha</label>
-        <input id="campo-fecha" name="fecha" type="date"
-               class="input-formulario num" [(ngModel)]="formFecha" />
-      </div>
-      <div class="campo">
-        <label for="campo-inicio" class="etiqueta-campo">Hora de inicio</label>
-        <input id="campo-inicio" name="horaInicio" type="time" step="900"
-               class="input-formulario num" [(ngModel)]="formHoraInicio" />
-      </div>
-      <div class="campo">
-        <label for="campo-final" class="etiqueta-campo">Hora final</label>
-        <input id="campo-final" name="horaFinal" type="time" step="900"
-               class="input-formulario num" [(ngModel)]="formHoraFinal" />
-      </div>
-    </div>
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-valor" class="etiqueta-campo">Valor por hora (COP)</label>
-        <input id="campo-valor" name="valorPorHora" type="number" min="0" step="1000"
-               class="input-formulario num" [(ngModel)]="formValorPorHora" />
-      </div>
-      <div class="campo">
-        <label for="campo-deposito" class="etiqueta-campo">Depósito de garantía (COP)</label>
-        <input id="campo-deposito" name="valorDeposito" type="number" min="0" step="1000"
-               class="input-formulario num" [(ngModel)]="formDeposito" />
-      </div>
-    </div>
-
-    <p class="resumen-total" aria-live="polite">
-      @if (totalCalculado() !== null) {
-        <span>{{ horasCalculadas() | number: '1.0-2' }} horas</span>
-        <strong class="num">Total: {{ totalCalculado() | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
-      } @else {
-        <span>El total (horas × valor por hora) aparece al llenar las horas y el valor.</span>
-      }
-    </p>
-  </app-modal-formulario>
-}
-
-@if (reservaAEliminar(); as r) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar la reserva?"
-    [mensaje]="'Se eliminará la reserva de ' + nombreCasa(r.casaManzana, r.casaNumero) + ' del ' + (r.fechaReserva | date: 'dd/MM/y') + ' (' + franja(r) + '). Si solo no se va a usar, mejor cámbiala a Cancelada.'"
-    textoConfirmar="Eliminar reserva"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}

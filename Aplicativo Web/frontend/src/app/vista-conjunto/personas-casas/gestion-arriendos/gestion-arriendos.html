@@ -22,10 +22,6 @@
           />
         </div>
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nuevo contrato
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (arriendos().length === 0) {
         <p class="titulo-vacio">Todavía no hay contratos de arriendo</p>
-        <p class="texto-vacio">Registra el primero con el botón "Nuevo contrato".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para esta búsqueda</p>
         <p class="texto-vacio">Prueba con otra casa, persona o estado.</p>
@@ -74,7 +69,6 @@
             <th scope="col">Inicio</th>
             <th scope="col">Fin</th>
             <th scope="col">Estado</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -96,26 +90,6 @@
                   {{ a.estadoContrato === 'VIGENTE' ? 'Vigente' : 'Finalizado' }}
                 </span>
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar contrato de ' + nombreCasa(a.casaManzana, a.casaNumero)"
-                  title="Editar"
-                  (click)="abrirModalEditar(a)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar contrato de ' + nombreCasa(a.casaManzana, a.casaNumero)"
-                  title="Eliminar"
-                  (click)="pedirEliminar(a)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -124,93 +98,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="modo === 'crear' ? 'Nuevo contrato de arriendo' : 'Editar contrato'"
-    [textoGuardar]="modo === 'crear' ? 'Registrar contrato' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-casa" class="etiqueta-campo">Casa</label>
-        <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
-          <option value="" disabled>Elige una casa</option>
-          @for (c of casas(); track c.manzana + '-' + c.numero) {
-            <option [value]="llaveCasa(c.manzana, c.numero)">
-              {{ nombreCasa(c.manzana, c.numero) }}
-            </option>
-          }
-        </select>
-      </div>
-      <div class="campo">
-        <label for="campo-estado" class="etiqueta-campo">Estado</label>
-        <select id="campo-estado" name="estado" class="input-formulario" [(ngModel)]="formEstado">
-          @for (e of estadosContrato; track e) {
-            <option [value]="e">{{ e === 'VIGENTE' ? 'Vigente' : 'Finalizado' }}</option>
-          }
-        </select>
-      </div>
-    </div>
-
-    <div class="campo">
-      <label for="campo-propietario" class="etiqueta-campo">Propietario que firma</label>
-      <select id="campo-propietario" name="propietario" class="input-formulario"
-              [(ngModel)]="formPropietario">
-        <option value="" disabled>Elige un propietario</option>
-        @for (p of propietarios(); track p.tipoDocumento + p.numeroDocumento) {
-          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
-            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
-          </option>
-        }
-      </select>
-    </div>
-
-    <div class="campo">
-      <label for="campo-arrendatario" class="etiqueta-campo">Arrendatario</label>
-      <select id="campo-arrendatario" name="arrendatario" class="input-formulario"
-              [(ngModel)]="formArrendatario">
-        <option value="" disabled>Elige un arrendatario</option>
-        @for (p of arrendatarios(); track p.tipoDocumento + p.numeroDocumento) {
-          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
-            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
-          </option>
-        }
-      </select>
-      <p class="ayuda-campo-normal">Solo aparecen personas con el rol correspondiente (pestaña Personas).</p>
-    </div>
-
-    <div class="campo">
-      <label for="campo-cuota" class="etiqueta-campo">Cuota mensual (COP)</label>
-      <input id="campo-cuota" name="cuota" type="number" min="0" step="1000"
-             class="input-formulario num" placeholder="Ej: 1800000" [(ngModel)]="formCuota" />
-    </div>
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-inicio" class="etiqueta-campo">Fecha de inicio</label>
-        <input id="campo-inicio" name="fechaInicio" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaInicio" />
-      </div>
-      <div class="campo">
-        <label for="campo-fin" class="etiqueta-campo">Fecha de fin (opcional)</label>
-        <input id="campo-fin" name="fechaFin" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaFin" />
-      </div>
-    </div>
-  </app-modal-formulario>
-}
-
-@if (arriendoAEliminar(); as a) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar el contrato?"
-    [mensaje]="'Se eliminará el contrato de arriendo de ' + nombreCasa(a.casaManzana, a.casaNumero) + '. Esta acción no se puede deshacer.'"
-    textoConfirmar="Eliminar contrato"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}

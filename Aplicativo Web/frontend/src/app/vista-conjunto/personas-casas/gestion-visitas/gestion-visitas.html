@@ -22,10 +22,6 @@
           />
         </div>
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nueva visita
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (visitas().length === 0) {
         <p class="titulo-vacio">Todavía no hay visitas registradas</p>
-        <p class="texto-vacio">Registra la primera con el botón "Nueva visita".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para esta búsqueda</p>
         <p class="texto-vacio">Prueba con otra casa o con otro visitante.</p>
@@ -71,7 +66,6 @@
             <th scope="col">Visitante</th>
             <th scope="col">Entrada</th>
             <th scope="col">Salida</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -87,26 +81,6 @@
                   <span class="insignia-estado insignia-ok">En curso</span>
                 }
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar visita de ' + visitante(r)"
-                  title="Editar"
-                  (click)="abrirModalEditar(r)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar visita de ' + visitante(r)"
-                  title="Eliminar"
-                  (click)="pedirEliminar(r)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -115,64 +89,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="modo === 'crear' ? 'Nueva visita' : 'Editar visita'"
-    [textoGuardar]="modo === 'crear' ? 'Registrar visita' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="campo">
-      <label for="campo-casa" class="etiqueta-campo">Casa</label>
-      <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
-        <option value="" disabled>Elige una casa</option>
-        @for (c of casas(); track c.manzana + '-' + c.numero) {
-          <option [value]="llaveCasa(c.manzana, c.numero)">
-            {{ nombreCasa(c.manzana, c.numero) }}
-          </option>
-        }
-      </select>
-    </div>
-
-    <div class="campo">
-      <label for="campo-visitante" class="etiqueta-campo">Visitante</label>
-      <select id="campo-visitante" name="visitante" class="input-formulario"
-              [(ngModel)]="formVisitante">
-        <option value="" disabled>Elige un visitante</option>
-        @for (p of visitantes(); track p.tipoDocumento + p.numeroDocumento) {
-          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
-            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
-          </option>
-        }
-      </select>
-      <p class="ayuda-campo-normal">Solo aparecen las personas con rol Visitante (pestaña Personas).</p>
-    </div>
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-entrada" class="etiqueta-campo">Fecha de entrada</label>
-        <input id="campo-entrada" name="fechaEntrada" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaEntrada" />
-      </div>
-      <div class="campo">
-        <label for="campo-salida" class="etiqueta-campo">Fecha de salida (opcional)</label>
-        <input id="campo-salida" name="fechaSalida" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaSalida" />
-      </div>
-    </div>
-  </app-modal-formulario>
-}
-
-@if (visitaAEliminar(); as r) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar la visita?"
-    [mensaje]="'Se eliminará la visita de ' + visitante(r) + ' en ' + nombreCasa(r.casaManzana, r.casaNumero) + '. Esta acción no se puede deshacer.'"
-    textoConfirmar="Eliminar visita"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}

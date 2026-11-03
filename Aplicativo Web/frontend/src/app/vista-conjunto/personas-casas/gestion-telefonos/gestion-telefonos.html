@@ -22,10 +22,6 @@
           />
         </div>
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nuevo teléfono
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (telefonos().length === 0) {
         <p class="titulo-vacio">Todavía no hay teléfonos registrados</p>
-        <p class="texto-vacio">Registra el primero con el botón "Nuevo teléfono".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para esta búsqueda</p>
         <p class="texto-vacio">Prueba con otro número o con otro nombre.</p>
@@ -70,7 +65,6 @@
             <th scope="col">Teléfono</th>
             <th scope="col">Persona</th>
             <th scope="col">Documento</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -81,26 +75,6 @@
               <td class="col-secundaria num col-documento">
                 {{ t.personaTipoDocumento }} {{ t.personaNumeroDocumento }}
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar teléfono ' + t.telefono"
-                  title="Editar"
-                  (click)="abrirModalEditar(t)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar teléfono ' + t.telefono"
-                  title="Eliminar"
-                  (click)="pedirEliminar(t)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -109,50 +83,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="modo === 'crear' ? 'Nuevo teléfono' : 'Editar teléfono'"
-    [textoGuardar]="modo === 'crear' ? 'Registrar teléfono' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="campo">
-      <label for="campo-persona" class="etiqueta-campo">Persona</label>
-      <select id="campo-persona" name="persona" class="input-formulario" [(ngModel)]="formPersona">
-        <option value="" disabled>Elige una persona</option>
-        @for (p of personas(); track p.tipoDocumento + p.numeroDocumento) {
-          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
-            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
-          </option>
-        }
-      </select>
-    </div>
-    <div class="campo">
-      <label for="campo-telefono" class="etiqueta-campo">Teléfono</label>
-      <input
-        id="campo-telefono"
-        name="telefono"
-        type="tel"
-        inputmode="numeric"
-        maxlength="20"
-        class="input-formulario num"
-        placeholder="Ej: 3001234567"
-        [(ngModel)]="formTelefono"
-      />
-    </div>
-  </app-modal-formulario>
-}
-
-@if (telefonoAEliminar(); as t) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar el teléfono?"
-    [mensaje]="'Se eliminará el teléfono ' + t.telefono + ' de ' + duenio(t) + '. Esta acción no se puede deshacer.'"
-    textoConfirmar="Eliminar teléfono"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}

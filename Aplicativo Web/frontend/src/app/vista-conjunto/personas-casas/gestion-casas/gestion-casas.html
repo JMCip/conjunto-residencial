@@ -22,10 +22,6 @@
           />
         </div>
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nueva casa
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (casas().length === 0) {
         <p class="titulo-vacio">Todavía no hay casas registradas</p>
-        <p class="texto-vacio">Crea la primera con el botón "Nueva casa".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para esta búsqueda</p>
         <p class="texto-vacio">Prueba con otra manzana, número o estado.</p>
@@ -71,7 +66,6 @@
             <th scope="col" class="col-numero">Área</th>
             <th scope="col" class="col-numero">Habitaciones</th>
             <th scope="col">Estado</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -88,26 +82,6 @@
                   {{ etiquetaCasa[c.estado] ?? c.estado }}
                 </span>
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar ' + nombreCasa(c)"
-                  title="Editar"
-                  (click)="abrirModalEditar(c)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar ' + nombreCasa(c)"
-                  title="Eliminar"
-                  (click)="pedirEliminar(c)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -116,94 +90,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="tituloModal()"
-    [textoGuardar]="modo === 'crear' ? 'Crear casa' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-manzana" class="etiqueta-campo">Manzana</label>
-        <input
-          id="campo-manzana"
-          name="manzana"
-          type="number"
-          min="1"
-          step="1"
-          class="input-formulario num"
-          [disabled]="modo === 'editar'"
-          [(ngModel)]="formManzana"
-        />
-      </div>
-      <div class="campo">
-        <label for="campo-numero" class="etiqueta-campo">Número de casa</label>
-        <input
-          id="campo-numero"
-          name="numero"
-          type="number"
-          min="1"
-          step="1"
-          class="input-formulario num"
-          [disabled]="modo === 'editar'"
-          [(ngModel)]="formNumero"
-        />
-      </div>
-    </div>
-    @if (modo === 'editar') {
-      <p class="ayuda-campo">Manzana y número no se pueden cambiar: identifican la casa.</p>
-    }
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-area" class="etiqueta-campo">Área (m²)</label>
-        <input
-          id="campo-area"
-          name="area"
-          type="number"
-          min="0"
-          step="0.01"
-          class="input-formulario num"
-          placeholder="Ej: 120.50"
-          [(ngModel)]="formArea"
-        />
-      </div>
-      <div class="campo">
-        <label for="campo-habitaciones" class="etiqueta-campo">Habitaciones (opcional)</label>
-        <input
-          id="campo-habitaciones"
-          name="habitaciones"
-          type="number"
-          min="0"
-          step="1"
-          class="input-formulario num"
-          [(ngModel)]="formHabitaciones"
-        />
-      </div>
-    </div>
-
-    <div class="campo">
-      <label for="campo-estado" class="etiqueta-campo">Estado</label>
-      <select id="campo-estado" name="estado" class="input-formulario" [(ngModel)]="formEstado">
-        @for (estado of estadosCasa; track estado) {
-          <option [value]="estado">{{ etiquetaCasa[estado] }}</option>
-        }
-      </select>
-    </div>
-  </app-modal-formulario>
-}
-
-@if (casaAEliminar(); as casa) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar la casa?"
-    [mensaje]="'Se eliminará ' + nombreCasa(casa) + '. Esta acción no se puede deshacer.'"
-    textoConfirmar="Eliminar casa"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}

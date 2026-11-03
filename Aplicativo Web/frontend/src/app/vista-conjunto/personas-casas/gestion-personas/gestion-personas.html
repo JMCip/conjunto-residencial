@@ -22,10 +22,6 @@
           />
         </div>
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nueva persona
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (personas().length === 0) {
         <p class="titulo-vacio">Todavía no hay personas registradas</p>
-        <p class="texto-vacio">Registra la primera con el botón "Nueva persona".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para esta búsqueda</p>
         <p class="texto-vacio">Prueba con otro nombre, documento o rol.</p>
@@ -71,7 +66,6 @@
             <th scope="col">Documento</th>
             <th scope="col">Correo</th>
             <th scope="col">Roles</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -89,26 +83,6 @@
                   }
                 </div>
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar ' + nombrePersona(p)"
-                  title="Editar"
-                  (click)="abrirModalEditar(p)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar ' + nombrePersona(p)"
-                  title="Eliminar"
-                  (click)="pedirEliminar(p)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -117,104 +91,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="tituloModal()"
-    [textoGuardar]="modo === 'crear' ? 'Registrar persona' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="fila-campos fila-documento">
-      <div class="campo">
-        <label for="campo-tipo-doc" class="etiqueta-campo">Tipo</label>
-        <select
-          id="campo-tipo-doc"
-          name="tipoDocumento"
-          class="input-formulario"
-          [disabled]="modo === 'editar'"
-          [(ngModel)]="formTipoDocumento"
-        >
-          @for (tipo of tiposDocumento; track tipo) {
-            <option [value]="tipo">{{ tipo }}</option>
-          }
-        </select>
-      </div>
-      <div class="campo">
-        <label for="campo-num-doc" class="etiqueta-campo">Número de documento</label>
-        <input
-          id="campo-num-doc"
-          name="numeroDocumento"
-          type="text"
-          maxlength="20"
-          inputmode="numeric"
-          class="input-formulario num"
-          [disabled]="modo === 'editar'"
-          [(ngModel)]="formNumeroDocumento"
-        />
-      </div>
-    </div>
-    @if (modo === 'editar') {
-      <p class="ayuda-campo">El documento no se puede cambiar: identifica a la persona.</p>
-    }
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-nombre1" class="etiqueta-campo">Primer nombre</label>
-        <input id="campo-nombre1" name="primerNombre" type="text" maxlength="20"
-               class="input-formulario" [(ngModel)]="formPrimerNombre" />
-      </div>
-      <div class="campo">
-        <label for="campo-nombre2" class="etiqueta-campo">Segundo nombre (opcional)</label>
-        <input id="campo-nombre2" name="segundoNombre" type="text" maxlength="20"
-               class="input-formulario" [(ngModel)]="formSegundoNombre" />
-      </div>
-    </div>
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-apellido1" class="etiqueta-campo">Primer apellido</label>
-        <input id="campo-apellido1" name="primerApellido" type="text" maxlength="20"
-               class="input-formulario" [(ngModel)]="formPrimerApellido" />
-      </div>
-      <div class="campo">
-        <label for="campo-apellido2" class="etiqueta-campo">Segundo apellido (opcional)</label>
-        <input id="campo-apellido2" name="segundoApellido" type="text" maxlength="20"
-               class="input-formulario" [(ngModel)]="formSegundoApellido" />
-      </div>
-    </div>
-
-    <div class="campo">
-      <label for="campo-correo" class="etiqueta-campo">Correo (opcional)</label>
-      <input id="campo-correo" name="correo" type="email" maxlength="150"
-             class="input-formulario" placeholder="nombre@correo.com" [(ngModel)]="formCorreo" />
-    </div>
-
-    <fieldset class="grupo-casillas">
-      <legend class="etiqueta-campo">Roles en el conjunto</legend>
-      @for (rol of roles; track rol.ruta) {
-        <label class="casilla">
-          <input
-            type="checkbox"
-            [checked]="formRoles().includes(rol.ruta)"
-            (change)="alternarRol(rol.ruta)"
-          />
-          {{ rol.texto }}
-        </label>
-      }
-    </fieldset>
-  </app-modal-formulario>
-}
-
-@if (personaAEliminar(); as p) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar la persona?"
-    [mensaje]="'Se eliminará a ' + nombrePersona(p) + ' (' + p.tipoDocumento + ' ' + p.numeroDocumento + ') y sus roles. Esta acción no se puede deshacer.'"
-    textoConfirmar="Eliminar persona"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}
