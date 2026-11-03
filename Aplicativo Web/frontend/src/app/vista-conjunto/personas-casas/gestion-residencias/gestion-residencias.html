@@ -22,10 +22,6 @@
           />
         </div>
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nueva residencia
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (residencias().length === 0) {
         <p class="titulo-vacio">Todavía no hay residencias registradas</p>
-        <p class="texto-vacio">Registra la primera con el botón "Nueva residencia".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para esta búsqueda</p>
         <p class="texto-vacio">Prueba con otra casa o con otro residente.</p>
@@ -71,7 +66,6 @@
             <th scope="col">Residente</th>
             <th scope="col">Ingreso</th>
             <th scope="col">Salida</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -87,26 +81,6 @@
                   <span class="insignia-estado insignia-ok">Vive aquí</span>
                 }
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar residencia de ' + residente(r)"
-                  title="Editar"
-                  (click)="abrirModalEditar(r)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar residencia de ' + residente(r)"
-                  title="Eliminar"
-                  (click)="pedirEliminar(r)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -115,64 +89,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="modo === 'crear' ? 'Nueva residencia' : 'Editar residencia'"
-    [textoGuardar]="modo === 'crear' ? 'Registrar residencia' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="campo">
-      <label for="campo-casa" class="etiqueta-campo">Casa</label>
-      <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
-        <option value="" disabled>Elige una casa</option>
-        @for (c of casas(); track c.manzana + '-' + c.numero) {
-          <option [value]="llaveCasa(c.manzana, c.numero)">
-            {{ nombreCasa(c.manzana, c.numero) }}
-          </option>
-        }
-      </select>
-    </div>
-
-    <div class="campo">
-      <label for="campo-residente" class="etiqueta-campo">Residente</label>
-      <select id="campo-residente" name="residente" class="input-formulario"
-              [(ngModel)]="formResidente">
-        <option value="" disabled>Elige un residente</option>
-        @for (p of residentes(); track p.tipoDocumento + p.numeroDocumento) {
-          <option [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)">
-            {{ nombrePersona(p) }} · {{ p.tipoDocumento }} {{ p.numeroDocumento }}
-          </option>
-        }
-      </select>
-      <p class="ayuda-campo-normal">Solo aparecen las personas con rol Residente (pestaña Personas).</p>
-    </div>
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-ingreso" class="etiqueta-campo">Fecha de ingreso</label>
-        <input id="campo-ingreso" name="fechaIngreso" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaIngreso" />
-      </div>
-      <div class="campo">
-        <label for="campo-salida" class="etiqueta-campo">Fecha de salida (opcional)</label>
-        <input id="campo-salida" name="fechaSalida" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaSalida" />
-      </div>
-    </div>
-  </app-modal-formulario>
-}
-
-@if (residenciaAEliminar(); as r) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar la residencia?"
-    [mensaje]="'Se eliminará la residencia de ' + residente(r) + ' en ' + nombreCasa(r.casaManzana, r.casaNumero) + '. Esta acción no se puede deshacer.'"
-    textoConfirmar="Eliminar residencia"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}

@@ -5,10 +5,6 @@
   <div class="cabecera-tarjeta cabecera-dos-filas">
     <div class="fila-titulo">
       <h2 id="titulo-sanciones" class="titulo-tarjeta">Sanciones</h2>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nueva sanción
-      </button>
     </div>
 
     <div class="controles-tabla">
@@ -71,7 +67,6 @@
       </span>
       @if (sanciones().length === 0) {
         <p class="titulo-vacio">No hay sanciones registradas</p>
-        <p class="texto-vacio">Registra la primera con el botón "Nueva sanción".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para este filtro</p>
         <p class="texto-vacio">Prueba con otro estado o con otro texto de búsqueda.</p>
@@ -95,7 +90,6 @@
             <th scope="col">Descripción</th>
             <th scope="col" class="col-numero">Multa</th>
             <th scope="col">Estado</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -115,26 +109,6 @@
                   {{ etiqueta[s.estadoProceso] ?? s.estadoProceso }}
                 </span>
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar sanción a ' + nombreCasa(s.casaManzana, s.casaNumero)"
-                  title="Editar"
-                  (click)="abrirModalEditar(s)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar sanción a ' + nombreCasa(s.casaManzana, s.casaNumero)"
-                  title="Eliminar"
-                  (click)="pedirEliminar(s)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -143,91 +117,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="modo === 'crear' ? 'Nueva sanción' : 'Editar sanción'"
-    [textoGuardar]="modo === 'crear' ? 'Registrar sanción' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-casa" class="etiqueta-campo">Casa</label>
-        <select id="campo-casa" name="casa" class="input-formulario" [(ngModel)]="formCasa">
-          <option value="" disabled>Elige una casa</option>
-          @for (c of casas(); track c.manzana + '-' + c.numero) {
-            <option [value]="llaveCasa(c.manzana, c.numero)">
-              {{ nombreCasa(c.manzana, c.numero) }}
-            </option>
-          }
-        </select>
-      </div>
-      <div class="campo">
-        <label for="campo-tipo" class="etiqueta-campo">Tipo</label>
-        <select id="campo-tipo" name="tipo" class="input-formulario" [(ngModel)]="formTipo">
-          @for (t of tiposSancion; track t) {
-            <option [value]="t">{{ etiqueta[t] }}</option>
-          }
-        </select>
-      </div>
-    </div>
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-incidente" class="etiqueta-campo">Fecha del incidente</label>
-        <input id="campo-incidente" name="fechaIncidente" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaIncidente" />
-      </div>
-      <div class="campo">
-        <label for="campo-notificacion" class="etiqueta-campo">Fecha de notificación</label>
-        <input id="campo-notificacion" name="fechaNotificacion" type="date"
-               class="input-formulario num" [(ngModel)]="formFechaNotificacion" />
-      </div>
-    </div>
-
-    <div class="campo">
-      <label for="campo-descripcion" class="etiqueta-campo">Descripción del incidente</label>
-      <textarea id="campo-descripcion" name="descripcion" rows="2" [maxlength]="maxDescripcion"
-                class="area-formulario" [(ngModel)]="formDescripcion"></textarea>
-      <span class="contador-caracteres num">{{ formDescripcion().length }} / {{ maxDescripcion }}</span>
-    </div>
-
-    <div class="campo">
-      <label for="campo-descargos" class="etiqueta-campo">Descargos (opcional)</label>
-      <textarea id="campo-descargos" name="descargos" rows="2" [maxlength]="maxDescargos"
-                class="area-formulario" placeholder="Lo que respondió el residente"
-                [(ngModel)]="formDescargos"></textarea>
-      <span class="contador-caracteres num">{{ formDescargos().length }} / {{ maxDescargos }}</span>
-    </div>
-
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-estado" class="etiqueta-campo">Estado del proceso</label>
-        <select id="campo-estado" name="estado" class="input-formulario" [(ngModel)]="formEstado">
-          @for (e of estadosSancion; track e) {
-            <option [value]="e">{{ etiqueta[e] }}</option>
-          }
-        </select>
-      </div>
-      <div class="campo">
-        <label for="campo-valor" class="etiqueta-campo">Multa en COP (opcional)</label>
-        <input id="campo-valor" name="valor" type="number" min="0" step="1000"
-               class="input-formulario num" placeholder="Sin multa" [(ngModel)]="formValor" />
-      </div>
-    </div>
-  </app-modal-formulario>
-}
-
-@if (sancionAEliminar(); as s) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar la sanción?"
-    [mensaje]="'Se eliminará la sanción a ' + nombreCasa(s.casaManzana, s.casaNumero) + ' del ' + (s.fechaIncidente | date: 'dd/MM/y') + '. Si fue un error del proceso, mejor cámbiala a Anulada.'"
-    textoConfirmar="Eliminar sanción"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}

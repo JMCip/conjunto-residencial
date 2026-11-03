@@ -22,10 +22,6 @@
           </button>
         }
       </div>
-      <button type="button" class="boton-primario" (click)="abrirModalCrear()">
-        <i class="fa-solid fa-plus" aria-hidden="true"></i>
-        Nueva celda
-      </button>
     </div>
   </div>
 
@@ -53,7 +49,6 @@
       </span>
       @if (celdas().length === 0) {
         <p class="titulo-vacio">Todavía no hay celdas registradas</p>
-        <p class="texto-vacio">Crea la primera con el botón "Nueva celda".</p>
       } @else {
         <p class="titulo-vacio">No hay registros para este filtro</p>
         <p class="texto-vacio">No hay celdas con ese estado.</p>
@@ -70,7 +65,6 @@
             <th scope="col">Celda</th>
             <th scope="col">Tipo</th>
             <th scope="col">Estado</th>
-            <th scope="col" class="col-acciones">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -86,26 +80,6 @@
                   {{ etiqueta[c.estado] ?? c.estado }}
                 </span>
               </td>
-              <td class="col-acciones">
-                <button
-                  type="button"
-                  class="boton-icono"
-                  [attr.aria-label]="'Editar ' + nombreCelda(c.idCelda)"
-                  title="Editar"
-                  (click)="abrirModalEditar(c)"
-                >
-                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
-                </button>
-                <button
-                  type="button"
-                  class="boton-icono boton-icono-peligro"
-                  [attr.aria-label]="'Eliminar ' + nombreCelda(c.idCelda)"
-                  title="Eliminar"
-                  (click)="pedirEliminar(c)"
-                >
-                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
-                </button>
-              </td>
             </tr>
           }
         </tbody>
@@ -114,47 +88,3 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
-
-@if (modoModal(); as modo) {
-  <app-modal-formulario
-    [titulo]="modo === 'crear' ? 'Nueva celda' : 'Editar celda'"
-    [textoGuardar]="modo === 'crear' ? 'Crear celda' : 'Guardar cambios'"
-    [guardando]="guardando()"
-    [error]="errorFormulario()"
-    (guardar)="guardar()"
-    (cerrar)="cerrarModal()"
-  >
-    <div class="fila-campos">
-      <div class="campo">
-        <label for="campo-tipo" class="etiqueta-campo">Tipo</label>
-        <select id="campo-tipo" name="tipo" class="input-formulario" [(ngModel)]="formTipo">
-          @for (t of tiposCelda; track t) {
-            <option [value]="t">{{ etiqueta[t] }}</option>
-          }
-        </select>
-      </div>
-      <div class="campo">
-        <label for="campo-estado" class="etiqueta-campo">Estado</label>
-        <select id="campo-estado" name="estado" class="input-formulario" [(ngModel)]="formEstado">
-          @for (e of estadosCelda; track e) {
-            <option [value]="e">{{ etiqueta[e] }}</option>
-          }
-        </select>
-      </div>
-    </div>
-    @if (modo === 'crear') {
-      <p class="ayuda-campo-normal">El número de la celda lo asigna la base de datos al crearla.</p>
-    }
-  </app-modal-formulario>
-}
-
-@if (celdaAEliminar(); as c) {
-  <app-dialogo-confirmar
-    titulo="¿Eliminar la celda?"
-    [mensaje]="'Se eliminará la ' + nombreCelda(c.idCelda) + '. Esta acción no se puede deshacer.'"
-    textoConfirmar="Eliminar celda"
-    [procesando]="eliminando()"
-    (confirmar)="confirmarEliminar()"
-    (cancelar)="cancelarEliminar()"
-  />
-}
