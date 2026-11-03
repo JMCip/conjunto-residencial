@@ -130,6 +130,10 @@ public class App {
 	        config.routes.put("/api/vehiculos/{placa}", ctx -> vehiculoController.actualizar(ctx));
 	        config.routes.delete("/api/vehiculos/{placa}", ctx -> vehiculoController.eliminar(ctx));
 	        config.routes.get("/api/celdas", ctx -> celdaParqueaderoController.listar(ctx));
+	        config.routes.get("/api/celdas/{id}", ctx -> celdaParqueaderoController.consultar(ctx));
+	        config.routes.post("/api/celdas", ctx -> celdaParqueaderoController.crear(ctx));
+	        config.routes.put("/api/celdas/{id}", ctx -> celdaParqueaderoController.actualizar(ctx));
+	        config.routes.delete("/api/celdas/{id}", ctx -> celdaParqueaderoController.eliminar(ctx));
 	        config.routes.get("/api/asignaciones-celda", ctx -> asignacionCeldaController.listar(ctx));
 	        config.routes.get("/api/asignaciones-celda/{id}", ctx -> asignacionCeldaController.consultar(ctx));
 	        config.routes.post("/api/asignaciones-celda", ctx -> asignacionCeldaController.crear(ctx));
