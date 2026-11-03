@@ -37,4 +37,69 @@ public class CeldaParqueaderoDAO {
 				rs.getString("estado")
 				);
 	}
+	
+	private static final String BUSCAR = """
+			SELECT id_celda, tipo, estado
+			FROM celda_parqueadero
+			WHERE id_celda = ?
+			""";
+
+	public CeldaParqueadero buscar(int id) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(BUSCAR)) {
+			ps.setInt(1, id);
+			try (ResultSet rs = ps.executeQuery()) {
+				return rs.next() ? mapear(rs) : null;
+			}
+		}
+	}
+
+	private static final String INSERTAR = """
+			INSERT INTO celda_parqueadero (tipo, estado)
+			VALUES (?, ?)
+			RETURNING id_celda
+			""";
+
+	public int insertar(CeldaParqueadero c) throws SQLException {
+		try (Connection con = ConexionBD.obtenerConexion();
+				PreparedStatement ps = con.prepareStatement(INSERTAR)) {
+			ps.setString(1, c.getTipo());
+			ps.setString(2, c.getEstado());
+			try (ResultSet rs = ps.executeQuery()) {
+				rs.next();
+				return rs.getInt(1);
+			}
+		}
+	}
+
+	private static final String ACTUALIZAR = """
+			UPDATE celda_parqueadero
+			SET tipo = ?,
+			    estado = ?
+			WHERE id_celda = ?
+			""";
+
+	public boolean actualizar(CeldaParqueadero c) throws SQLException {
+		try (Connection con = ConexionBD.obtenerConexion();
+				PreparedStatement ps = con.prepareStatement(ACTUALIZAR)) {
+			ps.setString(1, c.getTipo());
+			ps.setString(2, c.getEstado());
+			ps.setInt(3, c.getIdCelda());
+			return ps.executeUpdate() > 0;
+		}
+	}
+
+	private static final String ELIMINAR = """
+			DELETE FROM celda_parqueadero
+			WHERE id_celda = ?
+			""";
+
+	public boolean eliminar(int id) throws SQLException {
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(ELIMINAR)) {
+			ps.setInt(1, id);
+			return ps.executeUpdate() > 0;
+		}
+	}
+	
 }

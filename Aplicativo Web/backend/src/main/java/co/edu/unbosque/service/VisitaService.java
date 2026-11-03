@@ -7,13 +7,15 @@ import java.time.format.DateTimeParseException;
 
 import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
-
+import co.edu.unbosque.dao.RolDAO;
+import co.edu.unbosque.exception.ConflictoException;
 import co.edu.unbosque.dao.VisitaDAO;
 import co.edu.unbosque.model.Visita;
 
 public class VisitaService {
 	
 	private final VisitaDAO visitaDao = new VisitaDAO();
+	private final RolDAO rolDao = new RolDAO();
 	
 	public List<Visita> listar() throws SQLException {
 		return visitaDao.listar();
@@ -27,7 +29,7 @@ public class VisitaService {
 		return v;
 	}
 
-	public int crear(Visita v) throws SQLException, DatoInvalidoException {
+	public int crear(Visita v) throws SQLException, DatoInvalidoException, ConflictoException {
 		if (v.getCasaNumero() <= 0 || v.getCasaManzana() <= 0
 				|| v.getVisitanteTipoDocumento() == null || v.getVisitanteTipoDocumento().isBlank()
 				|| v.getVisitanteNumeroDocumento() == null || v.getVisitanteNumeroDocumento().isBlank()) {
@@ -35,6 +37,9 @@ public class VisitaService {
 					"casaNumero, casaManzana, visitanteTipoDocumento y visitanteNumeroDocumento son obligatorios");
 		}
 		validarFechas(v);
+		if (!rolDao.tieneRol("visitante", v.getVisitanteTipoDocumento(), v.getVisitanteNumeroDocumento())) {
+			throw new ConflictoException("La persona no tiene el rol de visitante");
+		}
 		return visitaDao.insertar(v);
 	}
 

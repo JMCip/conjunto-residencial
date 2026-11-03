@@ -1,7 +1,7 @@
 package co.edu.unbosque.service;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-
+import co.edu.unbosque.dao.RolDAO;
 import co.edu.unbosque.exception.ConflictoException;
 import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
@@ -14,6 +14,7 @@ import co.edu.unbosque.model.Residencia;
 public class ResidenciaService {
 	
 	private final ResidenciaDAO residenciaDao = new ResidenciaDAO();
+	private final RolDAO rolDao = new RolDAO();
 	
 	public List<Residencia> listar() throws SQLException {
 		return residenciaDao.listar();
@@ -35,7 +36,11 @@ public class ResidenciaService {
 					"casaNumero, casaManzana, residenteTipoDocumento y residenteNumeroDocumento son obligatorios");
 		}
 		validarFechas(r);
-		// S-25: no puede haber dos ocupaciones abiertas de la misma persona en la misma casa.
+		
+		if (!rolDao.tieneRol("residente", r.getResidenteTipoDocumento(), r.getResidenteNumeroDocumento())) {
+			throw new ConflictoException("La persona no tiene el rol de residente");
+		}
+		
 		if (r.getFechaSalida() == null && residenciaDao.existeVigente(r.getResidenteTipoDocumento(),
 				r.getResidenteNumeroDocumento(), r.getCasaNumero(), r.getCasaManzana(), 0)) {
 			throw new ConflictoException("La persona ya figura como residente vigente de esa casa");

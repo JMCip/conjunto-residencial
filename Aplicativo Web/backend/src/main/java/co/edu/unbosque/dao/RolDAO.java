@@ -87,4 +87,46 @@ public class RolDAO {
 				rs.getString("segundo_apellido")
 				);
 	}
+	
+	
+	private static final java.util.Map<String, String> TABLAS = java.util.Map.of(
+			"propietario", "propietario",
+			"arrendatario", "arrendatario",
+			"residente", "residente",
+			"visitante", "visitante");
+
+	public boolean tieneRol(String rol, String tipoDoc, String numeroDoc) throws SQLException {
+		String sql = "SELECT COUNT(*) FROM " + TABLAS.get(rol)
+				+ " WHERE tipo_documento = ? AND numero_documento = ?";
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(sql)) {
+			ps.setString(1, tipoDoc);
+			ps.setString(2, numeroDoc);
+			try (ResultSet rs = ps.executeQuery()) {
+				rs.next();
+				return rs.getInt(1) > 0;
+			}
+		}
+	}
+
+	public void asignar(String rol, String tipoDoc, String numeroDoc) throws SQLException {
+		String sql = "INSERT INTO " + TABLAS.get(rol) + " (tipo_documento, numero_documento) VALUES (?, ?)";
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(sql)) {
+			ps.setString(1, tipoDoc);
+			ps.setString(2, numeroDoc);
+			ps.executeUpdate();
+		}
+	}
+
+	public boolean quitar(String rol, String tipoDoc, String numeroDoc) throws SQLException {
+		String sql = "DELETE FROM " + TABLAS.get(rol) + " WHERE tipo_documento = ? AND numero_documento = ?";
+		try (Connection c = ConexionBD.obtenerConexion();
+				PreparedStatement ps = c.prepareStatement(sql)) {
+			ps.setString(1, tipoDoc);
+			ps.setString(2, numeroDoc);
+			return ps.executeUpdate() > 0;
+		}
+	}
+	
 }

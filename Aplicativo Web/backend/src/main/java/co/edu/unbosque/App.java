@@ -114,6 +114,8 @@ public class App {
 	        config.routes.get("/api/arrendatarios", ctx -> rolController.listarArrendatarios(ctx));
 	        config.routes.get("/api/residentes", ctx -> rolController.listarResidentes(ctx));
 	        config.routes.get("/api/visitantes", ctx -> rolController.listarVisitantes(ctx));
+	        config.routes.post("/api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}", ctx -> rolController.asignar(ctx));
+	        config.routes.delete("/api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}", ctx -> rolController.quitar(ctx));
 
 	        //----------------------------- Telefono --------------------------
 	        config.routes.get("/api/telefonos", ctx -> telefonoController.listar(ctx));
@@ -130,6 +132,10 @@ public class App {
 	        config.routes.put("/api/vehiculos/{placa}", ctx -> vehiculoController.actualizar(ctx));
 	        config.routes.delete("/api/vehiculos/{placa}", ctx -> vehiculoController.eliminar(ctx));
 	        config.routes.get("/api/celdas", ctx -> celdaParqueaderoController.listar(ctx));
+	        config.routes.get("/api/celdas/{id}", ctx -> celdaParqueaderoController.consultar(ctx));
+	        config.routes.post("/api/celdas", ctx -> celdaParqueaderoController.crear(ctx));
+	        config.routes.put("/api/celdas/{id}", ctx -> celdaParqueaderoController.actualizar(ctx));
+	        config.routes.delete("/api/celdas/{id}", ctx -> celdaParqueaderoController.eliminar(ctx));
 	        config.routes.get("/api/asignaciones-celda", ctx -> asignacionCeldaController.listar(ctx));
 	        config.routes.get("/api/asignaciones-celda/{id}", ctx -> asignacionCeldaController.consultar(ctx));
 	        config.routes.post("/api/asignaciones-celda", ctx -> asignacionCeldaController.crear(ctx));
@@ -195,6 +201,7 @@ public class App {
 	        config.routes.delete("/api/detalles-factura/{factura}/{linea}", ctx -> detalleFacturaController.eliminar(ctx));
 	        
 	        config.routes.get("/api/pagos", ctx -> pagoController.listar(ctx));
+	        config.routes.post("/api/pagos", ctx -> pagoController.crear(ctx));
 	        
 	    }).start(8080);
 	}
