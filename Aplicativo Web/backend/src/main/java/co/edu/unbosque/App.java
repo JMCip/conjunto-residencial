@@ -114,6 +114,8 @@ public class App {
 	        config.routes.get("/api/arrendatarios", ctx -> rolController.listarArrendatarios(ctx));
 	        config.routes.get("/api/residentes", ctx -> rolController.listarResidentes(ctx));
 	        config.routes.get("/api/visitantes", ctx -> rolController.listarVisitantes(ctx));
+	        config.routes.post("/api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}", ctx -> rolController.asignar(ctx));
+	        config.routes.delete("/api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}", ctx -> rolController.quitar(ctx));
 
 	        //----------------------------- Telefono --------------------------
 	        config.routes.get("/api/telefonos", ctx -> telefonoController.listar(ctx));
