@@ -3,7 +3,7 @@ package co.edu.unbosque.controller;
 import io.javalin.http.Context;
 import java.sql.SQLException;
 import java.util.Map;
-
+import co.edu.unbosque.exception.ConflictoException;
 import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
 import io.javalin.http.HttpStatus;
@@ -34,6 +34,7 @@ public class VisitaController {
 		conx.json(visitaService.listar());
 	}
 	
+	
 	@OpenApi(
 			path = "/api/visitas/{id}",
 			methods = HttpMethod.GET,
@@ -62,7 +63,7 @@ public class VisitaController {
 					@OpenApiResponse(status = "400", description = "Datos inválidos"),
 					@OpenApiResponse(status = "409", description = "La casa o el visitante no existen")
 			})
-	public void crear(Context ctx) throws SQLException, DatoInvalidoException {
+	public void crear(Context ctx) throws SQLException, DatoInvalidoException, ConflictoException {
 		Visita v = ctx.bodyAsClass(Visita.class);
 		int id = visitaService.crear(v);
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Visita creada", "idVisita", id));

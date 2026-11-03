@@ -2,7 +2,7 @@ package co.edu.unbosque.service;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-
+import co.edu.unbosque.dao.RolDAO;
 import co.edu.unbosque.exception.ConflictoException;
 import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
@@ -15,6 +15,7 @@ import co.edu.unbosque.model.Posesion;
 public class PosesionService {
 	
 	private final PosesionDAO posesionDao = new PosesionDAO();
+	private final RolDAO rolDao = new RolDAO();
 	
 	public List<Posesion> listar() throws SQLException {
 		return posesionDao.listar();
@@ -38,6 +39,9 @@ public class PosesionService {
 					"casaNumero, casaManzana, propietarioTipoDocumento y propietarioNumeroDocumento son obligatorios");
 		}
 		validarDatos(p);
+		if (!rolDao.tieneRol("propietario", p.getPropietarioTipoDocumento(), p.getPropietarioNumeroDocumento())) {
+			throw new ConflictoException("La persona no tiene el rol de propietario");
+		}
 		validarSuma(p.getCasaNumero(), p.getCasaManzana(), p, 0);
 		return posesionDao.insertar(p);
 	}

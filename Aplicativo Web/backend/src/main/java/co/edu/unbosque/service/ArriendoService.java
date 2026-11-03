@@ -4,7 +4,7 @@ import java.sql.SQLException;
 import java.util.List;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-
+import co.edu.unbosque.dao.RolDAO;
 import co.edu.unbosque.exception.ConflictoException;
 import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
@@ -17,6 +17,7 @@ public class ArriendoService {
 	
 	private final ArriendoDAO arriendoDao = new ArriendoDAO();
 	private static final Set<String> ESTADOS = Set.of("VIGENTE", "FINALIZADO");
+	private final RolDAO rolDao = new RolDAO();
 	
 	public List<Arriendo> listar() throws SQLException {
 		return arriendoDao.listar();
@@ -42,13 +43,20 @@ public class ArriendoService {
 					"casaNumero, casaManzana y el documento del arrendatario y del propietario son obligatorios");
 		}
 		validarDatos(a);
+		
+		if (!rolDao.tieneRol("arrendatario", a.getArrendatarioTipoDocumento(), a.getArrendatarioNumeroDocumento())) {
+			throw new ConflictoException("La persona no tiene el rol de arrendatario");
+		}
+		if (!rolDao.tieneRol("propietario", a.getPropietarioTipoDocumento(), a.getPropietarioNumeroDocumento())) {
+			throw new ConflictoException("La persona que firma no tiene el rol de propietario");
+		}
 
-		// S-39: el arrendatario no puede ser propietario de esa misma casa.
+		
 		if (arriendoDao.esPropietarioVigente(a.getCasaNumero(), a.getCasaManzana(),
 				a.getArrendatarioTipoDocumento(), a.getArrendatarioNumeroDocumento())) {
 			throw new ConflictoException("El arrendatario es propietario de esa casa");
 		}
-		// El que firma debe ser propietario vigente de la casa.
+		
 		if (!arriendoDao.esPropietarioVigente(a.getCasaNumero(), a.getCasaManzana(),
 				a.getPropietarioTipoDocumento(), a.getPropietarioNumeroDocumento())) {
 			throw new ConflictoException("El propietario que firma no es propietario vigente de esa casa");
