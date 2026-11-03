@@ -195,6 +195,7 @@ public class App {
 	        config.routes.delete("/api/detalles-factura/{factura}/{linea}", ctx -> detalleFacturaController.eliminar(ctx));
 	        
 	        config.routes.get("/api/pagos", ctx -> pagoController.listar(ctx));
+	        config.routes.post("/api/pagos", ctx -> pagoController.crear(ctx));
 	        
 	    }).start(8080);
 	}
