@@ -16,29 +16,19 @@ export class TelefonoService {
     return this.cliente.get<TelefonoModel[]>(this.urlbase);
   }
 
-  /**
-   * Consulta un teléfono por su llave (documento de la persona y número).
-   */
+
   getPorLlave(tipoDocumento: string, numeroDocumento: string, telefono: string): Observable<TelefonoModel> {
     return this.cliente.get<TelefonoModel>(
       `${this.urlbase}/${tipoDocumento}/${numeroDocumento}/${telefono}`
     );
   }
 
-  /**
-   * Crea un teléfono para una persona existente.
-   * @param telefono Debe tener entre 7 y 15 dígitos.
-   */
+
   crear(telefono: TelefonoModel): Observable<{ mensaje: string }> {
     return this.cliente.post<{ mensaje: string }>(this.urlbase, telefono);
   }
 
-  /**
-   * Cambia el número de un teléfono. La persona y el número actual viajan en la URL;
-   * en el body va solo el número nuevo.
-   * @param telefonoActual Número que se quiere cambiar.
-   * @param telefonoNuevo Número nuevo (7 a 15 dígitos).
-   */
+
   actualizar(
     tipoDocumento: string,
     numeroDocumento: string,
@@ -51,9 +41,7 @@ export class TelefonoService {
     );
   }
 
-  /**
-   * Elimina un teléfono de una persona.
-   */
+
   eliminar(tipoDocumento: string, numeroDocumento: string, telefono: string): Observable<{ mensaje: string }> {
     return this.cliente.delete<{ mensaje: string }>(
       `${this.urlbase}/${tipoDocumento}/${numeroDocumento}/${telefono}`
