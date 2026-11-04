@@ -31,4 +31,5 @@ export class ParqueoService {
   eliminar(id: number): Observable<{ mensaje: string }> {
     return this.cliente.delete<{ mensaje: string }>(`${this.urlbase}/${id}`);
   }
+
 }
