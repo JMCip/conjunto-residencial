@@ -5,18 +5,16 @@ export interface CeldaParqueaderoModel {
 }
 
 
-export const TIPOS_CELDA = ['CARRO', 'MOTO', 'VISITANTE'] as const;
+export const TIPOS_CELDA = ['PROPIA', 'ADICIONAL', 'VISITANTES'] as const;
 
-
-export const ESTADOS_CELDA = ['DISPONIBLE', 'ASIGNADA'] as const;
-
+export const ESTADOS_CELDA = ['OCUPADA', 'DESOCUPADA'] as const;
 
 export const ETIQUETA_CELDA: Record<string, string> = {
-  CARRO: 'Carro',
-  MOTO: 'Moto',
-  VISITANTE: 'Visitante',
-  DISPONIBLE: 'Disponible',
-  ASIGNADA: 'Asignada',
+  PROPIA: 'Propia',
+  ADICIONAL: 'Adicional',
+  VISITANTES: 'Visitantes',
+  OCUPADA: 'Ocupada',
+  DESOCUPADA: 'Desocupada',
 };
 
 
