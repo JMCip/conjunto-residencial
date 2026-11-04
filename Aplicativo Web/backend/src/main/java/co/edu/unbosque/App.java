@@ -9,6 +9,7 @@ import java.util.Map;
 import co.edu.unbosque.config.ConexionBD;
 import co.edu.unbosque.controller.ArriendoController;
 import co.edu.unbosque.controller.AsignacionCeldaController;
+import co.edu.unbosque.controller.AuthController;
 import co.edu.unbosque.controller.CasaController;
 import co.edu.unbosque.controller.CeldaParqueaderoController;
 import co.edu.unbosque.controller.ConceptoCobroController;
@@ -27,7 +28,9 @@ import co.edu.unbosque.controller.VehiculoController;
 import co.edu.unbosque.controller.VisitaController;
 import co.edu.unbosque.exception.ConflictoException;
 import co.edu.unbosque.exception.DatoInvalidoException;
+import co.edu.unbosque.exception.NoAutorizadoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
+import co.edu.unbosque.security.JwtAuthenticationFilter;
 import io.javalin.Javalin;
 import io.javalin.openapi.plugin.OpenApiPlugin;
 import io.javalin.openapi.plugin.swagger.SwaggerPlugin;
@@ -53,9 +56,22 @@ public class App {
 	    FacturaController facturaController = new FacturaController();
 	    DetalleFacturaController detalleFacturaController = new DetalleFacturaController();
 	    PagoController pagoController = new PagoController();
+	    AuthController authController = new AuthController();
+	    JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter();
 
 	    Javalin.create(config -> {
-	        config.registerPlugin(new OpenApiPlugin(openApi -> {}));
+	    	config.registerPlugin(new OpenApiPlugin(openApi ->
+	        openApi.withDefinitionConfiguration((version, definicion) ->
+	                definicion
+	                        .info(info -> {
+	                            info.title("API Conjunto Residencial");
+	                            info.version("1.0");
+	                            info.description("Backend del proyecto final de Bases de Datos 1. "
+	                                    + "Para usar los endpoints protegidos: haz login en /api/auth/login, "
+	                                    + "copia el token y pégalo en el botón Authorize.");
+	                        })
+	                        .withBearerAuth()
+	                        .withGlobalSecurity("BearerAuth"))));
 	        config.registerPlugin(new SwaggerPlugin());
 
 	        config.routes.get("/api/estado", ctx -> ctx.result("Backend del Conjunto Residencial funcionando"));
@@ -81,6 +97,9 @@ public class App {
 	            conx.status(409).json(Map.of("error", e.getMessage())));
 	        config.routes.exception(com.fasterxml.jackson.core.JsonProcessingException.class, (e, conx) ->
 	            conx.status(400).json(Map.of("error", "El cuerpo de la petición falta o no es un JSON válido")));
+	        config.routes.exception(NoAutorizadoException.class, (e, conx) ->
+	        conx.status(401).json(Map.of("error", e.getMessage())));
+	        
 	        //------------------------------ Manejo de errores de BD ----------------------------
 	        config.routes.exception(SQLException.class, (e, conx) -> {
 	            String estado = e.getSQLState();
@@ -181,7 +200,7 @@ public class App {
 	        config.routes.put("/api/sanciones/{id}", ctx -> sancionController.actualizar(ctx));
 	        config.routes.delete("/api/sanciones/{id}", ctx -> sancionController.eliminar(ctx));
 
-	      //----------------------------- Finanzas --------------------------
+	        //----------------------------- Finanzas --------------------------
 	        config.routes.get("/api/conceptos", ctx -> conceptoCobroController.listar(ctx));
 	        config.routes.post("/api/conceptos", ctx -> conceptoCobroController.crear(ctx));
 	        config.routes.put("/api/conceptos/{id}", ctx -> conceptoCobroController.actualizar(ctx));
@@ -202,6 +221,11 @@ public class App {
 	        
 	        config.routes.get("/api/pagos", ctx -> pagoController.listar(ctx));
 	        config.routes.post("/api/pagos", ctx -> pagoController.crear(ctx));
+	        
+	        //------------------------------ Autenticación ----------------------------
+	        config.routes.post("/api/auth/login", ctx -> authController.login(ctx));
+	     	//------------------------------ Seguridad JWT ----------------------------
+	        config.routes.beforeMatched(ctx -> jwtFilter.filtrar(ctx));
 	        
 	    }).start(8080);
 	}

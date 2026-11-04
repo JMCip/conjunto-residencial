@@ -25,3 +25,5 @@ Thumbs.db
 desktop.ini
 #db.properties --> contraseña base
 **/src/main/resources/db.properties
+#seguridad.properties --> hash
+**/src/main/resources/seguridad.properties
