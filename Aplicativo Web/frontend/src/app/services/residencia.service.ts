@@ -15,4 +15,22 @@ export class ResidenciaService {
   getTodos(): Observable<ResidenciaModel[]> {
     return this.cliente.get<ResidenciaModel[]>(this.urlbase);
   }
+
+  getPorId(id: number): Observable<ResidenciaModel> {
+    return this.cliente.get<ResidenciaModel>(`${this.urlbase}/${id}`);
+  }
+
+  crear(residencia: Omit<ResidenciaModel, 'idResidencia'>): Observable<{ mensaje: string; idResidencia: number }> {
+    return this.cliente.post<{ mensaje: string; idResidencia: number }>(this.urlbase, residencia);
+  }
+
+  actualizar(residencia: ResidenciaModel): Observable<{ mensaje: string }> {
+    return this.cliente.put<{ mensaje: string }>(`${this.urlbase}/${residencia.idResidencia}`, residencia);
+  }
+
+  eliminar(id: number): Observable<{ mensaje: string }> {
+    return this.cliente.delete<{ mensaje: string }>(`${this.urlbase}/${id}`);
+  }
 }
+
+
