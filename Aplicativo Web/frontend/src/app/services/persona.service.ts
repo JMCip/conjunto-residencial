@@ -57,4 +57,68 @@ export class PersonaService {
   getVisitantes(): Observable<PersonaModel[]> {
     return this.cliente.get<PersonaModel[]>(this.urlbase + '/visitantes');
   }
+
+  /**
+   * Consulta una persona por su documento.
+   * @param tipoDocumento Tipo de documento.
+   * @param numeroDocumento Número de documento.
+   */
+  getPorDocumento(tipoDocumento: string, numeroDocumento: string): Observable<PersonaModel> {
+    return this.cliente.get<PersonaModel>(
+      `${this.urlbase}/personas/${tipoDocumento}/${numeroDocumento}`
+    );
+  }
+
+  /**
+   * Crea una persona. Queda sin roles hasta que se le asigne alguno.
+   * @param persona Datos de la persona.
+   */
+  crear(persona: PersonaModel): Observable<{ mensaje: string }> {
+    return this.cliente.post<{ mensaje: string }>(this.urlbase + '/personas', persona);
+  }
+
+  /**
+   * Actualiza nombres, apellidos y correo. El documento viaja en la URL y no cambia.
+   * @param persona Datos de la persona (incluye su documento).
+   */
+  actualizar(persona: PersonaModel): Observable<{ mensaje: string }> {
+    return this.cliente.put<{ mensaje: string }>(
+      `${this.urlbase}/personas/${persona.tipoDocumento}/${persona.numeroDocumento}`,
+      persona
+    );
+  }
+
+  /**
+   * Elimina una persona. Responde 409 si tiene roles, teléfonos o historial asociado.
+   * @param tipoDocumento Tipo de documento.
+   * @param numeroDocumento Número de documento.
+   */
+  eliminar(tipoDocumento: string, numeroDocumento: string): Observable<{ mensaje: string }> {
+    return this.cliente.delete<{ mensaje: string }>(
+      `${this.urlbase}/personas/${tipoDocumento}/${numeroDocumento}`
+    );
+  }
+
+  /**
+   * Asigna un rol a una persona existente.
+   * @param rol En singular: propietario, arrendatario, residente o visitante.
+   */
+  asignarRol(tipoDocumento: string, numeroDocumento: string, rol: string): Observable<{ mensaje: string }> {
+    return this.cliente.post<{ mensaje: string }>(
+      `${this.urlbase}/personas/${tipoDocumento}/${numeroDocumento}/roles/${rol}`,
+      null
+    );
+  }
+
+  /**
+   * Quita un rol a una persona. Responde 409 si el rol tiene historial asociado.
+   * @param rol En singular: propietario, arrendatario, residente o visitante.
+   */
+  quitarRol(tipoDocumento: string, numeroDocumento: string, rol: string): Observable<{ mensaje: string }> {
+    return this.cliente.delete<{ mensaje: string }>(
+      `${this.urlbase}/personas/${tipoDocumento}/${numeroDocumento}/roles/${rol}`
+    );
+  }
 }
+
+

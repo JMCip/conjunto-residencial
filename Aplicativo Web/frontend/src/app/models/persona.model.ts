@@ -22,6 +22,14 @@ export const ROLES_PERSONA: { ruta: RutaRol; texto: string }[] = [
   { ruta: 'visitantes', texto: 'Visitante' },
 ];
 
+/** Rol en singular, como lo espera POST/DELETE /personas/{tipo}/{numero}/roles/{rol}. */
+export const ROL_SINGULAR: Record<RutaRol, string> = {
+  propietarios: 'propietario',
+  arrendatarios: 'arrendatario',
+  residentes: 'residente',
+  visitantes: 'visitante',
+};
+
 /** "CC|1010101010": llave de una persona en un solo texto (para <select> y búsquedas). */
 export function llavePersona(tipoDocumento: string, numeroDocumento: string): string {
   return `${tipoDocumento}|${numeroDocumento}`;
