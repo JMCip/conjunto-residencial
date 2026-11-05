@@ -22,6 +22,11 @@
           />
         </div>
       </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva posesión
+      </button>
     </div>
   </div>
 
@@ -61,13 +66,14 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Casa</th>
-            <th scope="col">Propietario</th>
-            <th scope="col" class="col-numero">Porcentaje</th>
-            <th scope="col">Compra</th>
-            <th scope="col">Venta</th>
-          </tr>
+        <tr>
+          <th scope="col">Casa</th>
+          <th scope="col">Propietario</th>
+          <th scope="col" class="col-numero">Porcentaje</th>
+          <th scope="col">Compra</th>
+          <th scope="col">Venta</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (p of posesionesFiltradas(); track p.idPosesion) {
@@ -83,6 +89,24 @@
                   <span class="insignia-estado insignia-ok">Vigente</span>
                 }
               </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar posesión"
+                  (click)="abrirEditar(p)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar posesión"
+                  (click)="posesionAEliminar.set(p)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
             </tr>
           }
         </tbody>
@@ -91,3 +115,107 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar posesión' : 'Nueva posesión'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear posesión'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="casa-posesion" class="etiqueta-campo">Casa</label>
+      <select
+        id="casa-posesion"
+        class="input-formulario"
+        [disabled]="editando() !== null"
+        [value]="formulario().casa"
+        (change)="cambiarCampo('casa', $any($event.target).value)"
+      >
+        <option value="">Selecciona una casa</option>
+        @for (c of casas(); track llaveCasa(c.manzana, c.numero)) {
+          <option
+            [value]="llaveCasa(c.manzana, c.numero)"
+            [selected]="formulario().casa === llaveCasa(c.manzana, c.numero)"
+          >
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="propietario-posesion" class="etiqueta-campo">Propietario</label>
+      <select
+        id="propietario-posesion"
+        class="input-formulario"
+        [disabled]="editando() !== null"
+        [value]="formulario().propietario"
+        (change)="cambiarCampo('propietario', $any($event.target).value)"
+      >
+        <option value="">Selecciona un propietario</option>
+        @for (p of propietarios(); track llavePersona(p.tipoDocumento, p.numeroDocumento)) {
+          <option
+            [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)"
+            [selected]="formulario().propietario === llavePersona(p.tipoDocumento, p.numeroDocumento)"
+          >
+            {{ nombrePersona(p) }} ({{ p.tipoDocumento }} {{ p.numeroDocumento }})
+          </option>
+        }
+      </select>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">La casa y el propietario no se pueden cambiar.</p>
+    }
+
+    <div class="campo">
+      <label for="porcentaje-posesion" class="etiqueta-campo">Porcentaje (0 a 100)</label>
+      <input
+        id="porcentaje-posesion"
+        type="number"
+        min="0"
+        max="100"
+        step="0.01"
+        class="input-formulario"
+        [value]="formulario().porcentaje"
+        (input)="cambiarCampo('porcentaje', $any($event.target).value)"
+      />
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="compra-posesion" class="etiqueta-campo">Fecha de compra</label>
+        <input
+          id="compra-posesion"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaCompra"
+          (input)="cambiarCampo('fechaCompra', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="venta-posesion" class="etiqueta-campo">Fecha de venta (opcional)</label>
+        <input
+          id="venta-posesion"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaVenta"
+          (input)="cambiarCampo('fechaVenta', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    <p class="ayuda-campo-normal">Deja la venta vacía mientras la persona siga siendo dueña.</p>
+  </app-modal-formulario>
+}
+
+@if (posesionAEliminar(); as posesion) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la posesión?"
+    [mensaje]="'Se eliminará la posesión de ' + propietario(posesion) + ' en ' + nombreCasa(posesion.casaManzana, posesion.casaNumero) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="posesionAEliminar.set(null)"
+  />
+}

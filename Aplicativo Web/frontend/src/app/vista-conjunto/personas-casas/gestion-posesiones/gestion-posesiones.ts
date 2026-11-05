@@ -7,12 +7,32 @@ import {
   llavePersona,
   nombrePersona,
   PersonaModel,
+  separarLlavePersona,
 } from '../../../models/persona.model';
 import { PosesionService } from '../../../services/posesion.service';
 import { CasaService } from '../../../services/casa.service';
 import { PersonaService } from '../../../services/persona.service';
 import { NotificacionService } from '../../../services/notificacion.service';
 import { extraerError } from '../../../compartido/extraer-error';
+import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
+import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
+
+/** Campos del formulario (todo como texto). */
+interface FormularioPosesion {
+  casa: string;
+  propietario: string;
+  porcentaje: string;
+  fechaCompra: string;
+  fechaVenta: string;
+}
+
+const FORMULARIO_VACIO: FormularioPosesion = {
+  casa: '',
+  propietario: '',
+  porcentaje: '',
+  fechaCompra: '',
+  fechaVenta: '',
+};
 
 /**
  * @component GestionPosesiones
@@ -21,7 +41,7 @@ import { extraerError } from '../../../compartido/extraer-error';
  */
 @Component({
   selector: 'app-gestion-posesiones',
-  imports: [DatePipe, DecimalPipe],
+  imports: [DatePipe, DecimalPipe, ModalFormulario, DialogoConfirmar],
   templateUrl: './gestion-posesiones.html',
   styleUrl: './gestion-posesiones.css',
 })
@@ -74,6 +94,22 @@ export class GestionPosesiones implements OnInit {
 
   /** Funciones para la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  protected readonly llavePersona = llavePersona;
+  protected readonly nombrePersona = nombrePersona;
+
+  /** Modal de crear/editar. */
+  protected readonly modalAbierto = signal(false);
+
+  /** Posesión que se edita (null = crear). */
+  protected readonly editando = signal<PosesionModel | null>(null);
+
+  protected readonly formulario = signal<FormularioPosesion>({ ...FORMULARIO_VACIO });
+  protected readonly guardando = signal(false);
+  protected readonly errorFormulario = signal<string | null>(null);
+
+  /** Posesión pendiente de confirmar para eliminar. */
+  protected readonly posesionAEliminar = signal<PosesionModel | null>(null);
+  protected readonly eliminando = signal(false);
 
   ngOnInit(): void {
     this.cargarPosesiones();
@@ -114,5 +150,141 @@ export class GestionPosesiones implements OnInit {
       this.nombres().get(llavePersona(p.propietarioTipoDocumento, p.propietarioNumeroDocumento)) ??
       `${p.propietarioTipoDocumento} ${p.propietarioNumeroDocumento}`
     );
+  }
+
+  /**
+   * Llave "manzana|numero" de una casa (para el selector).
+   * @param manzana Manzana de la casa.
+   * @param numero Número de la casa.
+   */
+  llaveCasa(manzana: number, numero: number): string {
+    return `${manzana}|${numero}`;
+  }
+
+  /** Abre el modal vacío para crear. */
+  abrirCrear(): void {
+    this.editando.set(null);
+    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /**
+   * Abre el modal con los datos de la posesión.
+   * @param p Posesión a editar.
+   */
+  abrirEditar(p: PosesionModel): void {
+    this.editando.set(p);
+    this.formulario.set({
+      casa: this.llaveCasa(p.casaManzana, p.casaNumero),
+      propietario: llavePersona(p.propietarioTipoDocumento, p.propietarioNumeroDocumento),
+      porcentaje: p.porcentaje.toString(),
+      fechaCompra: p.fechaCompra,
+      fechaVenta: p.fechaVenta ?? '',
+    });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /** Cierra el modal sin guardar. */
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+  }
+
+  /**
+   * Actualiza un campo del formulario.
+   * @param campo Nombre del campo.
+   * @param valor Valor escrito o elegido.
+   */
+  cambiarCampo(campo: keyof FormularioPosesion, valor: string): void {
+    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+  }
+
+  /** Valida y guarda (crear o editar). */
+  guardar(): void {
+    const f = this.formulario();
+    if (!f.casa || !f.propietario) {
+      this.errorFormulario.set('Elige la casa y el propietario.');
+      return;
+    }
+    const porcentaje = Number(f.porcentaje);
+    if (!f.porcentaje.trim() || !(porcentaje > 0) || porcentaje > 100) {
+      this.errorFormulario.set('El porcentaje debe ser mayor que 0 y máximo 100.');
+      return;
+    }
+    if (!f.fechaCompra) {
+      this.errorFormulario.set('La fecha de compra es obligatoria.');
+      return;
+    }
+    if (f.fechaVenta && f.fechaVenta < f.fechaCompra) {
+      this.errorFormulario.set('La fecha de venta no puede ser anterior a la de compra.');
+      return;
+    }
+
+    const fechaVenta = f.fechaVenta || null;
+    const actual = this.editando();
+    this.errorFormulario.set(null);
+    this.guardando.set(true);
+
+    let peticion;
+    if (actual) {
+      peticion = this.posesionService.actualizar({
+        ...actual,
+        porcentaje,
+        fechaCompra: f.fechaCompra,
+        fechaVenta,
+      });
+    } else {
+      const [manzana, numero] = f.casa.split('|').map(Number);
+      const { tipo, numero: documento } = separarLlavePersona(f.propietario);
+      peticion = this.posesionService.crear({
+        porcentaje,
+        fechaCompra: f.fechaCompra,
+        fechaVenta,
+        casaNumero: numero,
+        casaManzana: manzana,
+        propietarioTipoDocumento: tipo,
+        propietarioNumeroDocumento: documento,
+      });
+    }
+
+    peticion.subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.modalAbierto.set(false);
+        this.notificacionService.exito(
+          actual ? 'Posesión actualizada.' : 'Posesión creada.',
+          'Listo',
+        );
+        this.cargarPosesiones();
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(extraerError(err, 'No se pudo guardar la posesión.'));
+      },
+    });
+  }
+
+  /** Confirma y elimina la posesión. */
+  eliminar(): void {
+    const p = this.posesionAEliminar();
+    if (!p) return;
+    this.eliminando.set(true);
+    this.posesionService.eliminar(p.idPosesion).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.posesionAEliminar.set(null);
+        this.notificacionService.exito('Posesión eliminada.', 'Listo');
+        this.cargarPosesiones();
+      },
+      error: (err) => {
+        this.eliminando.set(false);
+        this.posesionAEliminar.set(null);
+        this.notificacionService.error(
+          extraerError(err, 'No se pudo eliminar la posesión.'),
+          'No se pudo eliminar',
+        );
+      },
+    });
   }
 }
