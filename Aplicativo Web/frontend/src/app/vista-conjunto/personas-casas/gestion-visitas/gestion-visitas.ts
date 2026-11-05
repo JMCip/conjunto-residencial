@@ -7,12 +7,30 @@ import {
   llavePersona,
   nombrePersona,
   PersonaModel,
+  separarLlavePersona,
 } from '../../../models/persona.model';
 import { VisitaService } from '../../../services/visita.service';
 import { CasaService } from '../../../services/casa.service';
 import { PersonaService } from '../../../services/persona.service';
 import { NotificacionService } from '../../../services/notificacion.service';
 import { extraerError } from '../../../compartido/extraer-error';
+import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
+import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
+
+/** Campos del formulario (todo como texto). */
+interface FormularioVisita {
+  casa: string;
+  visitante: string;
+  fechaEntrada: string;
+  fechaSalida: string;
+}
+
+const FORMULARIO_VACIO: FormularioVisita = {
+  casa: '',
+  visitante: '',
+  fechaEntrada: '',
+  fechaSalida: '',
+};
 
 /**
  * @component GestionVisitas
@@ -21,7 +39,7 @@ import { extraerError } from '../../../compartido/extraer-error';
  */
 @Component({
   selector: 'app-gestion-visitas',
-  imports: [DatePipe],
+  imports: [DatePipe, ModalFormulario, DialogoConfirmar],
   templateUrl: './gestion-visitas.html',
   styleUrl: './gestion-visitas.css',
 })
@@ -74,6 +92,22 @@ export class GestionVisitas implements OnInit {
 
   /** Funciones para la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  protected readonly llavePersona = llavePersona;
+  protected readonly nombrePersona = nombrePersona;
+
+  /** Modal de crear/editar. */
+  protected readonly modalAbierto = signal(false);
+
+  /** Visita que se edita (null = crear). */
+  protected readonly editando = signal<VisitaModel | null>(null);
+
+  protected readonly formulario = signal<FormularioVisita>({ ...FORMULARIO_VACIO });
+  protected readonly guardando = signal(false);
+  protected readonly errorFormulario = signal<string | null>(null);
+
+  /** Visita pendiente de confirmar para eliminar. */
+  protected readonly visitaAEliminar = signal<VisitaModel | null>(null);
+  protected readonly eliminando = signal(false);
 
   ngOnInit(): void {
     this.cargarVisitas();
@@ -114,5 +148,133 @@ export class GestionVisitas implements OnInit {
       this.nombres().get(llavePersona(r.visitanteTipoDocumento, r.visitanteNumeroDocumento)) ??
       `${r.visitanteTipoDocumento} ${r.visitanteNumeroDocumento}`
     );
+  }
+
+  /**
+   * Llave "manzana|numero" de una casa (para el selector).
+   * @param manzana Manzana de la casa.
+   * @param numero Número de la casa.
+   */
+  llaveCasa(manzana: number, numero: number): string {
+    return `${manzana}|${numero}`;
+  }
+
+  /** Abre el modal vacío para crear. */
+  abrirCrear(): void {
+    this.editando.set(null);
+    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /**
+   * Abre el modal con los datos de la visita.
+   * @param r Visita a editar.
+   */
+  abrirEditar(r: VisitaModel): void {
+    this.editando.set(r);
+    this.formulario.set({
+      casa: this.llaveCasa(r.casaManzana, r.casaNumero),
+      visitante: llavePersona(r.visitanteTipoDocumento, r.visitanteNumeroDocumento),
+      fechaEntrada: r.fechaEntrada,
+      fechaSalida: r.fechaSalida ?? '',
+    });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /** Cierra el modal sin guardar. */
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+  }
+
+  /**
+   * Actualiza un campo del formulario.
+   * @param campo Nombre del campo.
+   * @param valor Valor escrito o elegido.
+   */
+  cambiarCampo(campo: keyof FormularioVisita, valor: string): void {
+    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+  }
+
+  /** Valida y guarda (crear o editar). */
+  guardar(): void {
+    const f = this.formulario();
+    if (!f.casa || !f.visitante) {
+      this.errorFormulario.set('Elige la casa y el visitante.');
+      return;
+    }
+    if (!f.fechaEntrada) {
+      this.errorFormulario.set('La fecha de entrada es obligatoria.');
+      return;
+    }
+    if (f.fechaSalida && f.fechaSalida < f.fechaEntrada) {
+      this.errorFormulario.set('La fecha de salida no puede ser anterior a la de entrada.');
+      return;
+    }
+
+    const fechaSalida = f.fechaSalida || null;
+    const actual = this.editando();
+    this.errorFormulario.set(null);
+    this.guardando.set(true);
+
+    let peticion;
+    if (actual) {
+      peticion = this.visitaService.actualizar({
+        ...actual,
+        fechaEntrada: f.fechaEntrada,
+        fechaSalida,
+      });
+    } else {
+      const [manzana, numero] = f.casa.split('|').map(Number);
+      const { tipo, numero: documento } = separarLlavePersona(f.visitante);
+      peticion = this.visitaService.crear({
+        fechaEntrada: f.fechaEntrada,
+        fechaSalida,
+        visitanteTipoDocumento: tipo,
+        visitanteNumeroDocumento: documento,
+        casaNumero: numero,
+        casaManzana: manzana,
+      });
+    }
+
+    peticion.subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.modalAbierto.set(false);
+        this.notificacionService.exito(
+          actual ? 'Visita actualizada.' : 'Visita creada.',
+          'Listo',
+        );
+        this.cargarVisitas();
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(extraerError(err, 'No se pudo guardar la visita.'));
+      },
+    });
+  }
+
+  /** Confirma y elimina la visita. */
+  eliminar(): void {
+    const v = this.visitaAEliminar();
+    if (!v) return;
+    this.eliminando.set(true);
+    this.visitaService.eliminar(v.idVisita).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.visitaAEliminar.set(null);
+        this.notificacionService.exito('Visita eliminada.', 'Listo');
+        this.cargarVisitas();
+      },
+      error: (err) => {
+        this.eliminando.set(false);
+        this.visitaAEliminar.set(null);
+        this.notificacionService.error(
+          extraerError(err, 'No se pudo eliminar la visita.'),
+          'No se pudo eliminar',
+        );
+      },
+    });
   }
 }
