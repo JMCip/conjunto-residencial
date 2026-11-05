@@ -7,15 +7,39 @@ import {
   llavePersona,
   nombrePersona,
   PersonaModel,
+  separarLlavePersona,
 } from '../../../models/persona.model';
 import { ArriendoService } from '../../../services/arriendo.service';
 import { CasaService } from '../../../services/casa.service';
 import { PersonaService } from '../../../services/persona.service';
 import { NotificacionService } from '../../../services/notificacion.service';
 import { extraerError } from '../../../compartido/extraer-error';
+import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
+import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
 
 /** Estados del contrato*/
 const ESTADOS_CONTRATO: ArriendoModel['estadoContrato'][] = ['VIGENTE', 'FINALIZADO'];
+
+/** Campos del formulario (todo como texto). */
+interface FormularioArriendo {
+  casa: string;
+  propietario: string;
+  arrendatario: string;
+  cuotaMensual: string;
+  fechaInicio: string;
+  fechaFin: string;
+  estadoContrato: ArriendoModel['estadoContrato'];
+}
+
+const FORMULARIO_VACIO: FormularioArriendo = {
+  casa: '',
+  propietario: '',
+  arrendatario: '',
+  cuotaMensual: '',
+  fechaInicio: '',
+  fechaFin: '',
+  estadoContrato: 'VIGENTE',
+};
 
 /**
  * @component GestionArriendos
@@ -24,7 +48,7 @@ const ESTADOS_CONTRATO: ArriendoModel['estadoContrato'][] = ['VIGENTE', 'FINALIZ
  */
 @Component({
   selector: 'app-gestion-arriendos',
-  imports: [CurrencyPipe, DatePipe],
+  imports: [CurrencyPipe, DatePipe, ModalFormulario, DialogoConfirmar],
   templateUrl: './gestion-arriendos.html',
   styleUrl: './gestion-arriendos.css',
 })
@@ -84,6 +108,23 @@ export class GestionArriendos implements OnInit {
 
   /** Constantes y funciones para la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  protected readonly llavePersona = llavePersona;
+  protected readonly nombrePersona = nombrePersona;
+  protected readonly estadosContrato = ESTADOS_CONTRATO;
+
+  /** Modal de crear/editar. */
+  protected readonly modalAbierto = signal(false);
+
+  /** Contrato que se edita (null = crear). */
+  protected readonly editando = signal<ArriendoModel | null>(null);
+
+  protected readonly formulario = signal<FormularioArriendo>({ ...FORMULARIO_VACIO });
+  protected readonly guardando = signal(false);
+  protected readonly errorFormulario = signal<string | null>(null);
+
+  /** Contrato pendiente de confirmar para eliminar. */
+  protected readonly arriendoAEliminar = signal<ArriendoModel | null>(null);
+  protected readonly eliminando = signal(false);
 
   ngOnInit(): void {
     this.cargarArriendos();
@@ -124,5 +165,148 @@ export class GestionArriendos implements OnInit {
    */
   persona(tipo: string, numero: string): string {
     return this.nombres().get(llavePersona(tipo, numero)) ?? `${tipo} ${numero}`;
+  }
+
+  /**
+   * Llave "manzana|numero" de una casa (para el selector).
+   * @param manzana Manzana de la casa.
+   * @param numero Número de la casa.
+   */
+  llaveCasa(manzana: number, numero: number): string {
+    return `${manzana}|${numero}`;
+  }
+
+  /** Abre el modal vacío para crear. */
+  abrirCrear(): void {
+    this.editando.set(null);
+    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /**
+   * Abre el modal con los datos del contrato.
+   * @param a Contrato a editar.
+   */
+  abrirEditar(a: ArriendoModel): void {
+    this.editando.set(a);
+    this.formulario.set({
+      casa: this.llaveCasa(a.casaManzana, a.casaNumero),
+      propietario: llavePersona(a.propietarioTipoDocumento, a.propietarioNumeroDocumento),
+      arrendatario: llavePersona(a.arrendatarioTipoDocumento, a.arrendatarioNumeroDocumento),
+      cuotaMensual: a.cuotaMensual.toString(),
+      fechaInicio: a.fechaInicio,
+      fechaFin: a.fechaFin ?? '',
+      estadoContrato: a.estadoContrato,
+    });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /** Cierra el modal sin guardar. */
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+  }
+
+  /**
+   * Actualiza un campo del formulario.
+   * @param campo Nombre del campo.
+   * @param valor Valor escrito o elegido.
+   */
+  cambiarCampo(campo: keyof FormularioArriendo, valor: string): void {
+    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+  }
+
+  /** Valida y guarda (crear o editar). */
+  guardar(): void {
+    const f = this.formulario();
+    if (!f.casa || !f.propietario || !f.arrendatario) {
+      this.errorFormulario.set('Elige la casa, el propietario y el arrendatario.');
+      return;
+    }
+    const cuota = Number(f.cuotaMensual);
+    if (!f.cuotaMensual.trim() || !(cuota > 0)) {
+      this.errorFormulario.set('La cuota mensual debe ser mayor que 0.');
+      return;
+    }
+    if (!f.fechaInicio) {
+      this.errorFormulario.set('La fecha de inicio es obligatoria.');
+      return;
+    }
+    if (f.fechaFin && f.fechaFin < f.fechaInicio) {
+      this.errorFormulario.set('La fecha de fin no puede ser anterior a la de inicio.');
+      return;
+    }
+
+    const fechaFin = f.fechaFin || null;
+    const actual = this.editando();
+    this.errorFormulario.set(null);
+    this.guardando.set(true);
+
+    let peticion;
+    if (actual) {
+      peticion = this.arriendoService.actualizar({
+        ...actual,
+        cuotaMensual: cuota,
+        fechaInicio: f.fechaInicio,
+        fechaFin,
+        estadoContrato: f.estadoContrato,
+      });
+    } else {
+      const [manzana, numero] = f.casa.split('|').map(Number);
+      const prop = separarLlavePersona(f.propietario);
+      const arr = separarLlavePersona(f.arrendatario);
+      peticion = this.arriendoService.crear({
+        cuotaMensual: cuota,
+        fechaInicio: f.fechaInicio,
+        fechaFin,
+        estadoContrato: f.estadoContrato,
+        arrendatarioTipoDocumento: arr.tipo,
+        arrendatarioNumeroDocumento: arr.numero,
+        casaNumero: numero,
+        casaManzana: manzana,
+        propietarioTipoDocumento: prop.tipo,
+        propietarioNumeroDocumento: prop.numero,
+      });
+    }
+
+    peticion.subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.modalAbierto.set(false);
+        this.notificacionService.exito(
+          actual ? 'Contrato actualizado.' : 'Contrato creado.',
+          'Listo',
+        );
+        this.cargarArriendos();
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(extraerError(err, 'No se pudo guardar el contrato.'));
+      },
+    });
+  }
+
+  /** Confirma y elimina el contrato. */
+  eliminar(): void {
+    const a = this.arriendoAEliminar();
+    if (!a) return;
+    this.eliminando.set(true);
+    this.arriendoService.eliminar(a.idContrato).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.arriendoAEliminar.set(null);
+        this.notificacionService.exito('Contrato eliminado.', 'Listo');
+        this.cargarArriendos();
+      },
+      error: (err) => {
+        this.eliminando.set(false);
+        this.arriendoAEliminar.set(null);
+        this.notificacionService.error(
+          extraerError(err, 'No se pudo eliminar el contrato.'),
+          'No se pudo eliminar',
+        );
+      },
+    });
   }
 }

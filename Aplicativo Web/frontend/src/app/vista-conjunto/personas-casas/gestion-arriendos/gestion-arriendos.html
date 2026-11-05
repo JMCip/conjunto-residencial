@@ -22,6 +22,11 @@
           />
         </div>
       </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nuevo contrato
+      </button>
     </div>
   </div>
 
@@ -61,15 +66,16 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Casa</th>
-            <th scope="col">Propietario</th>
-            <th scope="col">Arrendatario</th>
-            <th scope="col" class="col-numero">Cuota</th>
-            <th scope="col">Inicio</th>
-            <th scope="col">Fin</th>
-            <th scope="col">Estado</th>
-          </tr>
+        <tr>
+          <th scope="col">Casa</th>
+          <th scope="col">Propietario</th>
+          <th scope="col">Arrendatario</th>
+          <th scope="col" class="col-numero">Cuota</th>
+          <th scope="col">Inicio</th>
+          <th scope="col">Fin</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (a of arriendosFiltrados(); track a.idContrato) {
@@ -90,6 +96,24 @@
                   {{ a.estadoContrato === 'VIGENTE' ? 'Vigente' : 'Finalizado' }}
                 </span>
               </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar contrato"
+                  (click)="abrirEditar(a)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar contrato"
+                  (click)="arriendoAEliminar.set(a)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
             </tr>
           }
         </tbody>
@@ -98,3 +122,144 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar contrato' : 'Nuevo contrato'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear contrato'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="casa-arriendo" class="etiqueta-campo">Casa</label>
+      <select
+        id="casa-arriendo"
+        class="input-formulario"
+        [disabled]="editando() !== null"
+        [value]="formulario().casa"
+        (change)="cambiarCampo('casa', $any($event.target).value)"
+      >
+        <option value="">Selecciona una casa</option>
+        @for (c of casas(); track llaveCasa(c.manzana, c.numero)) {
+          <option
+            [value]="llaveCasa(c.manzana, c.numero)"
+            [selected]="formulario().casa === llaveCasa(c.manzana, c.numero)"
+          >
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="propietario-arriendo" class="etiqueta-campo">Propietario que firma</label>
+        <select
+          id="propietario-arriendo"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().propietario"
+          (change)="cambiarCampo('propietario', $any($event.target).value)"
+        >
+          <option value="">Selecciona</option>
+          @for (p of propietarios(); track llavePersona(p.tipoDocumento, p.numeroDocumento)) {
+            <option
+              [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)"
+              [selected]="formulario().propietario === llavePersona(p.tipoDocumento, p.numeroDocumento)"
+            >
+              {{ nombrePersona(p) }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="arrendatario-arriendo" class="etiqueta-campo">Arrendatario</label>
+        <select
+          id="arrendatario-arriendo"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().arrendatario"
+          (change)="cambiarCampo('arrendatario', $any($event.target).value)"
+        >
+          <option value="">Selecciona</option>
+          @for (p of arrendatarios(); track llavePersona(p.tipoDocumento, p.numeroDocumento)) {
+            <option
+              [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)"
+              [selected]="formulario().arrendatario === llavePersona(p.tipoDocumento, p.numeroDocumento)"
+            >
+              {{ nombrePersona(p) }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">La casa y las personas no se pueden cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="cuota-arriendo" class="etiqueta-campo">Cuota mensual (COP)</label>
+        <input
+          id="cuota-arriendo"
+          type="number"
+          min="0"
+          class="input-formulario"
+          [value]="formulario().cuotaMensual"
+          (input)="cambiarCampo('cuotaMensual', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="estado-arriendo" class="etiqueta-campo">Estado</label>
+        <select
+          id="estado-arriendo"
+          class="input-formulario"
+          [value]="formulario().estadoContrato"
+          (change)="cambiarCampo('estadoContrato', $any($event.target).value)"
+        >
+          @for (e of estadosContrato; track e) {
+            <option [value]="e" [selected]="formulario().estadoContrato === e">
+              {{ e === 'VIGENTE' ? 'Vigente' : 'Finalizado' }}
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="inicio-arriendo" class="etiqueta-campo">Fecha de inicio</label>
+        <input
+          id="inicio-arriendo"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaInicio"
+          (input)="cambiarCampo('fechaInicio', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="fin-arriendo" class="etiqueta-campo">Fecha de fin (opcional)</label>
+        <input
+          id="fin-arriendo"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaFin"
+          (input)="cambiarCampo('fechaFin', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    <p class="ayuda-campo-normal">Para terminar un contrato, ponle fecha de fin y estado Finalizado.</p>
+  </app-modal-formulario>
+}
+
+@if (arriendoAEliminar(); as arriendo) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar el contrato?"
+    [mensaje]="'Se eliminará el contrato de ' + nombreCasa(arriendo.casaManzana, arriendo.casaNumero) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="arriendoAEliminar.set(null)"
+  />
+}
