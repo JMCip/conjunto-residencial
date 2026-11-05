@@ -94,17 +94,17 @@ INSERT INTO telefono (telefono, persona_tipo_documento, persona_numero_documento
 (3269990011, 'PAS', 'AB123456');
 
 -- CASA
-INSERT INTO casa (numero, manzana, area, estado, numero_habitaciones) VALUES
-(1, 1, 120.50, 'HABITADA',   3),
-(2, 1, 120.50, 'HABITADA',   3),
-(3, 1,  98.00, 'ARRENDADA',  2),
-(4, 1, 150.75, 'HABITADA',   4),
-(5, 1,  98.00, 'ARRENDADA',  2),
-(1, 2, 135.00, 'HABITADA',   3),
-(2, 2, 135.00, 'HABITADA',   3),
-(3, 2, 110.25, 'HABITADA',   3),
-(4, 2, 150.75, 'ARRENDADA',  4),
-(5, 2, 110.25, 'DESOCUPADA', 3);
+INSERT INTO casa (numero, manzana, area, numero_habitaciones) VALUES
+(1, 1, 120.50, 3),
+(2, 1, 120.50, 3),
+(3, 1,  98.00, 2),
+(4, 1, 150.75, 4),
+(5, 1,  98.00, 2),
+(1, 2, 135.00, 3),
+(2, 2, 135.00, 3),
+(3, 2, 110.25, 3),
+(4, 2, 150.75, 4),
+(5, 2, 110.25, 3);
 
 -- POSESION
 INSERT INTO posesion (porcentaje, fecha_compra, fecha_venta, casa_numero, casa_manzana, propietario_tipo_documento, propietario_numero_documento) VALUES

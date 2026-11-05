@@ -43,7 +43,7 @@ public class CasaController {
 	        requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = Casa.class)),
 	        responses = {
 	                @OpenApiResponse(status = "201", description = "Creada"),
-	                @OpenApiResponse(status = "400", description = "Faltan area o estado"),
+	                @OpenApiResponse(status = "400", description = "Falta area"),
 	                @OpenApiResponse(status = "409", description = "La casa ya existe")
 	        })
 	public void crear(Context ctx) throws SQLException, DatoInvalidoException {
@@ -56,7 +56,7 @@ public class CasaController {
 	        path = "/api/casas/{manzana}/{numero}",
 	        methods = HttpMethod.PUT,
 	        summary = "Actualizar casa",
-	        description = "Envía area, estado y numeroHabitaciones. numeroHabitaciones es opcional.",
+	        description = "Envía area y numeroHabitaciones. numeroHabitaciones es opcional.",
 	        tags = {"Casas"},
 	        pathParams = {
 	                @OpenApiParam(name = "manzana", type = Integer.class),
@@ -65,7 +65,7 @@ public class CasaController {
 	        requestBody = @OpenApiRequestBody(content = @OpenApiContent(from = Casa.class)),
 	        responses = {
 	                @OpenApiResponse(status = "200", description = "Actualizada"),
-	                @OpenApiResponse(status = "400", description = "Faltan area o estado"),
+	                @OpenApiResponse(status = "400", description = "Falta area"),
 	                @OpenApiResponse(status = "404", description = "Casa no encontrada")
 	        })
 	public void actualizar(Context ctx)

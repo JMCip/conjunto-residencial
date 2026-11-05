@@ -3,23 +3,21 @@ package co.edu.unbosque.model;
 import java.math.BigDecimal;
 
 public class Casa {
-	
+
 	private int numero;
 	private int manzana;
 	private BigDecimal area;
-	private String estado;
 	private Integer numeroHabitaciones;
-	
+
 	public Casa () {
-		
+
 	}
 
-	public Casa(int numero, int manzana, BigDecimal area, String estado, Integer numeroHabitaciones) {
+	public Casa(int numero, int manzana, BigDecimal area, Integer numeroHabitaciones) {
 		super();
 		this.numero = numero;
 		this.manzana = manzana;
 		this.area = area;
-		this.estado = estado;
 		this.numeroHabitaciones = numeroHabitaciones;
 	}
 
@@ -47,14 +45,6 @@ public class Casa {
 		this.area = area;
 	}
 
-	public String getEstado() {
-		return estado;
-	}
-
-	public void setEstado(String estado) {
-		this.estado = estado;
-	}
-
 	public Integer getNumeroHabitaciones() {
 		return numeroHabitaciones;
 	}
@@ -62,7 +52,5 @@ public class Casa {
 	public void setNumeroHabitaciones(Integer numeroHabitaciones) {
 		this.numeroHabitaciones = numeroHabitaciones;
 	}
-	
-
 
 }
