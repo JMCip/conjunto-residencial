@@ -13,7 +13,7 @@ import co.edu.unbosque.model.ConceptoCobro;
 
 public class ConceptoCobroService {
 
-	private static final List<String> PROTEGIDOS = List.of("Sanción", "Salón comunal", "Parqueadero adicional");
+	private static final List<String> PROTEGIDOS = List.of("Sanción", "Salón comunal", "Parqueadero adicional", "Administración");
 
 	private static final int MAX_NOMBRE = 100;
 	private static final int MAX_DESCRIPCION = 255;

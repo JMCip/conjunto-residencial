@@ -247,6 +247,17 @@ export class DetalleFacturaModal implements OnInit {
       this.errorFormulario.set('Elige el concepto que se cobra.');
       return;
     }
+    if (
+      concepto.nombre.trim().toLowerCase() === 'administración' &&
+      this.lineas().some(
+        (linea) => linea.idConcepto === concepto.idConcepto
+      )
+    ) {
+      this.errorFormulario.set(
+        'Esta factura ya tiene una línea de Administración.'
+      );
+      return;
+    }
 
     const nueva: NuevaLineaFactura = {
       numeroFactura: this.factura().numeroFactura,

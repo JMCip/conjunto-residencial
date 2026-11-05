@@ -21,7 +21,7 @@ public class DetalleFacturaService {
 	private static final String CONCEPTO_SANCION = "Sanción";
 	private static final String CONCEPTO_RESERVA = "Salón comunal";
 	private static final String CONCEPTO_PARQUEADERO = "Parqueadero adicional";
-
+	private static final String CONCEPTO_ADMINISTRACION = "Administracion";
 
 	private static final BigDecimal MAXIMO = new BigDecimal("9999999999.99");
 
@@ -98,12 +98,21 @@ public class DetalleFacturaService {
 			valor = concepto.getValorBase();
 
 		} else {
-			
-			if (esConceptoLigado(concepto)) {
-				throw new DatoInvalidoException("El concepto '" + concepto.getNombre()
-						+ "' exige indicar la sanción, reserva o asignación que se cobra");
-			}
-			valor = d.getValor() != null ? d.getValor() : concepto.getValorBase();
+		    if (esConceptoLigado(concepto)) {
+		        throw new DatoInvalidoException("El concepto '" + concepto.getNombre()
+		                + "' exige indicar la sanción, reserva o asignación que se cobra");
+		    }
+
+		    if (CONCEPTO_ADMINISTRACION.equalsIgnoreCase(concepto.getNombre())
+		            && detalleFacturaDao.conceptoEnFactura(
+		                    d.getIdConcepto(), d.getNumeroFactura())) {
+
+		        throw new ConflictoException(
+		                "La factura ya tiene una línea de Administración"
+		        );
+		    }
+
+		    valor = d.getValor() != null ? d.getValor() : concepto.getValorBase();
 		}
 
 		valor = validarValor(valor);

@@ -21,7 +21,7 @@ export const MAX_VALOR_BASE_CONCEPTO = 9999999999;
  * Conceptos que el sistema usa para cobrar sanciones, reservas y celdas adicionales.
  * Son los mismos que protege el back: no se pueden renombrar ni eliminar.
  */
-export const CONCEPTOS_PROTEGIDOS = ['Sanción', 'Salón comunal', 'Parqueadero adicional'];
+export const CONCEPTOS_PROTEGIDOS = ['Sanción', 'Salón comunal', 'Parqueadero adicional', 'Administración',];
 
 /** true si el concepto es uno de los protegidos (compara sin importar mayúsculas). */
 export function esConceptoProtegido(nombre: string): boolean {
