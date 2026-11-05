@@ -22,6 +22,11 @@
           />
         </div>
       </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva persona
+      </button>
     </div>
   </div>
 
@@ -61,12 +66,13 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Persona</th>
-            <th scope="col">Documento</th>
-            <th scope="col">Correo</th>
-            <th scope="col">Roles</th>
-          </tr>
+        <tr>
+          <th scope="col">Persona</th>
+          <th scope="col">Documento</th>
+          <th scope="col">Correo</th>
+          <th scope="col">Roles</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (p of personasFiltradas(); track p.tipoDocumento + p.numeroDocumento) {
@@ -83,6 +89,24 @@
                   }
                 </div>
               </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar persona"
+                  (click)="abrirEditar(p)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar persona"
+                  (click)="personaAEliminar.set(p)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
             </tr>
           }
         </tbody>
@@ -91,3 +115,122 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar persona' : 'Nueva persona'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear persona'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos fila-documento">
+      <div class="campo">
+        <label for="tipo-doc" class="etiqueta-campo">Tipo</label>
+        <select
+          id="tipo-doc"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().tipoDocumento"
+          (change)="cambiarCampo('tipoDocumento', $any($event.target).value)"
+        >
+          @for (t of tiposDocumento; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="num-doc" class="etiqueta-campo">Número de documento</label>
+        <input
+          id="num-doc"
+          class="input-formulario"
+          autocomplete="off"
+          [disabled]="editando() !== null"
+          [value]="formulario().numeroDocumento"
+          (input)="cambiarCampo('numeroDocumento', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">El documento no se puede cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="p-nombre" class="etiqueta-campo">Primer nombre</label>
+        <input
+          id="p-nombre"
+          class="input-formulario"
+          [value]="formulario().primerNombre"
+          (input)="cambiarCampo('primerNombre', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="s-nombre" class="etiqueta-campo">Segundo nombre (opcional)</label>
+        <input
+          id="s-nombre"
+          class="input-formulario"
+          [value]="formulario().segunoNombre"
+          (input)="cambiarCampo('segunoNombre', $any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="p-apellido" class="etiqueta-campo">Primer apellido</label>
+        <input
+          id="p-apellido"
+          class="input-formulario"
+          [value]="formulario().primerApellido"
+          (input)="cambiarCampo('primerApellido', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="s-apellido" class="etiqueta-campo">Segundo apellido (opcional)</label>
+        <input
+          id="s-apellido"
+          class="input-formulario"
+          [value]="formulario().segundoApellido"
+          (input)="cambiarCampo('segundoApellido', $any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="correo" class="etiqueta-campo">Correo (opcional)</label>
+      <input
+        id="correo"
+        type="email"
+        class="input-formulario"
+        [value]="formulario().correo"
+        (input)="cambiarCampo('correo', $any($event.target).value)"
+      />
+    </div>
+
+    <fieldset class="grupo-casillas">
+      <legend class="etiqueta-campo">Roles</legend>
+      @for (r of roles; track r.ruta) {
+        <label class="casilla">
+          <input
+            type="checkbox"
+            [checked]="rolesElegidos().includes(r.ruta)"
+            (change)="alternarRol(r.ruta)"
+          />
+          {{ r.texto }}
+        </label>
+      }
+    </fieldset>
+  </app-modal-formulario>
+}
+
+@if (personaAEliminar(); as persona) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la persona?"
+    [mensaje]="'Se eliminará a ' + nombrePersona(persona) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="personaAEliminar.set(null)"
+  />
+}
