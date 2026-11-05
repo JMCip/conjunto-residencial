@@ -4,10 +4,24 @@ import {
   ESTADOS_CELDA,
   ETIQUETA_CELDA,
   nombreCelda,
+  TIPOS_CELDA,
 } from '../../../models/celda-parqueadero.model';
 import { CeldaParqueaderoService } from '../../../services/celda-parqueadero.service';
 import { NotificacionService } from '../../../services/notificacion.service';
 import { extraerError } from '../../../compartido/extraer-error';
+import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
+import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
+
+/** Campos del formulario. */
+interface FormularioCelda {
+  tipo: string;
+  estado: string;
+}
+
+const FORMULARIO_VACIO: FormularioCelda = {
+  tipo: 'PROPIA',
+  estado: 'DESOCUPADA',
+};
 
 /**
  * @component GestionCeldas
@@ -16,7 +30,7 @@ import { extraerError } from '../../../compartido/extraer-error';
  */
 @Component({
   selector: 'app-gestion-celdas',
-  imports: [],
+  imports: [ModalFormulario, DialogoConfirmar],
   templateUrl: './gestion-celdas.html',
   styleUrl: './gestion-celdas.css',
 })
@@ -30,7 +44,7 @@ export class GestionCeldas implements OnInit {
   protected readonly cargando = signal(true);
   protected readonly errorCarga = signal(false);
 
-  /** Filtro por estado: 'TODAS', 'DISPONIBLE' o 'ASIGNADA'. */
+  /** Filtro por estado: 'TODAS', 'OCUPADA' o 'DESOCUPADA'. */
   protected readonly filtroEstado = signal<string>('TODAS');
 
   /** Celdas visibles según el filtro. */
@@ -61,6 +75,22 @@ export class GestionCeldas implements OnInit {
   protected readonly etiqueta = ETIQUETA_CELDA;
   protected readonly nombreCelda = nombreCelda;
   protected readonly opcionesFiltro = ['TODAS', ...ESTADOS_CELDA];
+  protected readonly tiposCelda = TIPOS_CELDA;
+  protected readonly estadosCelda = ESTADOS_CELDA;
+
+  /** Modal de crear/editar. */
+  protected readonly modalAbierto = signal(false);
+
+  /** Celda que se edita (null = crear). */
+  protected readonly editando = signal<CeldaParqueaderoModel | null>(null);
+
+  protected readonly formulario = signal<FormularioCelda>({ ...FORMULARIO_VACIO });
+  protected readonly guardando = signal(false);
+  protected readonly errorFormulario = signal<string | null>(null);
+
+  /** Celda pendiente de confirmar para eliminar. */
+  protected readonly celdaAEliminar = signal<CeldaParqueaderoModel | null>(null);
+  protected readonly eliminando = signal(false);
 
   ngOnInit(): void {
     this.cargarCeldas();
@@ -92,5 +122,90 @@ export class GestionCeldas implements OnInit {
    */
   textoFiltro(opcion: string): string {
     return opcion === 'TODAS' ? 'Todas' : `${ETIQUETA_CELDA[opcion]}s`;
+  }
+
+  /** Abre el modal vacío para crear. */
+  abrirCrear(): void {
+    this.editando.set(null);
+    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /**
+   * Abre el modal con los datos de la celda.
+   * @param c Celda a editar.
+   */
+  abrirEditar(c: CeldaParqueaderoModel): void {
+    this.editando.set(c);
+    this.formulario.set({ tipo: c.tipo, estado: c.estado });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /** Cierra el modal sin guardar. */
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+  }
+
+  /**
+   * Actualiza un campo del formulario.
+   * @param campo Nombre del campo.
+   * @param valor Valor elegido.
+   */
+  cambiarCampo(campo: keyof FormularioCelda, valor: string): void {
+    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+  }
+
+  /** Valida y guarda (crear o editar). */
+  guardar(): void {
+    const f = this.formulario();
+    if (!f.tipo || !f.estado) {
+      this.errorFormulario.set('El tipo y el estado son obligatorios.');
+      return;
+    }
+
+    const actual = this.editando();
+    this.errorFormulario.set(null);
+    this.guardando.set(true);
+    const peticion = actual
+      ? this.celdaService.actualizar({ idCelda: actual.idCelda, tipo: f.tipo, estado: f.estado })
+      : this.celdaService.crear({ tipo: f.tipo, estado: f.estado });
+
+    peticion.subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.modalAbierto.set(false);
+        this.notificacionService.exito(actual ? 'Celda actualizada.' : 'Celda creada.', 'Listo');
+        this.cargarCeldas();
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(extraerError(err, 'No se pudo guardar la celda.'));
+      },
+    });
+  }
+
+  /** Confirma y elimina la celda. */
+  eliminar(): void {
+    const c = this.celdaAEliminar();
+    if (!c) return;
+    this.eliminando.set(true);
+    this.celdaService.eliminar(c.idCelda).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.celdaAEliminar.set(null);
+        this.notificacionService.exito('Celda eliminada.', 'Listo');
+        this.cargarCeldas();
+      },
+      error: (err) => {
+        this.eliminando.set(false);
+        this.celdaAEliminar.set(null);
+        this.notificacionService.error(
+          extraerError(err, 'No se pudo eliminar la celda.'),
+          'No se pudo eliminar',
+        );
+      },
+    });
   }
 }
