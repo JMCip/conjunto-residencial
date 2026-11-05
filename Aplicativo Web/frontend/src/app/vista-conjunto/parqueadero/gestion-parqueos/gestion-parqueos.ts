@@ -1,12 +1,15 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { forkJoin } from 'rxjs';
 import {
+  aInputFechaHora,
+  desdeInputFechaHora,
   ParqueoModel,
   textoFechaHora,
 } from '../../../models/parqueo.model';
 import { ETIQUETA_TIPO_VEHICULO, VehiculoModel } from '../../../models/vehiculo.model';
 import {
   CeldaParqueaderoModel,
+  ETIQUETA_CELDA,
   nombreCelda,
 } from '../../../models/celda-parqueadero.model';
 import { ParqueoService } from '../../../services/parqueo.service';
@@ -14,6 +17,23 @@ import { VehiculoService } from '../../../services/vehiculo.service';
 import { CeldaParqueaderoService } from '../../../services/celda-parqueadero.service';
 import { NotificacionService } from '../../../services/notificacion.service';
 import { extraerError } from '../../../compartido/extraer-error';
+import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
+import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
+
+/** Campos del formulario (todo como texto). */
+interface FormularioParqueo {
+  vehiculo: string;
+  celda: string;
+  entrada: string;
+  salida: string;
+}
+
+const FORMULARIO_VACIO: FormularioParqueo = {
+  vehiculo: '',
+  celda: '',
+  entrada: '',
+  salida: '',
+};
 
 /**
  * @component GestionParqueos
@@ -22,7 +42,7 @@ import { extraerError } from '../../../compartido/extraer-error';
  */
 @Component({
   selector: 'app-gestion-parqueos',
-  imports: [],
+  imports: [ModalFormulario, DialogoConfirmar],
   templateUrl: './gestion-parqueos.html',
   styleUrl: './gestion-parqueos.css',
 })
@@ -76,6 +96,21 @@ export class GestionParqueos implements OnInit {
   /** Constantes y funciones para la plantilla. */
   protected readonly nombreCelda = nombreCelda;
   protected readonly textoFechaHora = textoFechaHora;
+  protected readonly etiquetaCelda = ETIQUETA_CELDA;
+
+  /** Modal de crear/editar. */
+  protected readonly modalAbierto = signal(false);
+
+  /** Parqueo que se edita (null = crear). */
+  protected readonly editando = signal<ParqueoModel | null>(null);
+
+  protected readonly formulario = signal<FormularioParqueo>({ ...FORMULARIO_VACIO });
+  protected readonly guardando = signal(false);
+  protected readonly errorFormulario = signal<string | null>(null);
+
+  /** Parqueo pendiente de confirmar para eliminar. */
+  protected readonly parqueoAEliminar = signal<ParqueoModel | null>(null);
+  protected readonly eliminando = signal(false);
 
   ngOnInit(): void {
     this.cargarParqueos();
@@ -115,5 +150,118 @@ export class GestionParqueos implements OnInit {
     const v = this.vehiculoPorPlaca().get(placa);
     if (!v) return '';
     return [ETIQUETA_TIPO_VEHICULO[v.tipo] ?? v.tipo, v.marca].filter(Boolean).join(' · ');
+  }
+
+  /** Abre el modal vacío para crear. */
+  abrirCrear(): void {
+    this.editando.set(null);
+    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /**
+   * Abre el modal con los datos del parqueo.
+   * @param p Parqueo a editar.
+   */
+  abrirEditar(p: ParqueoModel): void {
+    this.editando.set(p);
+    this.formulario.set({
+      vehiculo: p.vehiculoPlaca,
+      celda: p.idCelda.toString(),
+      entrada: aInputFechaHora(p.fechaHoraEntrada),
+      salida: aInputFechaHora(p.fechaHoraSalida),
+    });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /** Cierra el modal sin guardar. */
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+  }
+
+  /**
+   * Actualiza un campo del formulario.
+   * @param campo Nombre del campo.
+   * @param valor Valor escrito o elegido.
+   */
+  cambiarCampo(campo: keyof FormularioParqueo, valor: string): void {
+    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+  }
+
+  /** Valida y guarda (crear o editar). */
+  guardar(): void {
+    const f = this.formulario();
+    if (!f.vehiculo || !f.celda) {
+      this.errorFormulario.set('Elige el vehículo y la celda.');
+      return;
+    }
+    if (!f.entrada) {
+      this.errorFormulario.set('La fecha y hora de entrada son obligatorias.');
+      return;
+    }
+    if (f.salida && f.salida < f.entrada) {
+      this.errorFormulario.set('La salida no puede ser anterior a la entrada.');
+      return;
+    }
+
+    const entrada = desdeInputFechaHora(f.entrada) as string;
+    const salida = desdeInputFechaHora(f.salida);
+    const actual = this.editando();
+    this.errorFormulario.set(null);
+    this.guardando.set(true);
+
+    const peticion = actual
+      ? this.parqueoService.actualizar({
+        ...actual,
+        fechaHoraEntrada: entrada,
+        fechaHoraSalida: salida,
+      })
+      : this.parqueoService.crear({
+        fechaHoraEntrada: entrada,
+        fechaHoraSalida: salida,
+        vehiculoPlaca: f.vehiculo,
+        idCelda: Number(f.celda),
+      });
+
+    peticion.subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.modalAbierto.set(false);
+        this.notificacionService.exito(
+          actual ? 'Parqueo actualizado.' : 'Parqueo registrado.',
+          'Listo',
+        );
+        this.cargarParqueos();
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(extraerError(err, 'No se pudo guardar el parqueo.'));
+      },
+    });
+  }
+
+  /** Confirma y elimina el parqueo. */
+  eliminar(): void {
+    const p = this.parqueoAEliminar();
+    if (!p) return;
+    this.eliminando.set(true);
+    this.parqueoService.eliminar(p.idParqueo).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.parqueoAEliminar.set(null);
+        this.notificacionService.exito('Parqueo eliminado.', 'Listo');
+        this.cargarParqueos();
+      },
+      error: (err) => {
+        this.eliminando.set(false);
+        this.parqueoAEliminar.set(null);
+        this.notificacionService.error(
+          extraerError(err, 'No se pudo eliminar el parqueo.'),
+          'No se pudo eliminar',
+        );
+      },
+    });
   }
 }

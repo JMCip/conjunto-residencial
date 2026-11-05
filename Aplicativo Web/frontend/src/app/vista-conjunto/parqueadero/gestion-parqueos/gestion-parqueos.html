@@ -26,6 +26,11 @@
           />
         </div>
       </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nuevo parqueo
+      </button>
     </div>
   </div>
 
@@ -69,13 +74,14 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Placa</th>
-            <th scope="col">Vehículo</th>
-            <th scope="col">Celda</th>
-            <th scope="col">Entrada</th>
-            <th scope="col">Salida</th>
-          </tr>
+        <tr>
+          <th scope="col">Placa</th>
+          <th scope="col">Vehículo</th>
+          <th scope="col">Celda</th>
+          <th scope="col">Entrada</th>
+          <th scope="col">Salida</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (p of parqueosFiltrados(); track p.idParqueo) {
@@ -91,6 +97,24 @@
                   <span class="insignia-estado insignia-pendiente">Adentro</span>
                 }
               </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar parqueo"
+                  (click)="abrirEditar(p)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar parqueo"
+                  (click)="parqueoAEliminar.set(p)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
             </tr>
           }
         </tbody>
@@ -99,3 +123,88 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar parqueo' : 'Nuevo parqueo'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Registrar parqueo'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="vehiculo-parqueo" class="etiqueta-campo">Vehículo</label>
+        <select
+          id="vehiculo-parqueo"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().vehiculo"
+          (change)="cambiarCampo('vehiculo', $any($event.target).value)"
+        >
+          <option value="">Selecciona</option>
+          @for (v of vehiculos(); track v.placa) {
+            <option [value]="v.placa" [selected]="formulario().vehiculo === v.placa">
+              {{ v.placa }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="celda-parqueo" class="etiqueta-campo">Celda</label>
+        <select
+          id="celda-parqueo"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().celda"
+          (change)="cambiarCampo('celda', $any($event.target).value)"
+        >
+          <option value="">Selecciona</option>
+          @for (c of celdas(); track c.idCelda) {
+            <option [value]="c.idCelda" [selected]="formulario().celda === c.idCelda.toString()">
+              {{ nombreCelda(c.idCelda) }} ({{ etiquetaCelda[c.tipo] ?? c.tipo }})
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">El vehículo y la celda no se pueden cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="entrada-parqueo" class="etiqueta-campo">Entrada</label>
+        <input
+          id="entrada-parqueo"
+          type="datetime-local"
+          class="input-formulario"
+          [value]="formulario().entrada"
+          (input)="cambiarCampo('entrada', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="salida-parqueo" class="etiqueta-campo">Salida (opcional)</label>
+        <input
+          id="salida-parqueo"
+          type="datetime-local"
+          class="input-formulario"
+          [value]="formulario().salida"
+          (input)="cambiarCampo('salida', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    <p class="ayuda-campo-normal">Deja la salida vacía mientras el vehículo siga adentro.</p>
+  </app-modal-formulario>
+}
+
+@if (parqueoAEliminar(); as parqueo) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar el parqueo?"
+    [mensaje]="'Se eliminará el registro del vehículo ' + parqueo.vehiculoPlaca + ' en la ' + nombreCelda(parqueo.idCelda) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="parqueoAEliminar.set(null)"
+  />
+}
