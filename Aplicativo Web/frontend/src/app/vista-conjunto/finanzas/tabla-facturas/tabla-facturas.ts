@@ -1,7 +1,11 @@
 import { Component, input, output } from '@angular/core';
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { ESTILO_FACTURA, ETIQUETA_FACTURA, FacturaModel } from '../../../models/factura.model';
-
+import {
+  ESTILO_FACTURA,
+  ETIQUETA_FACTURA,
+  FacturaModel,
+  facturaAbierta,
+} from '../../../models/factura.model';
 /**
  * @component TablaFacturas
  * @description Cuerpo de la tarjeta de Finanzas: esqueleto mientras carga, estado vacío si
@@ -29,4 +33,16 @@ export class TablaFacturas {
   /** Diccionarios de texto y color de cada estado (constantes del modelo). */
   protected readonly etiquetaFactura = ETIQUETA_FACTURA;
   protected readonly estiloFactura = ESTILO_FACTURA;
+
+  /** El usuario quiere ver las líneas de la factura. */
+  readonly verDetalle = output<FacturaModel>();
+
+  /** El usuario quiere cambiar el vencimiento. */
+  readonly editar = output<FacturaModel>();
+
+  /** El usuario quiere eliminar la factura. */
+  readonly eliminar = output<FacturaModel>();
+
+  protected readonly abierta = facturaAbierta;
+
 }

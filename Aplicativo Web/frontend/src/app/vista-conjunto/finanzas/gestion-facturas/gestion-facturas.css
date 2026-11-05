@@ -1,0 +1,59 @@
+/* Solo contiene ventanas: que el componente no ocupe un hueco en el layout de Finanzas */
+:host {
+  display: contents;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.etiqueta-campo {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.input-formulario {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-control);
+  background: var(--bg-tarjeta);
+  color: var(--texto);
+  font-family: inherit;
+  font-size: 15px;
+}
+
+.input-formulario:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+}
+
+.fila-campos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.fila-tres {
+  grid-template-columns: 1.3fr 1fr 1fr;
+}
+
+.ayuda-campo {
+  font-size: 13px;
+  color: var(--texto-secundario);
+}
+
+.resumen-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radio-control);
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+  font-size: 14px;
+}

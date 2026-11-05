@@ -1,44 +1,89 @@
 <header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
-  <h1 class="titulo-pagina">Facturas de administración</h1>
+  <h1 class="titulo-pagina">Finanzas</h1>
   <p class="descripcion-pagina">
-    Cobros mensuales de administración de cada casa del conjunto.
+    Facturas de administración de cada casa y catálogo de conceptos que se pueden cobrar.
   </p>
 </header>
 
-@if (error()) {
-  <!-- Error -->
-  <section class="tarjeta-seccion mensaje-error animate__animated animate__fadeIn animate__faster">
-    <span class="circulo-icono circulo-error" aria-hidden="true">
-      <i class="fa-solid fa-plug-circle-xmark"></i>
-    </span>
-    <h2 class="titulo-vacio">No se pudo consultar la información</h2>
-    <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
-  </section>
-} @else {
-  <app-totales-finanzas [facturas]="facturas()" [cargando]="cargando()" />
+<nav class="control-segmentado" aria-label="Pestañas de Finanzas">
+  @for (p of pestanas; track p.valor) {
+    <button
+      type="button"
+      class="boton-segmento"
+      [class.activo]="pestana() === p.valor"
+      [attr.aria-pressed]="pestana() === p.valor"
+      (click)="pestana.set(p.valor)"
+    >
+      <i class="fa-solid" [class]="p.icono" aria-hidden="true"></i>
+      {{ p.texto }}
+    </button>
+  }
+</nav>
 
-  <!-- Tarjeta con filtros y tabla -->
-  <section
-    class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
-    aria-labelledby="titulo-tabla"
-  >
-    <div class="cabecera-tarjeta">
-      <h2 id="titulo-tabla" class="titulo-tarjeta">Facturas</h2>
-      <app-filtros-facturas
-        [filtroEstado]="filtroEstado()"
-        [busqueda]="busqueda()"
-        [conteos]="conteos()"
+<!-- Ventanas de crear / cambiar vencimiento / eliminar / marcar vencidas -->
+<app-gestion-facturas
+  #gestion
+  (cambio)="cargarFacturas(true)"
+  (creada)="abrirDetalleNueva($event)"
+/>
+
+@if (pestana() === 'facturas') {
+  @if (error()) {
+    <section class="tarjeta-seccion mensaje-error animate__animated animate__fadeIn animate__faster">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <h2 class="titulo-vacio">No se pudo consultar la información</h2>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+    </section>
+  } @else {
+    <app-totales-finanzas [facturas]="facturas()" [cargando]="cargando()" />
+
+    <section
+      class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+      aria-labelledby="titulo-tabla"
+    >
+      <div class="cabecera-tarjeta">
+        <div class="fila-titulo">
+          <h2 id="titulo-tabla" class="titulo-tarjeta">Facturas</h2>
+          <button type="button" class="boton-secundario" (click)="gestion.pedirMarcarVencidas()">
+            <i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i>
+            Marcar vencidas
+          </button>
+          <button type="button" class="boton-primario" (click)="gestion.abrirCrear()">
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            Nueva factura
+          </button>
+        </div>
+        <app-filtros-facturas
+          [filtroEstado]="filtroEstado()"
+          [busqueda]="busqueda()"
+          [conteos]="conteos()"
+          [cargando]="cargando()"
+          (cambiarFiltro)="cambiarFiltro($event)"
+          (buscar)="buscar($event)"
+        />
+      </div>
+
+      <app-tabla-facturas
+        [facturas]="facturasFiltradas()"
         [cargando]="cargando()"
-        (cambiarFiltro)="cambiarFiltro($event)"
-        (buscar)="buscar($event)"
+        [textoConteo]="textoConteo()"
+        (limpiarFiltros)="limpiarFiltros()"
+        (verDetalle)="idDetalle.set($event.numeroFactura)"
+        (editar)="gestion.abrirEditar($event)"
+        (eliminar)="gestion.pedirEliminar($event)"
       />
-    </div>
+    </section>
+  }
+} @else {
+  <app-gestion-conceptos />
+}
 
-    <app-tabla-facturas
-      [facturas]="facturasFiltradas()"
-      [cargando]="cargando()"
-      [textoConteo]="textoConteo()"
-      (limpiarFiltros)="limpiarFiltros()"
-    />
-  </section>
+@if (facturaDetalle(); as f) {
+  <app-detalle-factura-modal
+    [factura]="f"
+    (cambio)="cargarFacturas(true)"
+    (cerrar)="idDetalle.set(null)"
+  />
 }

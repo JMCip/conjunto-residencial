@@ -131,3 +131,7 @@ button:disabled {
   outline: 2px solid var(--verde-hoja);
   outline-offset: 2px;
 }
+
+.caja-amplia {
+  width: 920px;
+}

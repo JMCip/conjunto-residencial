@@ -16,6 +16,14 @@ import { afterNextRender, Component, ElementRef, inject, input, output } from '@
 export class ModalFormulario {
   private elemento = inject<ElementRef<HTMLElement>>(ElementRef);
 
+
+  /** 'amplio' para modales con tablas (detalle de factura). */
+  readonly ancho = input<'normal' | 'amplio'>('normal');
+
+  /** true: el pie solo muestra «Cerrar» (modales de gestión sin botón Guardar). */
+  readonly soloCerrar = input(false);
+
+
   /** Título de la ventana ("Nueva casa", "Editar casa"). */
   readonly titulo = input.required<string>();
 
