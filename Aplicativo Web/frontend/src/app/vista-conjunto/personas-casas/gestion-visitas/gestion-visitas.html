@@ -22,6 +22,11 @@
           />
         </div>
       </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva visita
+      </button>
     </div>
   </div>
 
@@ -61,12 +66,13 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Casa</th>
-            <th scope="col">Visitante</th>
-            <th scope="col">Entrada</th>
-            <th scope="col">Salida</th>
-          </tr>
+        <tr>
+          <th scope="col">Casa</th>
+          <th scope="col">Visitante</th>
+          <th scope="col">Entrada</th>
+          <th scope="col">Salida</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (r of visitasFiltradas(); track r.idVisita) {
@@ -81,6 +87,24 @@
                   <span class="insignia-estado insignia-ok">En curso</span>
                 }
               </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar visita"
+                  (click)="abrirEditar(r)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar visita"
+                  (click)="visitaAEliminar.set(r)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
             </tr>
           }
         </tbody>
@@ -89,3 +113,93 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar visita' : 'Nueva visita'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear visita'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="casa-visita" class="etiqueta-campo">Casa visitada</label>
+      <select
+        id="casa-visita"
+        class="input-formulario"
+        [disabled]="editando() !== null"
+        [value]="formulario().casa"
+        (change)="cambiarCampo('casa', $any($event.target).value)"
+      >
+        <option value="">Selecciona una casa</option>
+        @for (c of casas(); track llaveCasa(c.manzana, c.numero)) {
+          <option
+            [value]="llaveCasa(c.manzana, c.numero)"
+            [selected]="formulario().casa === llaveCasa(c.manzana, c.numero)"
+          >
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="visitante-visita" class="etiqueta-campo">Visitante</label>
+      <select
+        id="visitante-visita"
+        class="input-formulario"
+        [disabled]="editando() !== null"
+        [value]="formulario().visitante"
+        (change)="cambiarCampo('visitante', $any($event.target).value)"
+      >
+        <option value="">Selecciona un visitante</option>
+        @for (p of visitantes(); track llavePersona(p.tipoDocumento, p.numeroDocumento)) {
+          <option
+            [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)"
+            [selected]="formulario().visitante === llavePersona(p.tipoDocumento, p.numeroDocumento)"
+          >
+            {{ nombrePersona(p) }} ({{ p.tipoDocumento }} {{ p.numeroDocumento }})
+          </option>
+        }
+      </select>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">La casa y el visitante no se pueden cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="entrada-visita" class="etiqueta-campo">Fecha de entrada</label>
+        <input
+          id="entrada-visita"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaEntrada"
+          (input)="cambiarCampo('fechaEntrada', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="salida-visita" class="etiqueta-campo">Fecha de salida (opcional)</label>
+        <input
+          id="salida-visita"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaSalida"
+          (input)="cambiarCampo('fechaSalida', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    <p class="ayuda-campo-normal">Deja la salida vacía mientras la visita siga en curso.</p>
+  </app-modal-formulario>
+}
+
+@if (visitaAEliminar(); as visita) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la visita?"
+    [mensaje]="'Se eliminará la visita de ' + visitante(visita) + ' a ' + nombreCasa(visita.casaManzana, visita.casaNumero) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="visitaAEliminar.set(null)"
+  />
+}
