@@ -74,6 +74,16 @@ public class DetalleFacturaDAO {
 			FROM sancion WHERE id_sancion = ?
 			""";
 
+	private static final String CONCEPTO_EN_FACTURA = """
+		    SELECT EXISTS (
+		        SELECT 1
+		        FROM detalle_factura
+		        WHERE concepto_cobro_id_concepto = ?
+		          AND factura_numero_factura = ?
+		    )
+		    """;
+	
+	
 	private static final String BUSCAR_RESERVA = """
 			SELECT casa_numero, casa_manzana, estado,
 			       ROUND(EXTRACT(EPOCH FROM (hora_final - hora_inicio)) / 3600 * valor_por_hora, 2) AS valor
@@ -222,6 +232,11 @@ public class DetalleFacturaDAO {
 				return rs.getBoolean(1);
 			}
 		}
+	}
+	
+	public boolean conceptoEnFactura(int idConcepto, int numeroFactura)
+	        throws SQLException {
+	    return existe(CONCEPTO_EN_FACTURA, idConcepto, numeroFactura);
 	}
 
 	private DetalleFactura mapear(ResultSet rs) throws SQLException {

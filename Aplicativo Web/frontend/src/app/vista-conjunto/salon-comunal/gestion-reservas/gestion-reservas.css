@@ -445,3 +445,9 @@
   justify-content: space-between;
   gap: 16px;
 }
+
+.boton-icono:disabled {
+  opacity: 0.4;
+  background: transparent;
+  cursor: not-allowed;
+}

@@ -15,13 +15,18 @@
             id="buscar-casa"
             type="search"
             class="input-busqueda"
-            placeholder="Manzana, casa o estado"
+            placeholder="Manzana o casa"
             autocomplete="off"
             [value]="busqueda()"
             (input)="busqueda.set(campo.value)"
           />
         </div>
       </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva casa
+      </button>
     </div>
   </div>
 
@@ -51,7 +56,7 @@
         <p class="titulo-vacio">Todavía no hay casas registradas</p>
       } @else {
         <p class="titulo-vacio">No hay registros para esta búsqueda</p>
-        <p class="texto-vacio">Prueba con otra manzana, número o estado.</p>
+        <p class="texto-vacio">Prueba con otra manzana o número.</p>
         <button type="button" class="boton-secundario" (click)="busqueda.set('')">
           Ver todas las casas
         </button>
@@ -61,12 +66,12 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Casa</th>
-            <th scope="col" class="col-numero">Área</th>
-            <th scope="col" class="col-numero">Habitaciones</th>
-            <th scope="col">Estado</th>
-          </tr>
+        <tr>
+          <th scope="col">Casa</th>
+          <th scope="col" class="col-numero">Área</th>
+          <th scope="col" class="col-numero">Habitaciones</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (c of casasFiltradas(); track c.manzana + '-' + c.numero) {
@@ -74,13 +79,23 @@
               <td class="col-principal">{{ nombreCasa(c) }}</td>
               <td class="col-numero num">{{ c.area | number: '1.0-2' }} m²</td>
               <td class="col-numero num">{{ c.numeroHabitaciones ?? '—' }}</td>
-              <td>
-                <span
-                  class="insignia-estado"
-                  [class]="'insignia-' + (estiloCasa[c.estado] ?? 'neutro')"
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar casa"
+                  (click)="abrirEditar(c)"
                 >
-                  {{ etiquetaCasa[c.estado] ?? c.estado }}
-                </span>
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar casa"
+                  (click)="casaAEliminar.set(c)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
               </td>
             </tr>
           }
@@ -90,3 +105,79 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar casa' : 'Nueva casa'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear casa'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="manzana-casa" class="etiqueta-campo">Manzana</label>
+        <input
+          id="manzana-casa"
+          class="input-formulario"
+          inputmode="numeric"
+          autocomplete="off"
+          [disabled]="editando() !== null"
+          [value]="formulario().manzana"
+          (input)="cambiarCampo('manzana', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="numero-casa" class="etiqueta-campo">Número de casa</label>
+        <input
+          id="numero-casa"
+          class="input-formulario"
+          inputmode="numeric"
+          autocomplete="off"
+          [disabled]="editando() !== null"
+          [value]="formulario().numero"
+          (input)="cambiarCampo('numero', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">La manzana y el número no se pueden cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="area-casa" class="etiqueta-campo">Área (m²)</label>
+        <input
+          id="area-casa"
+          class="input-formulario"
+          inputmode="decimal"
+          autocomplete="off"
+          [value]="formulario().area"
+          (input)="cambiarCampo('area', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="habitaciones-casa" class="etiqueta-campo">Habitaciones (opcional)</label>
+        <input
+          id="habitaciones-casa"
+          class="input-formulario"
+          inputmode="numeric"
+          autocomplete="off"
+          [value]="formulario().numeroHabitaciones"
+          (input)="cambiarCampo('numeroHabitaciones', $any($event.target).value)"
+        />
+      </div>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (casaAEliminar(); as casa) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la casa?"
+    [mensaje]="'Se eliminará ' + nombreCasa(casa) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="casaAEliminar.set(null)"
+  />
+}

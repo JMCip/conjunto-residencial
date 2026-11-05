@@ -28,3 +28,17 @@ export const ESTILO_FACTURA: Record<EstadoFactura, 'ok' | 'pendiente' | 'alerta'
   VENCIDA: 'alerta',
   ABONADA: 'pendiente',
 };
+
+/** Lo que se envía al crear: queda PENDIENTE y sin líneas. */
+export interface NuevaFactura {
+  periodo: string; // yyyy-MM
+  fechaEmision: string; // yyyy-MM-dd
+  fechaVencimiento: string; // yyyy-MM-dd
+  casaNumero: number;
+  casaManzana: number;
+}
+
+/** true si todavía se puede cambiar el vencimiento y sus líneas (PENDIENTE o ABONADA). */
+export function facturaAbierta(f: FacturaModel): boolean {
+  return f.estado === 'PENDIENTE' || f.estado === 'ABONADA';
+}

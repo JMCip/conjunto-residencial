@@ -31,7 +31,7 @@ public class FacturaService {
 		if (!facturaDao.existeCasa(f.getCasaNumero(), f.getCasaManzana())) {
 			throw new RecursoNoEncontradoException("Casa no encontrada");
 		}
-		// Regla: una factura por casa y periodo (quitar este if si el grupo no la quiere)
+		
 		if (facturaDao.existePeriodo(f.getCasaNumero(), f.getCasaManzana(), periodo.toString())) {
 			throw new ConflictoException("La casa ya tiene una factura del periodo " + periodo);
 		}
@@ -78,7 +78,7 @@ public class FacturaService {
 				throw new RecursoNoEncontradoException("Factura no encontrada");
 			}
 		} catch (SQLException e) {
-			// 23503 = foreign_key_violation en PostgreSQL (tiene detalle_factura o pago)
+			
 			if ("23503".equals(e.getSQLState())) {
 				throw new ConflictoException(
 						"La factura tiene líneas de detalle o pagos asociados y no se puede eliminar");

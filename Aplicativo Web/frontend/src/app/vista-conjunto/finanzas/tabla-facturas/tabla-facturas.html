@@ -27,6 +27,7 @@
           <th scope="col">Vencimiento</th>
           <th scope="col" class="col-dinero">Valor</th>
           <th scope="col">Estado</th>
+          <th scope="col" class="col-acciones">Acciones</th>
         </tr>
       </thead>
       <tbody>
@@ -44,6 +45,41 @@
                 {{ etiquetaFactura[f.estado] }}
               </span>
             </td>
+            <td class="col-acciones">
+              <button
+                type="button"
+                class="boton-icono"
+                aria-label="Ver detalle de la factura"
+                title="Ver detalle (líneas)"
+                (click)="verDetalle.emit(f)"
+              >
+                <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
+              </button>
+              @if (abierta(f)) {
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Cambiar vencimiento"
+                  title="Cambiar vencimiento"
+                  (click)="editar.emit(f)"
+                >
+                  <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                </button>
+              }
+              @if (f.estado === 'PENDIENTE') {
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar factura"
+                  title="Eliminar factura"
+                  (click)="eliminar.emit(f)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              }
+            </td>
+
+
           </tr>
         }
       </tbody>

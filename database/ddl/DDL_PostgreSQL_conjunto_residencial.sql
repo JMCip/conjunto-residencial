@@ -62,7 +62,6 @@ CREATE TABLE casa (
     numero                NUMERIC  NOT NULL,
     manzana               NUMERIC  NOT NULL,
     area                  NUMERIC(8,2)  NOT NULL,
-    estado                VARCHAR(15)  NOT NULL,
     numero_habitaciones   INTEGER,
     CONSTRAINT casa_pk PRIMARY KEY (numero, manzana)
 );

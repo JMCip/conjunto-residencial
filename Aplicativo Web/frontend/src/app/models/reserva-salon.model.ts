@@ -1,3 +1,5 @@
+export type EstadoReserva = 'CONFIRMADA' | 'FINALIZADA' | 'CANCELADA' | 'DEPOSITO_RETENIDO';
+
 export interface ReservaSalonModel {
   idReserva: number;
   fechaReserva: string;
@@ -5,32 +7,51 @@ export interface ReservaSalonModel {
   horaFinal: string;
   valorDeposito: number;
   valorPorHora: number;
-  estado: 'CONFIRMADA' | 'FINALIZADA' | 'CANCELADA';
+  estado: EstadoReserva;
   casaNumero: number;
   casaManzana: number;
   horasReservadas: number;
   valorTotal: number;
 }
 
-/**
- * Lo que se envía al crear o editar una reserva: sin el id (lo pone la base) y sin
- * horasReservadas ni valorTotal (los calcula el backend).
- */
-export type DatosReservaSalon = Omit<ReservaSalonModel, 'idReserva' | 'horasReservadas' | 'valorTotal'>;
+/** Lo que se envía al crear: el back pone fecha, estado (CONFIRMADA), horas y total. */
+export interface NuevaReservaSalon {
+  horaInicio: string; // yyyy-MM-ddTHH:mm:ss
+  horaFinal: string;
+  valorDeposito: number;
+  valorPorHora: number;
+  casaNumero: number;
+  casaManzana: number;
+}
 
 /** Estados de reserva, en el orden de los filtros. */
-export const ESTADOS_RESERVA: ReservaSalonModel['estado'][] = ['CONFIRMADA', 'FINALIZADA', 'CANCELADA'];
+export const ESTADOS_RESERVA: EstadoReserva[] = [
+  'CONFIRMADA',
+  'FINALIZADA',
+  'CANCELADA',
+  'DEPOSITO_RETENIDO',
+];
 
 /** Texto que se muestra para cada estado de reserva. */
-export const ETIQUETA_RESERVA: Record<ReservaSalonModel['estado'], string> = {
+export const ETIQUETA_RESERVA: Record<EstadoReserva, string> = {
   CONFIRMADA: 'Confirmada',
   FINALIZADA: 'Finalizada',
   CANCELADA: 'Cancelada',
+  DEPOSITO_RETENIDO: 'Depósito retenido',
+};
+
+/** Texto de cada botón del filtro (plural). */
+export const FILTRO_RESERVA: Record<EstadoReserva, string> = {
+  CONFIRMADA: 'Confirmadas',
+  FINALIZADA: 'Finalizadas',
+  CANCELADA: 'Canceladas',
+  DEPOSITO_RETENIDO: 'Retenidas',
 };
 
 /** Color de insignia de cada estado de reserva. */
-export const ESTILO_RESERVA: Record<ReservaSalonModel['estado'], 'ok' | 'pendiente' | 'neutro'> = {
+export const ESTILO_RESERVA: Record<EstadoReserva, 'ok' | 'pendiente' | 'neutro' | 'alerta'> = {
   CONFIRMADA: 'pendiente',
   FINALIZADA: 'ok',
   CANCELADA: 'neutro',
+  DEPOSITO_RETENIDO: 'alerta',
 };

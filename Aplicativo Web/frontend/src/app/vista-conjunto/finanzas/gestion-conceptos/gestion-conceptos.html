@@ -1,0 +1,210 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-conceptos"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-conceptos" class="titulo-tarjeta">Conceptos de cobro</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-concepto" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-concepto"
+            type="search"
+            class="input-busqueda"
+            placeholder="Nombre o descripción"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nuevo concepto
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarConceptos()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (conceptosFiltrados().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-tags"></i>
+      </span>
+      @if (conceptos().length === 0) {
+        <p class="titulo-vacio">Todavía no hay conceptos de cobro</p>
+        <p class="texto-vacio">Crea el primero con el botón «Nuevo concepto».</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otro nombre o con otra palabra de la descripción.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todos los conceptos
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+        <tr>
+          <th scope="col">Concepto</th>
+          <th scope="col">Descripción</th>
+          <th scope="col" class="col-numero">Valor base</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (c of conceptosFiltrados(); track c.idConcepto) {
+            <tr>
+              <td class="col-principal">
+                {{ c.nombre }}
+                @if (esProtegido(c.nombre)) {
+                  <span
+                    class="insignia-estado insignia-neutro"
+                    title="Lo usa el sistema para cobrar sanciones, reservas o celdas adicionales"
+                  >
+                    Del sistema
+                  </span>
+                }
+              </td>
+              <td>
+                <p class="texto-cortado" [attr.title]="c.descripcion">{{ c.descripcion }}</p>
+              </td>
+              <td class="col-numero num">
+                {{ c.valorBase | currency: 'COP' : 'symbol' : '1.0-0' }}
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar concepto"
+                  title="Editar concepto"
+                  (click)="abrirEditar(c)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                @if (esProtegido(c.nombre)) {
+                  <span
+                    class="icono-bloqueo"
+                    title="Concepto del sistema: no se puede eliminar"
+                  >
+                    <i class="fa-solid fa-lock" aria-hidden="true"></i>
+                  </span>
+                } @else {
+                  <button
+                    type="button"
+                    class="boton-icono boton-icono-peligro"
+                    aria-label="Eliminar concepto"
+                    title="Eliminar concepto"
+                    (click)="conceptoAEliminar.set(c)"
+                  >
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar concepto de cobro' : 'Nuevo concepto de cobro'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear concepto'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="nombre-concepto" class="etiqueta-campo">Nombre</label>
+      <input
+        id="nombre-concepto"
+        class="input-formulario"
+        autocomplete="off"
+        placeholder="Administración, Cuota extraordinaria…"
+        [attr.maxlength]="maxNombre"
+        [disabled]="nombreBloqueado()"
+        [value]="formulario().nombre"
+        (input)="cambiarCampo('nombre', $any($event.target).value)"
+      />
+      @if (nombreBloqueado()) {
+        <p class="ayuda-campo">
+          Este concepto lo usa el sistema para cobrar sanciones, reservas o celdas adicionales:
+          su nombre no se puede cambiar.
+        </p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="descripcion-concepto" class="etiqueta-campo">Descripción</label>
+      <textarea
+        id="descripcion-concepto"
+        class="area-formulario"
+        [attr.maxlength]="maxDescripcion"
+        [value]="formulario().descripcion"
+        (input)="cambiarCampo('descripcion', $any($event.target).value)"
+      ></textarea>
+      <span class="contador-caracteres num">
+        {{ formulario().descripcion.length }}/{{ maxDescripcion }}
+      </span>
+    </div>
+
+    <div class="campo">
+      <label for="valor-concepto" class="etiqueta-campo">Valor base (COP)</label>
+      <input
+        id="valor-concepto"
+        class="input-formulario"
+        inputmode="numeric"
+        autocomplete="off"
+        [value]="formulario().valorBase"
+        (input)="cambiarCampo('valorBase', $any($event.target).value)"
+      />
+      @if (editando()) {
+        <p class="ayuda-campo">
+          Cambiar el valor base no modifica las facturas ya emitidas: cada línea guarda lo que se
+          cobró en su momento.
+        </p>
+      }
+    </div>
+  </app-modal-formulario>
+}
+
+@if (conceptoAEliminar(); as concepto) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar el concepto de cobro?"
+    [mensaje]="
+      'Se eliminará «' +
+      concepto.nombre +
+      '». Solo se puede eliminar si ninguna línea de factura lo ha usado. Esta acción no se puede deshacer.'
+    "
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="conceptoAEliminar.set(null)"
+  />
+}

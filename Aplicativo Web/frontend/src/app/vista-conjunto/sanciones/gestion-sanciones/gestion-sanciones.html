@@ -5,6 +5,10 @@
   <div class="cabecera-tarjeta cabecera-dos-filas">
     <div class="fila-titulo">
       <h2 id="titulo-sanciones" class="titulo-tarjeta">Sanciones</h2>
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva sanción
+      </button>
     </div>
 
     <div class="controles-tabla">
@@ -67,6 +71,7 @@
       </span>
       @if (sanciones().length === 0) {
         <p class="titulo-vacio">No hay sanciones registradas</p>
+        <p class="texto-vacio">Registra la primera con el botón «Nueva sanción».</p>
       } @else {
         <p class="titulo-vacio">No hay registros para este filtro</p>
         <p class="texto-vacio">Prueba con otro estado o con otro texto de búsqueda.</p>
@@ -83,31 +88,87 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Incidente</th>
-            <th scope="col">Casa</th>
-            <th scope="col">Tipo</th>
-            <th scope="col">Descripción</th>
-            <th scope="col" class="col-numero">Multa</th>
-            <th scope="col">Estado</th>
-          </tr>
+        <tr>
+          <th scope="col">Incidente</th>
+          <th scope="col">Notificación</th>
+          <th scope="col">Casa</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Descripción y descargos</th>
+          <th scope="col" class="col-numero">Multa</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (s of sancionesFiltradas(); track s.idSancion) {
             <tr>
               <td class="col-principal num col-fecha">{{ s.fechaIncidente | date: 'dd/MM/y' }}</td>
+              <td class="num col-fecha">{{ s.fechaNotificacion | date: 'dd/MM/y' }}</td>
               <td class="col-fecha">{{ nombreCasa(s.casaManzana, s.casaNumero) }}</td>
-              <td>{{ etiqueta[s.tipo] ?? s.tipo }}</td>
-              <td class="col-secundaria">
+              <td>{{ textoTipo(s.tipo) }}</td>
+              <td>
                 <p class="texto-cortado" [attr.title]="s.descripcion">{{ s.descripcion }}</p>
+                <p
+                  class="texto-cortado col-secundaria"
+                  [attr.title]="sinDescargos(s) ? 'Sin descargos registrados' : s.descargos"
+                >
+                  @if (sinDescargos(s)) {
+                    Sin descargos registrados
+                  } @else {
+                    Descargos: {{ s.descargos }}
+                  }
+                </p>
               </td>
               <td class="col-numero num">
                 {{ s.valor !== null ? (s.valor | currency: 'COP' : 'symbol' : '1.0-0') : '—' }}
               </td>
               <td>
-                <span class="insignia-estado" [class]="'insignia-' + (estilo[s.estadoProceso] ?? 'neutro')">
-                  {{ etiqueta[s.estadoProceso] ?? s.estadoProceso }}
+                <span class="insignia-estado" [class]="'insignia-' + estilo[s.estadoProceso]">
+                  {{ etiquetaEstado[s.estadoProceso] }}
                 </span>
+              </td>
+              <td class="col-acciones">
+                @if (s.estadoProceso === 'EN_DESCARGOS') {
+                  <button
+                    type="button"
+                    class="boton-icono"
+                    aria-label="Registrar descargos"
+                    title="Registrar descargos"
+                    (click)="abrirDescargos(s)"
+                  >
+                    <i class="fa-solid fa-pen-to-square" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="boton-icono"
+                    aria-label="Confirmar sanción"
+                    title="Confirmar sanción (con multa opcional)"
+                    (click)="abrirConfirmar(s)"
+                  >
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="boton-icono boton-icono-peligro"
+                    aria-label="Anular sanción"
+                    title="Anular sanción"
+                    (click)="accion.set({ tipo: 'ANULAR', sancion: s })"
+                  >
+                    <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                  </button>
+                } @else if (s.estadoProceso === 'ANULADA') {
+                  <button
+                    type="button"
+                    class="boton-icono boton-icono-peligro"
+                    aria-label="Eliminar sanción"
+                    title="Eliminar sanción"
+                    (click)="accion.set({ tipo: 'ELIMINAR', sancion: s })"
+                  >
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                } @else {
+                  <span class="col-secundaria">—</span>
+                }
               </td>
             </tr>
           }
@@ -117,3 +178,173 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    titulo="Nueva sanción"
+    textoGuardar="Registrar sanción"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="casa-sancion" class="etiqueta-campo">Casa</label>
+      <select
+        id="casa-sancion"
+        class="input-formulario"
+        [value]="formulario().casa"
+        (change)="cambiarCampo('casa', $any($event.target).value)"
+      >
+        <option value="">Selecciona una casa</option>
+        @for (c of casas(); track llaveCasa(c.manzana, c.numero)) {
+          <option
+            [value]="llaveCasa(c.manzana, c.numero)"
+            [selected]="formulario().casa === llaveCasa(c.manzana, c.numero)"
+          >
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="fila-campos fila-tres">
+      <div class="campo">
+        <label for="tipo-sancion" class="etiqueta-campo">Tipo</label>
+        <input
+          id="tipo-sancion"
+          class="input-formulario"
+          list="tipos-sancion"
+          autocomplete="off"
+          placeholder="Ruido, mascotas…"
+          [attr.maxlength]="maxTipo"
+          [value]="formulario().tipo"
+          (input)="cambiarCampo('tipo', $any($event.target).value)"
+        />
+        <datalist id="tipos-sancion">
+          @for (t of sugerenciasTipo; track t) {
+            <option [value]="t"></option>
+          }
+        </datalist>
+      </div>
+      <div class="campo">
+        <label for="incidente-sancion" class="etiqueta-campo">Fecha del incidente</label>
+        <input
+          id="incidente-sancion"
+          type="date"
+          class="input-formulario"
+          [max]="hoy"
+          [value]="formulario().fechaIncidente"
+          (input)="cambiarCampo('fechaIncidente', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="notificacion-sancion" class="etiqueta-campo">Fecha de notificación</label>
+        <input
+          id="notificacion-sancion"
+          type="date"
+          class="input-formulario"
+          [min]="formulario().fechaIncidente"
+          [max]="hoy"
+          [value]="formulario().fechaNotificacion"
+          (input)="cambiarCampo('fechaNotificacion', $any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="descripcion-sancion" class="etiqueta-campo">Descripción del incidente</label>
+      <textarea
+        id="descripcion-sancion"
+        class="area-formulario"
+        [attr.maxlength]="maxDescripcion"
+        [value]="formulario().descripcion"
+        (input)="cambiarCampo('descripcion', $any($event.target).value)"
+      ></textarea>
+      <span class="contador-caracteres num">
+        {{ formulario().descripcion.length }}/{{ maxDescripcion }}
+      </span>
+    </div>
+
+    <div class="campo">
+      <label for="descargos-sancion" class="etiqueta-campo">Descargos (opcional)</label>
+      <textarea
+        id="descargos-sancion"
+        class="area-formulario"
+        [attr.maxlength]="maxDescargos"
+        [value]="formulario().descargos"
+        (input)="cambiarCampo('descargos', $any($event.target).value)"
+      ></textarea>
+      <span class="contador-caracteres num">
+        {{ formulario().descargos.length }}/{{ maxDescargos }}
+      </span>
+      <p class="ayuda-campo">
+        Si aún no hay descargos, déjalo vacío: la sanción queda «En descargos» y los registras después.
+      </p>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (proceso(); as p) {
+  <app-modal-formulario
+    [titulo]="tituloProceso(p)"
+    [textoGuardar]="textoGuardarProceso(p)"
+    [guardando]="guardandoProceso()"
+    [error]="errorProceso()"
+    (guardar)="guardarProceso()"
+    (cerrar)="cerrarProceso()"
+  >
+    <div class="resumen-total">
+      <span>
+        {{ nombreCasa(p.sancion.casaManzana, p.sancion.casaNumero) }} ·
+        {{ textoTipo(p.sancion.tipo) }}
+      </span>
+      <strong class="num">{{ p.sancion.fechaIncidente | date: 'dd/MM/y' }}</strong>
+    </div>
+
+    @if (p.modo === 'DESCARGOS') {
+      <div class="campo">
+        <label for="descargos-proceso" class="etiqueta-campo">Descargos de la casa</label>
+        <textarea
+          id="descargos-proceso"
+          class="area-formulario"
+          [attr.maxlength]="maxDescargos"
+          [value]="formProceso().descargos"
+          (input)="cambiarCampoProceso('descargos', $any($event.target).value)"
+        ></textarea>
+        <span class="contador-caracteres num">
+          {{ formProceso().descargos.length }}/{{ maxDescargos }}
+        </span>
+      </div>
+    } @else {
+      <div class="campo">
+        <label for="valor-proceso" class="etiqueta-campo">Valor de la multa (COP, opcional)</label>
+        <input
+          id="valor-proceso"
+          class="input-formulario"
+          inputmode="numeric"
+          autocomplete="off"
+          [value]="formProceso().valor"
+          (input)="cambiarCampoProceso('valor', $any($event.target).value)"
+        />
+        <p class="ayuda-campo">
+          Déjalo vacío si la sanción no genera multa. Una vez confirmada, ya no se puede modificar.
+        </p>
+      </div>
+      @if (sinDescargos(p.sancion)) {
+        <p class="ayuda-campo">Esta sanción todavía no tiene descargos registrados.</p>
+      }
+    }
+  </app-modal-formulario>
+}
+
+@if (accion(); as a) {
+  <app-dialogo-confirmar
+    [titulo]="tituloAccion(a)"
+    [mensaje]="mensajeAccion(a)"
+    [textoConfirmar]="textoConfirmarAccion(a)"
+    [procesando]="procesando()"
+    (confirmar)="confirmarAccion()"
+    (cancelar)="accion.set(null)"
+  />
+}

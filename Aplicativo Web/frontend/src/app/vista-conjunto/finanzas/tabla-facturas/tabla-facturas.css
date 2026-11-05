@@ -144,3 +144,37 @@
   outline: 2px solid var(--verde-hoja);
   outline-offset: 1px;
 }
+
+.tabla-conjunto .col-acciones {
+  width: 1%;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.boton-icono {
+  width: 40px;
+  height: 40px;
+  display: inline-grid;
+  place-items: center;
+  border: none;
+  border-radius: var(--radio-control);
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.boton-icono:hover {
+  background: var(--verde-claro);
+  color: var(--verde-bosque);
+}
+
+.boton-icono-peligro:hover {
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+}
+
+.boton-icono:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+}

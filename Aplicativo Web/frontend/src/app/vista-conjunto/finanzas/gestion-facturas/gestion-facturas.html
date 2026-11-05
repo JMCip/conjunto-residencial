@@ -1,0 +1,125 @@
+@if (modalCrear()) {
+  <app-modal-formulario
+    titulo="Nueva factura"
+    textoGuardar="Crear factura"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardarCrear()"
+    (cerrar)="modalCrear.set(false)"
+  >
+    <div class="campo">
+      <label for="casa-factura" class="etiqueta-campo">Casa</label>
+      <select
+        id="casa-factura"
+        class="input-formulario"
+        [value]="formulario().casa"
+        (change)="cambiarCampo('casa', $any($event.target).value)"
+      >
+        <option value="">Selecciona una casa</option>
+        @for (c of casas(); track llaveCasa(c.manzana, c.numero)) {
+          <option
+            [value]="llaveCasa(c.manzana, c.numero)"
+            [selected]="formulario().casa === llaveCasa(c.manzana, c.numero)"
+          >
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="fila-campos fila-tres">
+      <div class="campo">
+        <label for="periodo-factura" class="etiqueta-campo">Periodo</label>
+        <input
+          id="periodo-factura"
+          type="month"
+          class="input-formulario"
+          placeholder="2026-11"
+          [value]="formulario().periodo"
+          (input)="cambiarCampo('periodo', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="emision-factura" class="etiqueta-campo">Emisión</label>
+        <input
+          id="emision-factura"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaEmision"
+          (input)="cambiarCampo('fechaEmision', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="vencimiento-factura" class="etiqueta-campo">Vencimiento</label>
+        <input
+          id="vencimiento-factura"
+          type="date"
+          class="input-formulario"
+          [min]="formulario().fechaEmision"
+          [value]="formulario().fechaVencimiento"
+          (input)="cambiarCampo('fechaVencimiento', $any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <p class="ayuda-campo">
+      La factura queda «Pendiente» y sin líneas: al crearla se abre su detalle para agregar la
+      administración mensual y los demás cobros. Solo puede haber una factura por casa y periodo.
+    </p>
+  </app-modal-formulario>
+}
+
+@if (editando(); as f) {
+  <app-modal-formulario
+    titulo="Cambiar vencimiento"
+    textoGuardar="Guardar cambios"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardarEditar()"
+    (cerrar)="editando.set(null)"
+  >
+    <div class="resumen-total">
+      <span>
+        Factura N.º {{ f.numeroFactura }} · {{ nombreCasa(f.casaManzana, f.casaNumero) }} ·
+        {{ f.periodo }}
+      </span>
+      <span>Emitida el <strong class="num">{{ f.fechaEmision | date: 'dd/MM/y' }}</strong></span>
+    </div>
+
+    <div class="campo">
+      <label for="nuevo-vencimiento" class="etiqueta-campo">Nueva fecha de vencimiento</label>
+      <input
+        id="nuevo-vencimiento"
+        type="date"
+        class="input-formulario"
+        [min]="f.fechaEmision"
+        [value]="vencimiento()"
+        (input)="vencimiento.set($any($event.target).value)"
+      />
+      <p class="ayuda-campo">
+        El periodo, la emisión y la casa no se pueden modificar. Solo cambia el vencimiento.
+      </p>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (facturaAEliminar(); as f) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la factura?"
+    [mensaje]="mensajeEliminar(f)"
+    [procesando]="procesando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="facturaAEliminar.set(null)"
+  />
+}
+
+@if (confirmandoVencidas()) {
+  <app-dialogo-confirmar
+    titulo="¿Marcar las facturas vencidas?"
+    mensaje="Pasarán a «Vencida» todas las facturas pendientes o abonadas cuya fecha de vencimiento ya pasó. Una casa con una factura vencida queda en mora y no puede reservar el salón."
+    textoConfirmar="Marcar vencidas"
+    [procesando]="procesando()"
+    (confirmar)="confirmarVencidas()"
+    (cancelar)="confirmandoVencidas.set(false)"
+  />
+}
