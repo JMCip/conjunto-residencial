@@ -15,4 +15,21 @@ export class CeldaParqueaderoService {
   getTodos(): Observable<CeldaParqueaderoModel[]> {
     return this.cliente.get<CeldaParqueaderoModel[]>(this.urlbase);
   }
+
+  getPorId(id: number): Observable<CeldaParqueaderoModel> {
+    return this.cliente.get<CeldaParqueaderoModel>(`${this.urlbase}/${id}`);
+  }
+
+  crear(celda: Omit<CeldaParqueaderoModel, 'idCelda'>): Observable<{ mensaje: string; idCelda: number }> {
+    return this.cliente.post<{ mensaje: string; idCelda: number }>(this.urlbase, celda);
+  }
+
+  actualizar(celda: CeldaParqueaderoModel): Observable<{ mensaje: string }> {
+    return this.cliente.put<{ mensaje: string }>(`${this.urlbase}/${celda.idCelda}`, celda);
+  }
+
+  eliminar(id: number): Observable<{ mensaje: string }> {
+    return this.cliente.delete<{ mensaje: string }>(`${this.urlbase}/${id}`);
+  }
+
 }

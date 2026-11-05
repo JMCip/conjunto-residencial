@@ -1,15 +1,40 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { catchError, forkJoin, Observable, of } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import {
   llavePersona,
   nombrePersona,
   PersonaModel,
+  ROL_SINGULAR,
   ROLES_PERSONA,
   RutaRol,
+  TIPOS_DOCUMENTO,
 } from '../../../models/persona.model';
 import { PersonaService } from '../../../services/persona.service';
 import { NotificacionService } from '../../../services/notificacion.service';
 import { extraerError } from '../../../compartido/extraer-error';
+import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
+import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
+
+/** Campos del formulario (todo como texto, los vacíos se pasan a null al guardar). */
+interface FormularioPersona {
+  tipoDocumento: string;
+  numeroDocumento: string;
+  primerNombre: string;
+  segunoNombre: string;
+  primerApellido: string;
+  segundoApellido: string;
+  correo: string;
+}
+
+const FORMULARIO_VACIO: FormularioPersona = {
+  tipoDocumento: 'CC',
+  numeroDocumento: '',
+  primerNombre: '',
+  segunoNombre: '',
+  primerApellido: '',
+  segundoApellido: '',
+  correo: '',
+};
 
 /**
  * @component GestionPersonas
@@ -18,7 +43,7 @@ import { extraerError } from '../../../compartido/extraer-error';
  */
 @Component({
   selector: 'app-gestion-personas',
-  imports: [],
+  imports: [ModalFormulario, DialogoConfirmar],
   templateUrl: './gestion-personas.html',
   styleUrl: './gestion-personas.css',
 })
@@ -63,6 +88,23 @@ export class GestionPersonas implements OnInit {
 
   /** Constantes y funciones para la plantilla. */
   protected readonly nombrePersona = nombrePersona;
+  protected readonly tiposDocumento = TIPOS_DOCUMENTO;
+  protected readonly roles = ROLES_PERSONA;
+
+  /** Modal de crear/editar. */
+  protected readonly modalAbierto = signal(false);
+
+  /** Persona que se edita (null = crear). */
+  protected readonly editando = signal<PersonaModel | null>(null);
+
+  protected readonly formulario = signal<FormularioPersona>({ ...FORMULARIO_VACIO });
+  protected readonly rolesElegidos = signal<RutaRol[]>([]);
+  protected readonly guardando = signal(false);
+  protected readonly errorFormulario = signal<string | null>(null);
+
+  /** Persona pendiente de confirmar para eliminar. */
+  protected readonly personaAEliminar = signal<PersonaModel | null>(null);
+  protected readonly eliminando = signal(false);
 
   ngOnInit(): void {
     this.cargarPersonas();
@@ -124,5 +166,176 @@ export class GestionPersonas implements OnInit {
     return this.rolesDe(p)
       .map((r) => this.textoRol(r))
       .join(' ');
+  }
+
+  /** Abre el modal vacío para crear. */
+  abrirCrear(): void {
+    this.editando.set(null);
+    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.rolesElegidos.set([]);
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /**
+   * Abre el modal con los datos de la persona.
+   * @param p Persona a editar.
+   */
+  abrirEditar(p: PersonaModel): void {
+    this.editando.set(p);
+    this.formulario.set({
+      tipoDocumento: p.tipoDocumento,
+      numeroDocumento: p.numeroDocumento,
+      primerNombre: p.primerNombre,
+      segunoNombre: p.segunoNombre ?? '',
+      primerApellido: p.primerApellido,
+      segundoApellido: p.segundoApellido ?? '',
+      correo: p.correo ?? '',
+    });
+    this.rolesElegidos.set([...this.rolesDe(p)]);
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /** Cierra el modal sin guardar. */
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+  }
+
+  /**
+   * Actualiza un campo del formulario.
+   * @param campo Nombre del campo.
+   * @param valor Texto escrito.
+   */
+  cambiarCampo(campo: keyof FormularioPersona, valor: string): void {
+    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+  }
+
+  /**
+   * Marca o desmarca un rol.
+   * @param ruta Rol a alternar.
+   */
+  alternarRol(ruta: RutaRol): void {
+    this.rolesElegidos.update((r) =>
+      r.includes(ruta) ? r.filter((x) => x !== ruta) : [...r, ruta],
+    );
+  }
+
+  /** Valida y guarda (crear o editar); luego sincroniza los roles. */
+  guardar(): void {
+    const f = this.formulario();
+    if (!f.tipoDocumento || !f.numeroDocumento.trim()) {
+      this.errorFormulario.set('El tipo y el número de documento son obligatorios.');
+      return;
+    }
+    if (!f.primerNombre.trim() || !f.primerApellido.trim()) {
+      this.errorFormulario.set('El primer nombre y el primer apellido son obligatorios.');
+      return;
+    }
+    if (f.correo.trim() && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.correo.trim())) {
+      this.errorFormulario.set('El correo no tiene un formato válido.');
+      return;
+    }
+
+    const persona: PersonaModel = {
+      tipoDocumento: f.tipoDocumento,
+      numeroDocumento: f.numeroDocumento.trim(),
+      correo: f.correo.trim() || null,
+      primerNombre: f.primerNombre.trim(),
+      segunoNombre: f.segunoNombre.trim() || null,
+      primerApellido: f.primerApellido.trim(),
+      segundoApellido: f.segundoApellido.trim() || null,
+    };
+
+    this.errorFormulario.set(null);
+    this.guardando.set(true);
+    const peticion = this.editando()
+      ? this.personaService.actualizar(persona)
+      : this.personaService.crear(persona);
+
+    peticion.subscribe({
+      next: () => this.sincronizarRoles(persona),
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(extraerError(err, 'No se pudo guardar la persona.'));
+      },
+    });
+  }
+
+  /** Asigna los roles marcados y quita los desmarcados. */
+  private sincronizarRoles(p: PersonaModel): void {
+    const editada = this.editando();
+    const actuales = editada ? this.rolesDe(editada) : [];
+    const elegidos = this.rolesElegidos();
+
+    const operaciones: Observable<string | null>[] = [
+      ...elegidos
+        .filter((r) => !actuales.includes(r))
+        .map((r) =>
+          this.personaService.asignarRol(p.tipoDocumento, p.numeroDocumento, ROL_SINGULAR[r]).pipe(
+            map(() => null),
+            catchError((err) =>
+              of(`${this.textoRol(r)}: ${extraerError(err, 'no se pudo asignar')}`),
+            ),
+          ),
+        ),
+      ...actuales
+        .filter((r) => !elegidos.includes(r))
+        .map((r) =>
+          this.personaService.quitarRol(p.tipoDocumento, p.numeroDocumento, ROL_SINGULAR[r]).pipe(
+            map(() => null),
+            catchError((err) =>
+              of(`${this.textoRol(r)}: ${extraerError(err, 'no se pudo quitar')}`),
+            ),
+          ),
+        ),
+    ];
+
+    if (operaciones.length === 0) {
+      this.terminarGuardado([]);
+      return;
+    }
+    forkJoin(operaciones).subscribe((res) =>
+      this.terminarGuardado(res.filter((m): m is string => m !== null)),
+    );
+  }
+
+  /** Cierra el modal, recarga y avisa el resultado. */
+  private terminarGuardado(erroresRoles: string[]): void {
+    const editado = this.editando() !== null;
+    this.guardando.set(false);
+    this.modalAbierto.set(false);
+    this.cargarPersonas();
+    if (erroresRoles.length > 0) {
+      this.notificacionService.error(
+        `La persona se guardó, pero hubo problemas con los roles. ${erroresRoles.join(' | ')}`,
+        'Roles no actualizados',
+      );
+    } else {
+      this.notificacionService.exito(editado ? 'Persona actualizada.' : 'Persona creada.', 'Listo');
+    }
+  }
+
+  /** Confirma y elimina la persona. */
+  eliminar(): void {
+    const p = this.personaAEliminar();
+    if (!p) return;
+    this.eliminando.set(true);
+    this.personaService.eliminar(p.tipoDocumento, p.numeroDocumento).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.personaAEliminar.set(null);
+        this.notificacionService.exito('Persona eliminada.', 'Listo');
+        this.cargarPersonas();
+      },
+      error: (err) => {
+        this.eliminando.set(false);
+        this.personaAEliminar.set(null);
+        this.notificacionService.error(
+          extraerError(err, 'No se pudo eliminar la persona.'),
+          'No se pudo eliminar',
+        );
+      },
+    });
   }
 }

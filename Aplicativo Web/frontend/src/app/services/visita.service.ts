@@ -15,4 +15,20 @@ export class VisitaService {
   getTodos(): Observable<VisitaModel[]> {
     return this.cliente.get<VisitaModel[]>(this.urlbase);
   }
+
+  getPorId(id: number): Observable<VisitaModel> {
+    return this.cliente.get<VisitaModel>(`${this.urlbase}/${id}`);
+  }
+
+  crear(visita: Omit<VisitaModel, 'idVisita'>): Observable<{ mensaje: string; idVisita: number }> {
+    return this.cliente.post<{ mensaje: string; idVisita: number }>(this.urlbase, visita);
+  }
+
+  actualizar(visita: VisitaModel): Observable<{ mensaje: string }> {
+    return this.cliente.put<{ mensaje: string }>(`${this.urlbase}/${visita.idVisita}`, visita);
+  }
+
+  eliminar(id: number): Observable<{ mensaje: string }> {
+    return this.cliente.delete<{ mensaje: string }>(`${this.urlbase}/${id}`);
+  }
 }

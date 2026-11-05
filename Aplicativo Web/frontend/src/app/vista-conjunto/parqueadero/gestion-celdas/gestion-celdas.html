@@ -22,6 +22,11 @@
           </button>
         }
       </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva celda
+      </button>
     </div>
   </div>
 
@@ -61,11 +66,12 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Celda</th>
-            <th scope="col">Tipo</th>
-            <th scope="col">Estado</th>
-          </tr>
+        <tr>
+          <th scope="col">Celda</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
         </thead>
         <tbody>
           @for (c of celdasFiltradas(); track c.idCelda) {
@@ -75,10 +81,28 @@
               <td>
                 <span
                   class="insignia-estado"
-                  [class]="c.estado === 'DISPONIBLE' ? 'insignia-ok' : 'insignia-pendiente'"
+                  [class]="c.estado === 'DESOCUPADA' ? 'insignia-ok' : 'insignia-pendiente'"
                 >
                   {{ etiqueta[c.estado] ?? c.estado }}
                 </span>
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar celda"
+                  (click)="abrirEditar(c)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar celda"
+                  (click)="celdaAEliminar.set(c)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
               </td>
             </tr>
           }
@@ -88,3 +112,57 @@
     <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
   }
 </section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar celda' : 'Nueva celda'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear celda'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    @if (editando(); as celda) {
+      <p class="ayuda-campo-normal">Editando la {{ nombreCelda(celda.idCelda) }}.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="tipo-celda" class="etiqueta-campo">Tipo</label>
+        <select
+          id="tipo-celda"
+          class="input-formulario"
+          [value]="formulario().tipo"
+          (change)="cambiarCampo('tipo', $any($event.target).value)"
+        >
+          @for (t of tiposCelda; track t) {
+            <option [value]="t" [selected]="formulario().tipo === t">{{ etiqueta[t] }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="estado-celda" class="etiqueta-campo">Estado</label>
+        <select
+          id="estado-celda"
+          class="input-formulario"
+          [value]="formulario().estado"
+          (change)="cambiarCampo('estado', $any($event.target).value)"
+        >
+          @for (e of estadosCelda; track e) {
+            <option [value]="e" [selected]="formulario().estado === e">{{ etiqueta[e] }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (celdaAEliminar(); as celda) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la celda?"
+    [mensaje]="'Se eliminará la ' + nombreCelda(celda.idCelda) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="celdaAEliminar.set(null)"
+  />
+}

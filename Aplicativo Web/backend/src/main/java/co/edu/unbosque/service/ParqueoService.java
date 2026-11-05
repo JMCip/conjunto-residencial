@@ -15,6 +15,10 @@ public class ParqueoService {
 	
 	private final ParqueoDAO parqueoDao = new ParqueoDAO();
 	
+	private LocalDateTime parsear(String texto) {
+		return LocalDateTime.parse(texto.trim().replace(' ', 'T'));
+	}
+	
 	public List<Parqueo> listar() throws SQLException {
 		return parqueoDao.listar();
 	}
@@ -72,15 +76,15 @@ public class ParqueoService {
 			p.setFechaHoraSalida(null);
 		}
 		if (p.getFechaHoraEntrada() == null || p.getFechaHoraEntrada().isBlank()) {
-			throw new DatoInvalidoException("fechaHoraEntrada es obligatoria (formato AAAA-MM-DDTHH:MM:SS)");
+			throw new DatoInvalidoException("fechaHoraEntrada es obligatoria (formato AAAA-MM-DD HH:MM:SS)");
 		}
 		try {
-			LocalDateTime entrada = LocalDateTime.parse(p.getFechaHoraEntrada());
-			if (p.getFechaHoraSalida() != null && LocalDateTime.parse(p.getFechaHoraSalida()).isBefore(entrada)) {
+			LocalDateTime entrada = parsear(p.getFechaHoraEntrada());
+			if (p.getFechaHoraSalida() != null && parsear(p.getFechaHoraSalida()).isBefore(entrada)) {
 				throw new DatoInvalidoException("fechaHoraSalida no puede ser anterior a fechaHoraEntrada");
 			}
 		} catch (DateTimeParseException e) {
-			throw new DatoInvalidoException("Las fechas deben tener el formato AAAA-MM-DDTHH:MM:SS");
+			throw new DatoInvalidoException("Las fechas deben tener el formato AAAA-MM-DD HH:MM:SS");
 		}
 	}
 	

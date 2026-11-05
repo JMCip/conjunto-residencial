@@ -15,4 +15,25 @@ export class VehiculoService {
   getTodos(): Observable<VehiculoModel[]> {
     return this.cliente.get<VehiculoModel[]>(this.urlbase);
   }
+
+
+  getPorPlaca(placa: string): Observable<VehiculoModel> {
+    return this.cliente.get<VehiculoModel>(`${this.urlbase}/${placa}`);
+  }
+
+
+  crear(vehiculo: VehiculoModel): Observable<{ mensaje: string }> {
+    return this.cliente.post<{ mensaje: string }>(this.urlbase, vehiculo);
+  }
+
+
+  actualizar(vehiculo: VehiculoModel): Observable<{ mensaje: string }> {
+    return this.cliente.put<{ mensaje: string }>(`${this.urlbase}/${vehiculo.placa}`, vehiculo);
+  }
+
+
+  eliminar(placa: string): Observable<{ mensaje: string }> {
+    return this.cliente.delete<{ mensaje: string }>(`${this.urlbase}/${placa}`);
+  }
+
 }

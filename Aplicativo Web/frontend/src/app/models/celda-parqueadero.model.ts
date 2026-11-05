@@ -4,22 +4,20 @@ export interface CeldaParqueaderoModel {
   estado: string;
 }
 
-/** Tipos posibles de celda. */
-export const TIPOS_CELDA = ['CARRO', 'MOTO', 'VISITANTE'] as const;
 
-/** Estados posibles de una celda. */
-export const ESTADOS_CELDA = ['DISPONIBLE', 'ASIGNADA'] as const;
+export const TIPOS_CELDA = ['PROPIA', 'ADICIONAL', 'VISITANTES'] as const;
 
-/** Texto que se muestra para cada tipo y estado de celda. */
+export const ESTADOS_CELDA = ['OCUPADA', 'DESOCUPADA'] as const;
+
 export const ETIQUETA_CELDA: Record<string, string> = {
-  CARRO: 'Carro',
-  MOTO: 'Moto',
-  VISITANTE: 'Visitante',
-  DISPONIBLE: 'Disponible',
-  ASIGNADA: 'Asignada',
+  PROPIA: 'Propia',
+  ADICIONAL: 'Adicional',
+  VISITANTES: 'Visitantes',
+  OCUPADA: 'Ocupada',
+  DESOCUPADA: 'Desocupada',
 };
 
-/** "Celda 3": así se nombra una celda en toda la app. */
+
 export function nombreCelda(idCelda: number): string {
   return `Celda ${idCelda}`;
 }

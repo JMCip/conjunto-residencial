@@ -7,12 +7,30 @@ import {
   llavePersona,
   nombrePersona,
   PersonaModel,
+  separarLlavePersona,
 } from '../../../models/persona.model';
 import { ResidenciaService } from '../../../services/residencia.service';
 import { CasaService } from '../../../services/casa.service';
 import { PersonaService } from '../../../services/persona.service';
 import { NotificacionService } from '../../../services/notificacion.service';
 import { extraerError } from '../../../compartido/extraer-error';
+import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
+import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
+
+/** Campos del formulario (todo como texto). */
+interface FormularioResidencia {
+  casa: string;
+  residente: string;
+  fechaIngreso: string;
+  fechaSalida: string;
+}
+
+const FORMULARIO_VACIO: FormularioResidencia = {
+  casa: '',
+  residente: '',
+  fechaIngreso: '',
+  fechaSalida: '',
+};
 
 /**
  * @component GestionResidencias
@@ -21,7 +39,7 @@ import { extraerError } from '../../../compartido/extraer-error';
  */
 @Component({
   selector: 'app-gestion-residencias',
-  imports: [DatePipe],
+  imports: [DatePipe, ModalFormulario, DialogoConfirmar],
   templateUrl: './gestion-residencias.html',
   styleUrl: './gestion-residencias.css',
 })
@@ -74,6 +92,22 @@ export class GestionResidencias implements OnInit {
 
   /** Funciones para la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  protected readonly llavePersona = llavePersona;
+  protected readonly nombrePersona = nombrePersona;
+
+  /** Modal de crear/editar. */
+  protected readonly modalAbierto = signal(false);
+
+  /** Residencia que se edita (null = crear). */
+  protected readonly editando = signal<ResidenciaModel | null>(null);
+
+  protected readonly formulario = signal<FormularioResidencia>({ ...FORMULARIO_VACIO });
+  protected readonly guardando = signal(false);
+  protected readonly errorFormulario = signal<string | null>(null);
+
+  /** Residencia pendiente de confirmar para eliminar. */
+  protected readonly residenciaAEliminar = signal<ResidenciaModel | null>(null);
+  protected readonly eliminando = signal(false);
 
   ngOnInit(): void {
     this.cargarResidencias();
@@ -114,5 +148,133 @@ export class GestionResidencias implements OnInit {
       this.nombres().get(llavePersona(r.residenteTipoDocumento, r.residenteNumeroDocumento)) ??
       `${r.residenteTipoDocumento} ${r.residenteNumeroDocumento}`
     );
+  }
+
+  /**
+   * Llave "manzana|numero" de una casa (para el selector).
+   * @param manzana Manzana de la casa.
+   * @param numero Número de la casa.
+   */
+  llaveCasa(manzana: number, numero: number): string {
+    return `${manzana}|${numero}`;
+  }
+
+  /** Abre el modal vacío para crear. */
+  abrirCrear(): void {
+    this.editando.set(null);
+    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /**
+   * Abre el modal con los datos de la residencia.
+   * @param r Residencia a editar.
+   */
+  abrirEditar(r: ResidenciaModel): void {
+    this.editando.set(r);
+    this.formulario.set({
+      casa: this.llaveCasa(r.casaManzana, r.casaNumero),
+      residente: llavePersona(r.residenteTipoDocumento, r.residenteNumeroDocumento),
+      fechaIngreso: r.fechaIngreso,
+      fechaSalida: r.fechaSalida ?? '',
+    });
+    this.errorFormulario.set(null);
+    this.modalAbierto.set(true);
+  }
+
+  /** Cierra el modal sin guardar. */
+  cerrarModal(): void {
+    this.modalAbierto.set(false);
+  }
+
+  /**
+   * Actualiza un campo del formulario.
+   * @param campo Nombre del campo.
+   * @param valor Valor escrito o elegido.
+   */
+  cambiarCampo(campo: keyof FormularioResidencia, valor: string): void {
+    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+  }
+
+  /** Valida y guarda (crear o editar). */
+  guardar(): void {
+    const f = this.formulario();
+    if (!f.casa || !f.residente) {
+      this.errorFormulario.set('Elige la casa y el residente.');
+      return;
+    }
+    if (!f.fechaIngreso) {
+      this.errorFormulario.set('La fecha de ingreso es obligatoria.');
+      return;
+    }
+    if (f.fechaSalida && f.fechaSalida < f.fechaIngreso) {
+      this.errorFormulario.set('La fecha de salida no puede ser anterior a la de ingreso.');
+      return;
+    }
+
+    const fechaSalida = f.fechaSalida || null;
+    const actual = this.editando();
+    this.errorFormulario.set(null);
+    this.guardando.set(true);
+
+    let peticion;
+    if (actual) {
+      peticion = this.residenciaService.actualizar({
+        ...actual,
+        fechaIngreso: f.fechaIngreso,
+        fechaSalida,
+      });
+    } else {
+      const [manzana, numero] = f.casa.split('|').map(Number);
+      const { tipo, numero: documento } = separarLlavePersona(f.residente);
+      peticion = this.residenciaService.crear({
+        fechaIngreso: f.fechaIngreso,
+        fechaSalida,
+        residenteTipoDocumento: tipo,
+        residenteNumeroDocumento: documento,
+        casaNumero: numero,
+        casaManzana: manzana,
+      });
+    }
+
+    peticion.subscribe({
+      next: () => {
+        this.guardando.set(false);
+        this.modalAbierto.set(false);
+        this.notificacionService.exito(
+          actual ? 'Residencia actualizada.' : 'Residencia creada.',
+          'Listo',
+        );
+        this.cargarResidencias();
+      },
+      error: (err) => {
+        this.guardando.set(false);
+        this.errorFormulario.set(extraerError(err, 'No se pudo guardar la residencia.'));
+      },
+    });
+  }
+
+  /** Confirma y elimina la residencia. */
+  eliminar(): void {
+    const r = this.residenciaAEliminar();
+    if (!r) return;
+    this.eliminando.set(true);
+    this.residenciaService.eliminar(r.idResidencia).subscribe({
+      next: () => {
+        this.eliminando.set(false);
+        this.residenciaAEliminar.set(null);
+        this.notificacionService.exito('Residencia eliminada.', 'Listo');
+        this.cargarResidencias();
+      },
+      error: (err) => {
+        this.eliminando.set(false);
+        this.residenciaAEliminar.set(null);
+        this.notificacionService.error(
+          extraerError(err, 'No se pudo eliminar la residencia.'),
+          'No se pudo eliminar',
+        );
+      },
+    });
   }
 }
