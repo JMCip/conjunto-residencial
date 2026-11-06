@@ -25,9 +25,13 @@ import { extraerError } from '../../../compartido/extraer-error';
   styleUrl: './gestion-asignaciones.css',
 })
 export class GestionAsignaciones implements OnInit {
+  /** Servicio de asignaciones de celdas. */
   private asignacionService = inject(AsignacionCeldaService);
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de celdas del parqueadero. */
   private celdaService = inject(CeldaParqueaderoService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Asignaciones obtenidas del backend. */
@@ -35,10 +39,14 @@ export class GestionAsignaciones implements OnInit {
 
   /** Casas y celdas para los selectores. */
   protected readonly casas = signal<CasaModel[]>([]);
+  /** Lista de celdas consultada al backend. */
   protected readonly celdas = signal<CeldaParqueaderoModel[]>([]);
 
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** Asignaciones visibles según la búsqueda (celda o casa). */
@@ -60,10 +68,12 @@ export class GestionAsignaciones implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Función del modelo para mostrar el nombre de una casa en la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  /** Función del modelo para mostrar el nombre de una celda en la plantilla. */
   protected readonly nombreCelda = nombreCelda;
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarAsignaciones();
   }

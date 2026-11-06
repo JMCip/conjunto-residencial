@@ -25,17 +25,17 @@
     <div class="contenedor-tabla">
       <table class="tabla-conjunto">
         <thead>
-          <tr>
-            <th scope="col">Casa</th>
-            <th scope="col">Periodo</th>
-            <th scope="col" class="col-dinero">Valor</th>
-            <th scope="col">Estado</th>
-          </tr>
+        <tr>
+          <th scope="col">Casa</th>
+          <th scope="col">Periodo</th>
+          <th scope="col" class="col-dinero">Valor</th>
+          <th scope="col">Estado</th>
+        </tr>
         </thead>
         <tbody>
           @for (f of facturas(); track f.numeroFactura) {
             <tr>
-              <td class="col-principal">Casa {{ f.casaNumero }} · Mz {{ f.casaManzana }}</td>
+              <td class="col-principal">Mz {{ f.casaManzana }} · Casa {{ f.casaNumero }}</td>
               <td>{{ f.periodo }}</td>
               <td class="col-dinero num">
                 {{ f.total ?? 0 | currency: 'COP' : 'symbol' : '1.0-0' }}

@@ -76,6 +76,8 @@
       />
     </section>
   }
+} @else if (pestana() === 'pagos') {
+  <app-gestion-pagos (registrado)="cargarFacturas(true)" />
 } @else {
   <app-gestion-conceptos />
 }

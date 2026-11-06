@@ -12,8 +12,15 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Acceso a datos de los pagos con JDBC.
+ * <p>
+ * Cada método abre su propia conexión con {@link co.edu.unbosque.config.ConexionBD} y usa
+ * {@link java.sql.PreparedStatement} para enviar los parámetros de forma segura.
+ */
 public class PagoDAO {
 
+	/** Consulta que lista todos los registros de la tabla {@code pago}. */
 	private static final String LISTAR = """
 			SELECT id_pago, fecha, valor, metodo_pago, factura_numero_factura,
 			       persona_tipo_documento, persona_numero_documento
@@ -21,10 +28,16 @@ public class PagoDAO {
 			ORDER BY fecha, id_pago
 			""";
 
-	
+	/**
+	 * Consulta que bloquea la fila de la factura ({@code FOR UPDATE}) mientras se registra el pago.
+	 */
 	private static final String BLOQUEAR_FACTURA =
 			"SELECT numero_factura FROM factura WHERE numero_factura = ? FOR UPDATE";
 
+	/**
+	 * Sentencia que inserta el pago solo si su valor no supera el saldo de la factura, y devuelve el
+	 * identificador generado.
+	 */
 	private static final String INSERTAR = """
 			INSERT INTO pago (fecha, valor, metodo_pago, factura_numero_factura,
 			                  persona_tipo_documento, persona_numero_documento)
@@ -36,6 +49,10 @@ public class PagoDAO {
 			RETURNING id_pago
 			""";
 
+	/**
+	 * Sentencia que recalcula el estado de la factura: {@code PAGADA} si lo pagado cubre el total,
+	 * {@code ABONADA} si estaba {@code PENDIENTE}.
+	 */
 	private static final String ACTUALIZAR_ESTADO = """
 			UPDATE factura
 			SET estado = CASE
@@ -50,11 +67,18 @@ public class PagoDAO {
 			WHERE numero_factura = ?
 			""";
 
+	/** Consulta que indica si la persona está registrada. */
 	private static final String EXISTE_PERSONA = """
 			SELECT EXISTS (SELECT 1 FROM persona
 			               WHERE tipo_documento = ? AND numero_documento = ?)
 			""";
 
+	/**
+	 * Consulta los pagos registrados.
+	 *
+	 * @return lista de pagos; vacía si no hay registros
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public List<Pago> listar() throws SQLException {
 		List<Pago> pagos = new ArrayList<>();
 		try (Connection c = ConexionBD.obtenerConexion();
@@ -68,6 +92,18 @@ public class PagoDAO {
 		return pagos;
 	}
 
+	/**
+	 * Registra un pago en una sola transacción: bloquea la factura, inserta el pago solo si no supera
+	 * el saldo y recalcula el estado de la factura. Si algo falla, deshace todo.
+	 *
+	 * @param p pago con la factura y la persona que paga
+	 * @param fecha fecha validada del pago
+	 * @param valor valor validado del pago
+	 * @param metodo método de pago validado
+	 * @return identificador del pago; {@code 0} si la factura no existe y {@code -1} si el valor
+	 *         supera el saldo
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public int registrar(Pago p, LocalDate fecha, BigDecimal valor, String metodo) throws SQLException {
 		try (Connection c = ConexionBD.obtenerConexion()) {
 			c.setAutoCommit(false);
@@ -116,6 +152,14 @@ public class PagoDAO {
 		}
 	}
 
+	/**
+	 * Indica si la persona está registrada.
+	 *
+	 * @param tipoDocumento tipo de documento de la persona
+	 * @param numeroDocumento número de documento de la persona
+	 * @return {@code true} si la persona existe
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public boolean existePersona(String tipoDocumento, String numeroDocumento) throws SQLException {
 		try (Connection c = ConexionBD.obtenerConexion();
 		     PreparedStatement ps = c.prepareStatement(EXISTE_PERSONA)) {
@@ -128,6 +172,13 @@ public class PagoDAO {
 		}
 	}
 
+	/**
+	 * Convierte la fila actual del resultado en un pago.
+	 *
+	 * @param rs resultado de la consulta, ubicado en la fila que se va a leer
+	 * @return pago leído
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	private Pago mapear(ResultSet rs) throws SQLException {
 		return new Pago(
 				rs.getInt("id_pago"),

@@ -18,10 +18,24 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de los vehículos (rutas {@code /api/vehiculos}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class VehiculoController {
 	
+	/** Servicio con la lógica de negocio de los vehículos. */
 	private final VehiculoService vehiculoService = new VehiculoService();
 	
+	/**
+	 * Atiende {@code GET /api/vehiculos} (listar vehículos). Devuelve los vehículos registrados con el
+	 * documento de su dueño.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/vehiculos",
 			methods = HttpMethod.GET,
@@ -36,6 +50,14 @@ public class VehiculoController {
 		conx.json(vehiculoService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/vehiculos/{placa}} (consultar vehículo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code placa}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/vehiculos/{placa}",
 			methods = HttpMethod.GET,
@@ -52,6 +74,13 @@ public class VehiculoController {
 		ctx.json(vehiculoService.consultar(ctx.pathParam("placa")));
 	}
 
+	/**
+	 * Atiende {@code POST /api/vehiculos} (crear vehículo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 */
 	@OpenApi(
 			path = "/api/vehiculos",
 			methods = HttpMethod.POST,
@@ -69,6 +98,16 @@ public class VehiculoController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Vehículo creado"));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/vehiculos/{placa}} (actualizar vehículo). La placa viaja en la URL y no
+	 * se modifica. En el body envía marca, modelo, tipo y el documento del dueño.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code placa} y el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/vehiculos/{placa}",
 			methods = HttpMethod.PUT,
@@ -93,6 +132,14 @@ public class VehiculoController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Vehículo actualizado"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/vehiculos/{placa}} (eliminar vehículo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code placa}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/vehiculos/{placa}",
 			methods = HttpMethod.DELETE,

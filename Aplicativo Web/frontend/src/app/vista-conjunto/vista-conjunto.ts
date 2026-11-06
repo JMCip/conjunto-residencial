@@ -28,6 +28,7 @@ function vistaDesdeUrl(url: string): Vista {
   styleUrl: './vista-conjunto.css',
 })
 export class VistaConjunto {
+  /** Router de Angular para navegar entre pantallas. */
   private router = inject(Router);
 
   /** Sección que se está viendo, leída de la URL cada vez que termina una navegación. */
@@ -42,8 +43,8 @@ export class VistaConjunto {
   /** Zona con scroll, para volver arriba al cambiar de sección. */
   private readonly zonaScroll = viewChild.required<ElementRef<HTMLElement>>('zona');
 
+  /** Programa que la zona de contenido vuelva arriba cada vez que cambia la sección. */
   constructor() {
-    // Cada vez que cambia la sección, la zona de contenido vuelve arriba.
     effect(() => {
       this.vistaActual();
       this.zonaScroll().nativeElement.scrollTop = 0;

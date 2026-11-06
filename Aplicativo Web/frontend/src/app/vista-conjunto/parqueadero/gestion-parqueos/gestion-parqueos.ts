@@ -28,6 +28,7 @@ interface FormularioParqueo {
   salida: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioParqueo = {
   vehiculo: '',
   celda: '',
@@ -47,9 +48,13 @@ const FORMULARIO_VACIO: FormularioParqueo = {
   styleUrl: './gestion-parqueos.css',
 })
 export class GestionParqueos implements OnInit {
+  /** Servicio de parqueos. */
   private parqueoService = inject(ParqueoService);
+  /** Servicio de vehículos. */
   private vehiculoService = inject(VehiculoService);
+  /** Servicio de celdas del parqueadero. */
   private celdaService = inject(CeldaParqueaderoService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Parqueos obtenidos del backend (vienen del más reciente al más antiguo). */
@@ -57,6 +62,7 @@ export class GestionParqueos implements OnInit {
 
   /** Vehículos y celdas para los selectores. */
   protected readonly vehiculos = signal<VehiculoModel[]>([]);
+  /** Lista de celdas consultada al backend. */
   protected readonly celdas = signal<CeldaParqueaderoModel[]>([]);
 
   /** Datos de cada vehículo por su placa (para mostrar marca y tipo). */
@@ -64,8 +70,11 @@ export class GestionParqueos implements OnInit {
     () => new Map(this.vehiculos().map((v) => [v.placa, v])),
   );
 
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** true = solo los vehículos que siguen adentro (sin salida). */
@@ -93,9 +102,11 @@ export class GestionParqueos implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Función del modelo para mostrar el nombre de una celda en la plantilla. */
   protected readonly nombreCelda = nombreCelda;
+  /** Función del modelo para mostrar una fecha y hora en la plantilla. */
   protected readonly textoFechaHora = textoFechaHora;
+  /** Texto de cada tipo y estado de celda (constante del modelo). */
   protected readonly etiquetaCelda = ETIQUETA_CELDA;
 
   /** Modal de crear/editar. */
@@ -104,14 +115,19 @@ export class GestionParqueos implements OnInit {
   /** Parqueo que se edita (null = crear). */
   protected readonly editando = signal<ParqueoModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioParqueo>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Parqueo pendiente de confirmar para eliminar. */
   protected readonly parqueoAEliminar = signal<ParqueoModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarParqueos();
   }

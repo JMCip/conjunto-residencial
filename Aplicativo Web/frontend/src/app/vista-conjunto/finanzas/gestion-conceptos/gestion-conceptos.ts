@@ -21,6 +21,7 @@ interface FormularioConcepto {
   valorBase: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioConcepto = {
   nombre: '',
   descripcion: '',
@@ -43,9 +44,9 @@ function normalizar(texto: string): string {
  * @component GestionConceptos
  * @description Pestaña "Conceptos de cobro" de Finanzas: CRUD del catálogo de conceptos que se
  * pueden cobrar en una factura (nombre, descripción y valor base).
- * Los conceptos que usa el sistema (Sanción, Salón comunal, Parqueadero adicional) se pueden
- * editar (descripción y valor), pero no renombrar ni eliminar. Un concepto que ya se usó en una
- * línea de factura tampoco se puede eliminar: eso lo valida el back.
+ * Los conceptos que usa el sistema (Administración, Sanción, Salón comunal y Parqueadero adicional)
+ * se pueden editar (descripción y valor), pero no renombrar ni eliminar. Un concepto que ya se usó en una
+ * línea de factura tampoco se puede eliminar: eso lo valida el backend.
  */
 @Component({
   selector: 'app-gestion-conceptos',
@@ -54,12 +55,18 @@ function normalizar(texto: string): string {
   styleUrl: './gestion-conceptos.css',
 })
 export class GestionConceptos implements OnInit {
+  /** Servicio del catálogo de conceptos de cobro. */
   private conceptoService = inject(ConceptoCobroService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
+  /** Lista de conceptos consultada al backend. */
   protected readonly conceptos = signal<ConceptoCobroModel[]>([]);
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** Conceptos visibles según la búsqueda (nombre o descripción). */
@@ -79,9 +86,11 @@ export class GestionConceptos implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Función del modelo que indica si un concepto es protegido. */
   protected readonly esProtegido = esConceptoProtegido;
+  /** Longitud máxima del nombre del concepto. */
   protected readonly maxNombre = MAX_NOMBRE_CONCEPTO;
+  /** Longitud máxima de la descripción del concepto. */
   protected readonly maxDescripcion = MAX_DESCRIPCION_CONCEPTO;
 
   /** Modal de crear/editar. */
@@ -96,14 +105,19 @@ export class GestionConceptos implements OnInit {
     return e !== null && esConceptoProtegido(e.nombre);
   });
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioConcepto>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Concepto pendiente de confirmar para eliminar. */
   protected readonly conceptoAEliminar = signal<ConceptoCobroModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarConceptos();
   }
@@ -165,7 +179,11 @@ export class GestionConceptos implements OnInit {
     this.formulario.update((f) => ({ ...f, [campo]: valor }));
   }
 
-  /** Valida lo mismo que el back y guarda (crear o editar). */
+  /**
+   * Valida lo mismo que el backend y guarda (crear o editar). El valor base solo acepta dígitos, para
+   * que "150.000" no se interprete como 150. Los errores del backend, como un nombre repetido (409),
+   * se muestran en el modal.
+   */
   guardar(): void {
     const f = this.formulario();
     const nombre = f.nombre.trim();
@@ -191,7 +209,6 @@ export class GestionConceptos implements OnInit {
       return;
     }
 
-    // Solo dígitos: así se evita que "150.000" se lea como 150.
     const valorBase = Number(textoValor);
     if (!/^\d+$/.test(textoValor) || valorBase <= 0) {
       this.errorFormulario.set(
@@ -225,13 +242,12 @@ export class GestionConceptos implements OnInit {
       },
       error: (err) => {
         this.guardando.set(false);
-        // Aquí llegan, por ejemplo, el nombre repetido (409) o el intento de renombrar un protegido.
         this.errorFormulario.set(extraerError(err, 'No se pudo guardar el concepto de cobro.'));
       },
     });
   }
 
-  /** Confirma y elimina el concepto. */
+  /** Elimina el concepto confirmado. Si ya se usó en una factura, el backend responde 409 con el motivo. */
   eliminar(): void {
     const c = this.conceptoAEliminar();
     if (!c) return;
@@ -246,7 +262,6 @@ export class GestionConceptos implements OnInit {
       error: (err) => {
         this.eliminando.set(false);
         this.conceptoAEliminar.set(null);
-        // Si el concepto ya se usó en una factura, el back responde 409 con el motivo.
         this.notificacionService.error(
           extraerError(err, 'No se pudo eliminar el concepto de cobro.'),
           'No se pudo eliminar',

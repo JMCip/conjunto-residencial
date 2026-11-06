@@ -12,12 +12,20 @@ import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-
 
 /** Campos del formulario de crear (todo como texto). */
 interface FormularioFactura {
+  /** Llave de la casa elegida ("manzana|número"). */
   casa: string;
-  periodo: string; // yyyy-MM (de <input type="month">)
+
+  /** Periodo facturado (yyyy-MM, valor de <input type="month">). */
+  periodo: string;
+
+  /** Fecha de emisión (yyyy-MM-dd). */
   fechaEmision: string;
+
+  /** Fecha de vencimiento (yyyy-MM-dd). */
   fechaVencimiento: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioFactura = {
   casa: '',
   periodo: '',
@@ -41,8 +49,11 @@ const DIAS_VENCIMIENTO = 15;
   styleUrl: './gestion-facturas.css',
 })
 export class GestionFacturas implements OnInit {
+  /** Servicio de facturas. */
   private facturaService = inject(FacturaService);
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Avisa que algo cambió (vencimiento, eliminación, vencidas) para recargar las facturas. */
@@ -51,29 +62,38 @@ export class GestionFacturas implements OnInit {
   /** Avisa que se creó una factura, con su número, para abrir su detalle. */
   readonly creada = output<number>();
 
+  /** Lista de casas consultada al backend. */
   protected readonly casas = signal<CasaModel[]>([]);
+  /** Función del modelo para mostrar el nombre de una casa en la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  /** Función del modelo para armar la llave de una casa en la plantilla. */
   protected readonly llaveCasa = llaveCasa;
 
   /** Modal de crear. */
   protected readonly modalCrear = signal(false);
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioFactura>({ ...FORMULARIO_VACIO });
 
   /** Modal de cambiar vencimiento (null = cerrado). */
   protected readonly editando = signal<FacturaModel | null>(null);
+
+  /** Fecha de vencimiento escrita en el modal de edición. */
   protected readonly vencimiento = signal('');
 
   /** Lo usan los dos modales (nunca hay dos abiertos a la vez). */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Factura pendiente de confirmar para eliminar. */
   protected readonly facturaAEliminar = signal<FacturaModel | null>(null);
+  /** true mientras se envía la acción al backend. */
   protected readonly procesando = signal(false);
 
   /** Diálogo de "Marcar vencidas". */
   protected readonly confirmandoVencidas = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.casaService.getTodos().subscribe({
       next: (casas) => this.casas.set(casas),
@@ -98,11 +118,19 @@ export class GestionFacturas implements OnInit {
     this.modalCrear.set(true);
   }
 
+  /**
+   * Actualiza un campo del formulario de crear.
+   * @param campo Nombre del campo.
+   * @param valor Texto escrito.
+   */
   cambiarCampo(campo: keyof FormularioFactura, valor: string): void {
     this.formulario.update((f) => ({ ...f, [campo]: valor }));
   }
 
-  /** Valida lo mismo que el back y crea la factura. */
+  /**
+   * Valida lo mismo que el backend y crea la factura. Si la casa ya tiene factura del periodo, el
+   * backend responde 409 y el mensaje se muestra en el modal.
+   */
   guardarCrear(): void {
     const f = this.formulario();
 
@@ -148,7 +176,6 @@ export class GestionFacturas implements OnInit {
         },
         error: (err) => {
           this.guardando.set(false);
-          // Aquí llega, por ejemplo, "La casa ya tiene una factura del periodo …" (409).
           this.errorFormulario.set(extraerError(err, 'No se pudo crear la factura.'));
         },
       });
@@ -161,6 +188,7 @@ export class GestionFacturas implements OnInit {
     this.editando.set(f);
   }
 
+  /** Valida y guarda la nueva fecha de vencimiento. */
   guardarEditar(): void {
     const f = this.editando();
     if (!f) return;
@@ -196,6 +224,11 @@ export class GestionFacturas implements OnInit {
     this.facturaAEliminar.set(f);
   }
 
+  /**
+   * Arma el texto del diálogo de eliminar una factura.
+   * @param f Factura que se va a eliminar.
+   * @returns Mensaje para el diálogo de confirmación.
+   */
   mensajeEliminar(f: FacturaModel): string {
     return (
       `Se eliminará la factura N.º ${f.numeroFactura} de ${nombreCasa(f.casaManzana, f.casaNumero)} ` +
@@ -204,6 +237,10 @@ export class GestionFacturas implements OnInit {
     );
   }
 
+  /**
+   * Elimina la factura confirmada en el diálogo y avisa a Finanzas. Si tiene líneas o pagos, el
+   * backend responde 409 con el motivo.
+   */
   confirmarEliminar(): void {
     const f = this.facturaAEliminar();
     if (!f) return;
@@ -218,7 +255,6 @@ export class GestionFacturas implements OnInit {
       error: (err) => {
         this.procesando.set(false);
         this.facturaAEliminar.set(null);
-        // Si tiene líneas o pagos, el back responde 409 con el motivo.
         this.notificacionService.error(
           extraerError(err, 'No se pudo eliminar la factura.'),
           'No se pudo eliminar',
@@ -232,6 +268,7 @@ export class GestionFacturas implements OnInit {
     this.confirmandoVencidas.set(true);
   }
 
+  /** Marca como vencidas las facturas con vencimiento pasado y avisa a Finanzas. */
   confirmarVencidas(): void {
     this.procesando.set(true);
     this.facturaService.marcarVencidas().subscribe({

@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de los pagos (rutas {@code /api/pagos}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class PagoController {
 
+	/** Servicio con la lógica de negocio de los pagos. */
 	private final PagoService pagoService = new PagoService();
 
+	/**
+	 * Atiende {@code GET /api/pagos} (listar pagos). Devuelve los pagos realizados, con la factura que
+	 * pagan y quién pagó.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/pagos",
 			methods = HttpMethod.GET,
@@ -35,6 +49,16 @@ public class PagoController {
 		ctx.json(pagoService.listar());
 	}
 
+	/**
+	 * Atiende {@code POST /api/pagos} (registrar un pago (abono) de una factura). Envía fecha
+	 * (yyyy-MM-dd), valor, metodoPago (EFECTIVO, TRANSFERENCIA, PSE o TARJETA), numeroFactura.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/pagos",
 			methods = HttpMethod.POST,

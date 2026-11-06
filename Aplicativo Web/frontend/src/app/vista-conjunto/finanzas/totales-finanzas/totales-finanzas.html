@@ -53,7 +53,7 @@
         {{ totalPendiente() | currency: 'COP' : 'symbol' : '1.0-0' }}
       </p>
       <p class="contexto-metrica" [class.contexto-atencion]="totalPendiente() > 0">
-        {{ pendientes() }} pendientes · {{ vencidas() }} vencidas
+        {{ pendientes() }} pendientes · {{ abonadas() }} abonadas · {{ vencidas() }} vencidas
       </p>
     }
   </article>

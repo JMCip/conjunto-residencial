@@ -1,18 +1,25 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { NOMBRES_VISTA, Vista } from '../../models/vista.enum';
 import { InfoBdModel } from '../../models/info-bd.model';
 import { EstadoService } from '../../services/estado.service';
+import { AuthService } from '../../services/auth.service';
 
 /** Ítem del menú: a qué sección lleva y qué ícono usa. */
 interface ItemMenu {
+  /** Sección a la que lleva el ítem. */
   vista: Vista;
+
+  /** Ícono de Font Awesome del ítem. */
   icono: string;
 }
 
 /** Grupo del menú con su etiqueta en mayúsculas. */
 interface GrupoMenu {
+  /** Nombre del grupo, en mayúsculas. */
   etiqueta: string;
+
+  /** Ítems del grupo, en orden. */
   items: ItemMenu[];
 }
 
@@ -49,7 +56,12 @@ const GRUPOS_MENU: GrupoMenu[] = [
   styleUrl: './sidebar-conjunto.css',
 })
 export class SidebarConjunto implements OnInit {
+  /** Servicio que revisa la conexión con el backend y la base de datos. */
   private estadoService = inject(EstadoService);
+  /** Servicio de autenticación. */
+  private authService = inject(AuthService);
+  /** Router de Angular para navegar entre pantallas. */
+  private router = inject(Router);
 
   /** true cuando el menú está colapsado (solo íconos). */
   protected readonly isCollapsed = signal(false);
@@ -79,6 +91,7 @@ export class SidebarConjunto implements OnInit {
   /** Nombre visible de cada sección (constante). */
   protected readonly nombres = NOMBRES_VISTA;
 
+  /** Consulta el estado de la conexión con la base de datos para el pie del menú. */
   ngOnInit(): void {
     this.estadoService.getInfoBd().subscribe({
       next: (datos) => this.infoBd.set(datos),
@@ -90,4 +103,11 @@ export class SidebarConjunto implements OnInit {
   toggleSidebar(): void {
     this.isCollapsed.update((valor) => !valor);
   }
+
+  /** Cierra la sesión y vuelve al login. */
+  cerrarSesion(): void {
+    this.authService.logout();
+    this.router.navigate(['/login'], { replaceUrl: true });
+  }
+
 }

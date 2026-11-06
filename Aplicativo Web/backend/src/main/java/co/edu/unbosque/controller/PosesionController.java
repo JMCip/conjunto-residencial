@@ -18,10 +18,24 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las posesiones (rutas {@code /api/posesiones}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class PosesionController {
 	
+	/** Servicio con la lógica de negocio de las posesiones. */
 	private final PosesionService posesionService = new PosesionService();
 	
+	/**
+	 * Atiende {@code GET /api/posesiones} (listar posesiones). Devuelve el historial de propietarios
+	 * de cada casa. Si fechaVenta es null, es el dueño actual.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/posesiones",
 			methods = HttpMethod.GET,
@@ -36,6 +50,13 @@ public class PosesionController {
 		conx.json(posesionService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/posesiones/{id}} (consultar posesión).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/posesiones/{id}",
 			methods = HttpMethod.GET,
@@ -52,6 +73,15 @@ public class PosesionController {
 		ctx.json(posesionService.consultar(ctx.pathParamAsClass("id", Integer.class).get()));
 	}
 
+	/**
+	 * Atiende {@code POST /api/posesiones} (crear posesión). No envíes idPosesion, se genera solo.
+	 * fechaVenta se deja null mientras la persona sea dueña. Fechas en formato AAAA-MM-DD.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/posesiones",
 			methods = HttpMethod.POST,
@@ -70,6 +100,16 @@ public class PosesionController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Posesión creada", "idPosesion", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/posesiones/{id}} (actualizar posesión). La casa y el propietario no se
+	 * modifican. En el body envía porcentaje, fechaCompra y fechaVenta (para registrar la venta).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/posesiones/{id}",
 			methods = HttpMethod.PUT,
@@ -94,6 +134,13 @@ public class PosesionController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Posesión actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/posesiones/{id}} (eliminar posesión).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/posesiones/{id}",
 			methods = HttpMethod.DELETE,
@@ -110,6 +157,5 @@ public class PosesionController {
 		posesionService.eliminar(ctx.pathParamAsClass("id", Integer.class).get());
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Posesión eliminada"));
 	}
-	
-	
+
 }

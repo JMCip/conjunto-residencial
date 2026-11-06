@@ -26,7 +26,9 @@ export class UltimasFacturas {
   /** Avisa que el usuario pulsó "Ver todas". */
   readonly verTodas = output<void>();
 
-  /** Diccionarios de texto y color de cada estado (constantes del modelo). */
+  /** Texto de cada estado de factura (constante del modelo). */
   protected readonly etiquetaFactura = ETIQUETA_FACTURA;
+
+  /** Color de insignia de cada estado de factura (constante del modelo). */
   protected readonly estiloFactura = ESTILO_FACTURA;
 }

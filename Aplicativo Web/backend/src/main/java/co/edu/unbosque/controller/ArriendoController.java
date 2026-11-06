@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de los contratos de arriendo (rutas {@code /api/arriendos}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class ArriendoController {
 	
+	/** Servicio con la lógica de negocio de los contratos de arriendo. */
 	private final ArriendoService arriendoService = new ArriendoService();
 	
+	/**
+	 * Atiende {@code GET /api/arriendos} (listar arriendos). Devuelve los contratos de arriendo,
+	 * vigentes y finalizados.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/arriendos",
 			methods = HttpMethod.GET,
@@ -35,6 +49,13 @@ public class ArriendoController {
 		conx.json(arriendoService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/arriendos/{id}} (consultar arriendo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/arriendos/{id}",
 			methods = HttpMethod.GET,
@@ -51,6 +72,16 @@ public class ArriendoController {
 		ctx.json(arriendoService.consultar(ctx.pathParamAsClass("id", Integer.class).get()));
 	}
 
+	/**
+	 * Atiende {@code POST /api/arriendos} (crear arriendo). No envíes idContrato, se genera solo.
+	 * Fechas en formato AAAA-MM-DD. fechaFin puede ir null. Para un contrato activo usa estadoContrato
+	 * = VIGENTE.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/arriendos",
 			methods = HttpMethod.POST,
@@ -69,6 +100,17 @@ public class ArriendoController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Contrato creado", "idContrato", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/arriendos/{id}} (actualizar arriendo). La casa, el arrendatario y el
+	 * propietario no se modifican. En el body envía cuotaMensual, fechaInicio, fechaFin y
+	 * estadoContrato (por ejemplo para finalizar el contrato).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/arriendos/{id}",
 			methods = HttpMethod.PUT,
@@ -93,6 +135,13 @@ public class ArriendoController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Contrato actualizado"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/arriendos/{id}} (eliminar arriendo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/arriendos/{id}",
 			methods = HttpMethod.DELETE,

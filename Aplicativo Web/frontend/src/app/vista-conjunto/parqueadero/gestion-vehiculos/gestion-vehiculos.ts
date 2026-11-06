@@ -27,6 +27,7 @@ interface FormularioVehiculo {
   persona: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioVehiculo = {
   placa: '',
   tipo: 'CARRO',
@@ -47,8 +48,11 @@ const FORMULARIO_VACIO: FormularioVehiculo = {
   styleUrl: './gestion-vehiculos.css',
 })
 export class GestionVehiculos implements OnInit {
+  /** Servicio de vehículos. */
   private vehiculoService = inject(VehiculoService);
+  /** Servicio de personas y roles. */
   private personaService = inject(PersonaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Vehículos obtenidos del backend. */
@@ -68,8 +72,11 @@ export class GestionVehiculos implements OnInit {
       ),
   );
 
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** Vehículos visibles según la búsqueda (placa, marca, tipo o dueño). */
@@ -89,10 +96,13 @@ export class GestionVehiculos implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Texto de cada tipo de vehículo (constante del modelo). */
   protected readonly etiquetaTipo = ETIQUETA_TIPO_VEHICULO;
+  /** Tipos de vehículo para el selector (constante del modelo). */
   protected readonly tiposVehiculo = TIPOS_VEHICULO;
+  /** Función del modelo para armar la llave de una persona en la plantilla. */
   protected readonly llavePersona = llavePersona;
+  /** Función del modelo para mostrar el nombre de una persona en la plantilla. */
   protected readonly nombrePersona = nombrePersona;
 
   /** Modal de crear/editar. */
@@ -101,14 +111,19 @@ export class GestionVehiculos implements OnInit {
   /** Vehículo que se edita (null = crear). */
   protected readonly editando = signal<VehiculoModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioVehiculo>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Vehículo pendiente de confirmar para eliminar. */
   protected readonly vehiculoAEliminar = signal<VehiculoModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarVehiculos();
   }

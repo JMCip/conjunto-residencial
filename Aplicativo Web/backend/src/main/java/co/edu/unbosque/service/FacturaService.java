@@ -11,14 +11,38 @@ import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.model.Factura;
 
+/**
+ * Lógica de negocio de las facturas.
+ * <p>
+ * Valida los datos recibidos y las reglas del conjunto antes de llamar al DAO, y comunica los
+ * errores con las excepciones del paquete {@code exception}.
+ */
 public class FacturaService {
 
+	/** Acceso a datos de las facturas. */
 	private final FacturaDAO facturaDao = new FacturaDAO();
 
+	/**
+	 * Lista las facturas registradas.
+	 *
+	 * @return lista de facturas; vacía si no hay registros
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public List<Factura> listar() throws SQLException {
 		return facturaDao.listar();
 	}
 
+	/**
+	 * Crea una factura {@code PENDIENTE} para una casa. Valida el periodo y las fechas, que la casa
+	 * exista y que no tenga ya una factura del mismo periodo.
+	 *
+	 * @param f factura que se va a crear
+	 * @return número de la factura creada
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 * @throws RecursoNoEncontradoException si la casa no existe
+	 * @throws ConflictoException si la casa ya tiene una factura del periodo
+	 */
 	public int crear(Factura f) throws SQLException, DatoInvalidoException,
 			RecursoNoEncontradoException, ConflictoException {
 		YearMonth periodo = parsearPeriodo(f.getPeriodo());
@@ -41,7 +65,16 @@ public class FacturaService {
 		return facturaDao.insertar(f, emision, vencimiento);
 	}
 
-	
+	/**
+	 * Cambia la fecha de vencimiento de una factura {@code PENDIENTE} o {@code ABONADA}.
+	 *
+	 * @param id número de la factura
+	 * @param cambios factura con la nueva fecha de vencimiento
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 * @throws RecursoNoEncontradoException si la factura no existe
+	 * @throws ConflictoException si la factura no está {@code PENDIENTE} ni {@code ABONADA}
+	 */
 	public void actualizar(int id, Factura cambios) throws SQLException, DatoInvalidoException,
 			RecursoNoEncontradoException, ConflictoException {
 		LocalDate vencimiento = parsearFecha("fechaVencimiento", cambios.getFechaVencimiento());
@@ -64,6 +97,14 @@ public class FacturaService {
 		}
 	}
 
+	/**
+	 * Elimina una factura {@code PENDIENTE} sin líneas ni pagos.
+	 *
+	 * @param id número de la factura
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 * @throws RecursoNoEncontradoException si la factura no existe
+	 * @throws ConflictoException si la factura no está {@code PENDIENTE} o tiene líneas o pagos
+	 */
 	public void eliminar(int id) throws SQLException, RecursoNoEncontradoException, ConflictoException {
 		Factura actual = facturaDao.buscarPorId(id);
 		if (actual == null) {
@@ -87,11 +128,24 @@ public class FacturaService {
 		}
 	}
 
-	/** Pasa a VENCIDA las facturas PENDIENTE o ABONADA cuya fecha de vencimiento ya pasó. */
+	/**
+	 * Pasa a {@code VENCIDA} las facturas {@code PENDIENTE} o {@code ABONADA} cuya fecha de
+	 * vencimiento ya pasó.
+	 *
+	 * @return cantidad de facturas marcadas como vencidas
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public int marcarVencidas() throws SQLException {
 		return facturaDao.marcarVencidas(LocalDate.now());
 	}
 
+	/**
+	 * Convierte el texto del periodo ({@code AAAA-MM}) en un {@link YearMonth}.
+	 *
+	 * @param texto periodo recibido
+	 * @return periodo convertido
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 */
 	private YearMonth parsearPeriodo(String texto) throws DatoInvalidoException {
 		if (texto == null || texto.isBlank()) {
 			throw new DatoInvalidoException("periodo es obligatorio");
@@ -103,6 +157,14 @@ public class FacturaService {
 		}
 	}
 
+	/**
+	 * Convierte el texto de una fecha ({@code AAAA-MM-DD}) en un {@link LocalDate}.
+	 *
+	 * @param campo nombre del campo, para el mensaje de error
+	 * @param texto fecha recibida
+	 * @return fecha convertida
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 */
 	private LocalDate parsearFecha(String campo, String texto) throws DatoInvalidoException {
 		if (texto == null || texto.isBlank()) {
 			throw new DatoInvalidoException(campo + " es obligatoria");

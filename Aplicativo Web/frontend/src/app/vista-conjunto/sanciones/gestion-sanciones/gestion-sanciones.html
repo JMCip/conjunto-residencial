@@ -279,7 +279,10 @@
         {{ formulario().descargos.length }}/{{ maxDescargos }}
       </span>
       <p class="ayuda-campo">
-        Si aún no hay descargos, déjalo vacío: la sanción queda «En descargos» y los registras después.
+        @if (multaSugerida() !== null) {
+          Valor sugerido del concepto «Sanción»; puedes cambiarlo según la falta.
+        }
+        Una vez confirmada al sanción, ya no se puede modificar.
       </p>
     </div>
   </app-modal-formulario>

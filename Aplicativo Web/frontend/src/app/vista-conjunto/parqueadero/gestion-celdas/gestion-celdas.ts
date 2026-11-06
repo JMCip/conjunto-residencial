@@ -18,6 +18,7 @@ interface FormularioCelda {
   estado: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioCelda = {
   tipo: 'PROPIA',
   estado: 'DESOCUPADA',
@@ -35,13 +36,17 @@ const FORMULARIO_VACIO: FormularioCelda = {
   styleUrl: './gestion-celdas.css',
 })
 export class GestionCeldas implements OnInit {
+  /** Servicio de celdas del parqueadero. */
   private celdaService = inject(CeldaParqueaderoService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Celdas obtenidas del backend. */
   protected readonly celdas = signal<CeldaParqueaderoModel[]>([]);
 
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
 
   /** Filtro por estado: 'TODAS', 'OCUPADA' o 'DESOCUPADA'. */
@@ -71,11 +76,15 @@ export class GestionCeldas implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Texto de cada tipo y estado de celda (constante del modelo). */
   protected readonly etiqueta = ETIQUETA_CELDA;
+  /** Función del modelo para mostrar el nombre de una celda en la plantilla. */
   protected readonly nombreCelda = nombreCelda;
+  /** Opciones del control segmentado (constante). */
   protected readonly opcionesFiltro = ['TODAS', ...ESTADOS_CELDA];
+  /** Tipos de celda para el selector (constante del modelo). */
   protected readonly tiposCelda = TIPOS_CELDA;
+  /** Estados de celda para el selector (constante del modelo). */
   protected readonly estadosCelda = ESTADOS_CELDA;
 
   /** Modal de crear/editar. */
@@ -84,14 +93,19 @@ export class GestionCeldas implements OnInit {
   /** Celda que se edita (null = crear). */
   protected readonly editando = signal<CeldaParqueaderoModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioCelda>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Celda pendiente de confirmar para eliminar. */
   protected readonly celdaAEliminar = signal<CeldaParqueaderoModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarCeldas();
   }

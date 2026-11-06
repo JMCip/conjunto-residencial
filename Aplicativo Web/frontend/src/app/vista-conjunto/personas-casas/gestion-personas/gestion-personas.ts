@@ -20,17 +20,18 @@ interface FormularioPersona {
   tipoDocumento: string;
   numeroDocumento: string;
   primerNombre: string;
-  segunoNombre: string;
+  segundoNombre: string;
   primerApellido: string;
   segundoApellido: string;
   correo: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioPersona = {
   tipoDocumento: 'CC',
   numeroDocumento: '',
   primerNombre: '',
-  segunoNombre: '',
+  segundoNombre: '',
   primerApellido: '',
   segundoApellido: '',
   correo: '',
@@ -48,7 +49,9 @@ const FORMULARIO_VACIO: FormularioPersona = {
   styleUrl: './gestion-personas.css',
 })
 export class GestionPersonas implements OnInit {
+  /** Servicio de personas y roles. */
   private personaService = inject(PersonaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Personas obtenidas del backend. */
@@ -86,9 +89,11 @@ export class GestionPersonas implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Función del modelo para mostrar el nombre de una persona en la plantilla. */
   protected readonly nombrePersona = nombrePersona;
+  /** Tipos de documento para el selector (constante del modelo). */
   protected readonly tiposDocumento = TIPOS_DOCUMENTO;
+  /** Roles que se pueden asignar a una persona (constante del modelo). */
   protected readonly roles = ROLES_PERSONA;
 
   /** Modal de crear/editar. */
@@ -97,15 +102,22 @@ export class GestionPersonas implements OnInit {
   /** Persona que se edita (null = crear). */
   protected readonly editando = signal<PersonaModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioPersona>({ ...FORMULARIO_VACIO });
+
+  /** Roles marcados en las casillas del formulario. */
   protected readonly rolesElegidos = signal<RutaRol[]>([]);
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Persona pendiente de confirmar para eliminar. */
   protected readonly personaAEliminar = signal<PersonaModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarPersonas();
   }
@@ -187,7 +199,7 @@ export class GestionPersonas implements OnInit {
       tipoDocumento: p.tipoDocumento,
       numeroDocumento: p.numeroDocumento,
       primerNombre: p.primerNombre,
-      segunoNombre: p.segunoNombre ?? '',
+      segundoNombre: p.segundoNombre ?? '',
       primerApellido: p.primerApellido,
       segundoApellido: p.segundoApellido ?? '',
       correo: p.correo ?? '',
@@ -242,7 +254,7 @@ export class GestionPersonas implements OnInit {
       numeroDocumento: f.numeroDocumento.trim(),
       correo: f.correo.trim() || null,
       primerNombre: f.primerNombre.trim(),
-      segunoNombre: f.segunoNombre.trim() || null,
+      segundoNombre: f.segundoNombre.trim() || null,
       primerApellido: f.primerApellido.trim(),
       segundoApellido: f.segundoApellido.trim() || null,
     };

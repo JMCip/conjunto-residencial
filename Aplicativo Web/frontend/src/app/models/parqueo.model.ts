@@ -1,30 +1,42 @@
+/**
+ * Registro de entrada y salida de un vehículo en una celda.
+ * Corresponde al JSON de GET /api/parqueos (tabla `parqueo`).
+ */
 export interface ParqueoModel {
+  /** Identificador del parqueo (lo genera la base de datos). */
   idParqueo: number;
+  /** Fecha y hora de entrada (yyyy-MM-dd HH:mm:ss). */
   fechaHoraEntrada: string;
+  /** Fecha y hora de salida (yyyy-MM-dd HH:mm:ss); null si el vehículo sigue adentro. */
   fechaHoraSalida: string | null;
+  /** Placa del vehículo. */
   vehiculoPlaca: string;
+  /** Celda que ocupa el vehículo. */
   idCelda: number;
 }
 
 /**
- * Pasa "2026-10-28 07:30:00" (JSON) a "2026-10-28T07:30" (valor de <input type="datetime-local">).
- * @param texto Fecha y hora del backend, o null.
+ * Convierte una fecha y hora del backend al valor de un <input type="datetime-local">.
+ * @param texto Fecha y hora con el formato "2026-10-28 07:30:00", o null.
+ * @returns Texto con el formato "2026-10-28T07:30", o '' si no hay fecha.
  */
 export function aInputFechaHora(texto: string | null): string {
   return texto ? texto.replace(' ', 'T').slice(0, 16) : '';
 }
 
 /**
- * Pasa "2026-10-28T07:30" (input) a "2026-10-28 07:30:00" (mismo formato que devuelve el GET).
- * @param valor Valor del input, o '' si está vacío.
+ * Convierte el valor de un <input type="datetime-local"> al formato que usa el backend.
+ * @param valor Texto con el formato "2026-10-28T07:30", o '' si el campo está vacío.
+ * @returns Texto con el formato "2026-10-28 07:30:00", o null si el campo está vacío.
  */
 export function desdeInputFechaHora(valor: string): string | null {
   return valor ? `${valor.replace('T', ' ')}:00` : null;
 }
 
 /**
- * Pasa "2026-10-28 07:30:00" a "28/10/2026 07:30" para las tablas.
- * @param texto Fecha y hora del backend.
+ * Da formato de tabla a una fecha y hora del backend.
+ * @param texto Fecha y hora con el formato "2026-10-28 07:30:00".
+ * @returns Texto con el formato "28/10/2026 07:30".
  */
 export function textoFechaHora(texto: string): string {
   return `${texto.slice(8, 10)}/${texto.slice(5, 7)}/${texto.slice(0, 4)} ${texto.slice(11, 16)}`;

@@ -17,7 +17,7 @@ export class Notificaciones {
   /** Servicio con la lista de avisos visibles. */
   protected readonly notificacionService = inject(NotificacionService);
 
-  /** Ícono cada tipo de aviso. */
+  /** Ícono de Font Awesome de cada tipo de aviso. */
   protected readonly iconos: Record<TipoNotificacion, string> = {
     exito: 'fa-circle-check',
     error: 'fa-plug-circle-xmark',

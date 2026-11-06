@@ -1,0 +1,197 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-pagos"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-pagos" class="titulo-tarjeta">Pagos</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-pago" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-pago"
+            type="search"
+            class="input-busqueda"
+            placeholder="Factura, casa, persona o método"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+      <button type="button" class="boton-primario" (click)="abrirRegistrar()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Registrar pago
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarDatos()">Reintentar</button>
+    </div>
+  } @else if (pagosFiltrados().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-money-bill-wave"></i>
+      </span>
+      @if (pagos().length === 0) {
+        <p class="titulo-vacio">Todavía no hay pagos registrados</p>
+        <p class="texto-vacio">Registra el primero con el botón «Registrar pago».</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otra casa, otro nombre o el número de la factura.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todos los pagos
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col">Factura</th>
+          <th scope="col">Pagó</th>
+          <th scope="col">Método</th>
+          <th scope="col" class="col-numero">Valor</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (p of pagosFiltrados(); track p.idPago) {
+            <tr>
+              <td class="num">{{ p.fecha | date: 'd MMM y' }}</td>
+              <td class="col-principal">{{ p.textoFactura }}</td>
+              <td>
+                {{ p.textoPersona }}
+                <span class="texto-secundario num">
+                  {{ p.personaTipoDocumento }} {{ p.personaNumeroDocumento }}
+                </span>
+              </td>
+              <td><span class="insignia-estado insignia-neutro">{{ p.textoMetodo }}</span></td>
+              <td class="col-numero num">
+                {{ p.valor | currency: 'COP' : 'symbol' : '1.0-0' }}
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla num" aria-live="polite">
+      {{ textoConteo() }} · {{ totalVisible() | currency: 'COP' : 'symbol' : '1.0-0' }}
+    </p>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    titulo="Registrar pago"
+    textoGuardar="Registrar pago"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="modalAbierto.set(false)"
+  >
+    <div class="campo">
+      <label for="factura-pago" class="etiqueta-campo">Factura</label>
+      <select
+        id="factura-pago"
+        class="input-formulario"
+        (change)="elegirFactura($any($event.target).value)"
+      >
+        <option value="">Selecciona una factura</option>
+        @for (f of facturasConSaldo(); track f.numeroFactura) {
+          <option [value]="f.numeroFactura" [selected]="formulario().factura === '' + f.numeroFactura">
+            N.º {{ f.numeroFactura }} · {{ nombreCasa(f.casaManzana, f.casaNumero) }} · {{ f.periodo }}
+            · saldo {{ f.saldo | currency: 'COP' : 'symbol' : '1.0-0' }}
+          </option>
+        }
+      </select>
+      @if (facturasConSaldo().length === 0) {
+        <p class="ayuda-campo">No hay facturas con saldo pendiente.</p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="persona-pago" class="etiqueta-campo">Quién paga</label>
+      <select
+        id="persona-pago"
+        class="input-formulario"
+        (change)="cambiarCampo('persona', $any($event.target).value)"
+      >
+        <option value="">Selecciona una persona</option>
+        @for (p of personas(); track llavePersona(p.tipoDocumento, p.numeroDocumento)) {
+          <option
+            [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)"
+            [selected]="formulario().persona === llavePersona(p.tipoDocumento, p.numeroDocumento)"
+          >
+            {{ nombrePersona(p) }} ({{ p.tipoDocumento }} {{ p.numeroDocumento }})
+          </option>
+        }
+      </select>
+      <p class="ayuda-campo">Puede ser el propietario, el arrendatario u otra persona registrada.</p>
+    </div>
+
+    <div class="campo">
+      <label for="valor-pago" class="etiqueta-campo">Valor (COP)</label>
+      <input
+        id="valor-pago"
+        class="input-formulario num"
+        inputmode="decimal"
+        autocomplete="off"
+        [value]="formulario().valor"
+        (input)="cambiarCampo('valor', $any($event.target).value)"
+      />
+      @if (facturaElegida(); as f) {
+        <p class="ayuda-campo">
+          Saldo de la factura: {{ f.saldo | currency: 'COP' : 'symbol' : '1.0-2' }}. Si pagas menos,
+          queda abonada.
+        </p>
+      }
+    </div>
+
+    <div class="campo">
+      <label for="fecha-pago" class="etiqueta-campo">Fecha del pago</label>
+      <input
+        id="fecha-pago"
+        type="date"
+        class="input-formulario"
+        [min]="facturaElegida()?.fechaEmision ?? ''"
+        [max]="hoy"
+        [value]="formulario().fecha"
+        (input)="cambiarCampo('fecha', $any($event.target).value)"
+      />
+    </div>
+
+    <div class="campo">
+      <label for="metodo-pago" class="etiqueta-campo">Método de pago</label>
+      <select
+        id="metodo-pago"
+        class="input-formulario"
+        (change)="cambiarCampo('metodoPago', $any($event.target).value)"
+      >
+        <option value="">Selecciona un método</option>
+        @for (m of metodos; track m.valor) {
+          <option [value]="m.valor" [selected]="formulario().metodoPago === m.valor">
+            {{ m.etiqueta }}
+          </option>
+        }
+      </select>
+    </div>
+  </app-modal-formulario>
+}

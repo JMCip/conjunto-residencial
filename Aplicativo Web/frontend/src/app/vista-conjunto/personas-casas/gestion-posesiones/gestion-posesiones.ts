@@ -26,6 +26,7 @@ interface FormularioPosesion {
   fechaVenta: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioPosesion = {
   casa: '',
   propietario: '',
@@ -46,9 +47,13 @@ const FORMULARIO_VACIO: FormularioPosesion = {
   styleUrl: './gestion-posesiones.css',
 })
 export class GestionPosesiones implements OnInit {
+  /** Servicio de posesiones. */
   private posesionService = inject(PosesionService);
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de personas y roles. */
   private personaService = inject(PersonaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Posesiones obtenidas del backend. */
@@ -56,6 +61,7 @@ export class GestionPosesiones implements OnInit {
 
   /** Casas y propietarios, para los selectores y para mostrar nombres. */
   protected readonly casas = signal<CasaModel[]>([]);
+  /** Lista de propietarios consultada al backend. */
   protected readonly propietarios = signal<PersonaModel[]>([]);
 
   /** Nombre de cada propietario por su llave "CC|123". */
@@ -69,8 +75,11 @@ export class GestionPosesiones implements OnInit {
       ),
   );
 
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** Posesiones visibles según la búsqueda (casa o propietario). */
@@ -92,9 +101,11 @@ export class GestionPosesiones implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Funciones para la plantilla. */
+  /** Función del modelo para mostrar el nombre de una casa en la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  /** Función del modelo para armar la llave de una persona en la plantilla. */
   protected readonly llavePersona = llavePersona;
+  /** Función del modelo para mostrar el nombre de una persona en la plantilla. */
   protected readonly nombrePersona = nombrePersona;
 
   /** Modal de crear/editar. */
@@ -103,14 +114,19 @@ export class GestionPosesiones implements OnInit {
   /** Posesión que se edita (null = crear). */
   protected readonly editando = signal<PosesionModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioPosesion>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Posesión pendiente de confirmar para eliminar. */
   protected readonly posesionAEliminar = signal<PosesionModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarPosesiones();
   }

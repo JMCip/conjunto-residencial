@@ -17,10 +17,25 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de los parqueos (rutas {@code /api/parqueos}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class ParqueoController {
 	
+	/** Servicio con la lógica de negocio de los parqueos. */
 	private final ParqueoService parqueoService = new ParqueoService();
 	
+	/**
+	 * Atiende {@code GET /api/parqueos} (listar parqueos). Devuelve las entradas y salidas de
+	 * vehículos, de la más reciente a la más antigua. Si fechaHoraSalida es null, el vehículo sigue
+	 * parqueado.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/parqueos",
 			methods = HttpMethod.GET,
@@ -35,6 +50,13 @@ public class ParqueoController {
 		conx.json(parqueoService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/parqueos/{id}} (consultar parqueo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/parqueos/{id}",
 			methods = HttpMethod.GET,
@@ -51,6 +73,15 @@ public class ParqueoController {
 		ctx.json(parqueoService.consultar(ctx.pathParamAsClass("id", Integer.class).get()));
 	}
 
+	/**
+	 * Atiende {@code POST /api/parqueos} (crear parqueo). No envíes idParqueo, se genera solo. Fechas
+	 * en formato AAAA-MM-DDTHH:MM:SS. fechaHoraSalida va null mientras el vehículo siga parqueado.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/parqueos",
 			methods = HttpMethod.POST,
@@ -69,6 +100,16 @@ public class ParqueoController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Parqueo creado", "idParqueo", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/parqueos/{id}} (actualizar parqueo). El vehículo y la celda no se
+	 * modifican. En el body envía fechaHoraEntrada y fechaHoraSalida (para cerrar el parqueo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/parqueos/{id}",
 			methods = HttpMethod.PUT,
@@ -93,6 +134,13 @@ public class ParqueoController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Parqueo actualizado"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/parqueos/{id}} (eliminar parqueo).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/parqueos/{id}",
 			methods = HttpMethod.DELETE,

@@ -1,6 +1,9 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CurrencyPipe, DatePipe } from '@angular/common';
-import { forkJoin } from 'rxjs';
+import {Component, computed, inject, OnInit, signal} from '@angular/core';
+import {CurrencyPipe, DatePipe} from '@angular/common';
+import {catchError, forkJoin, of } from 'rxjs';
+import {ConceptoCobroModel} from '../../../models/concepto-cobro.model';
+import {ConceptoCobroService} from '../../../services/concepto-cobro.service';
+
 import {
   CambiosSancion,
   ESTADOS_SANCION,
@@ -20,16 +23,20 @@ import {
   nombreCasa,
   separarLlaveCasa,
 } from '../../../models/casa.model';
-import { SancionService } from '../../../services/sancion.service';
-import { CasaService } from '../../../services/casa.service';
-import { NotificacionService } from '../../../services/notificacion.service';
-import { extraerError } from '../../../compartido/extraer-error';
-import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
-import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
+import {SancionService} from '../../../services/sancion.service';
+import {CasaService} from '../../../services/casa.service';
+import {NotificacionService} from '../../../services/notificacion.service';
+import {extraerError} from '../../../compartido/extraer-error';
+import {ModalFormulario} from '../../../compartido/modal-formulario/modal-formulario';
+import {DialogoConfirmar} from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
 
-/** Largos máximos que acepta el backend. */
+/** Longitud máxima del tipo de sanción (columna `tipo`). */
 const MAX_TIPO = 30;
+
+/** Longitud máxima de la descripción (columna `descripcion`). */
 const MAX_DESCRIPCION = 255;
+
+/** Longitud máxima de los descargos (columna `descargos`). */
 const MAX_DESCARGOS = 500;
 
 /** Filtro del control segmentado: todas o un estado. */
@@ -63,6 +70,7 @@ interface FormularioProceso {
   valor: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioSancion = {
   casa: '',
   tipo: '',
@@ -95,20 +103,31 @@ function hoyISO(): string {
   templateUrl: './gestion-sanciones.html',
   styleUrl: './gestion-sanciones.css',
 })
+
 export class GestionSanciones implements OnInit {
+  /** Servicio de sanciones. */
   private sancionService = inject(SancionService);
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
+  /** Servicio del catálogo de conceptos de cobro. */
+  private conceptoService = inject(ConceptoCobroService);
 
   /** Sanciones obtenidas del backend (de la más reciente a la más antigua). */
   protected readonly sanciones = signal<SancionModel[]>([]);
 
   /** Casas para el selector. */
   protected readonly casas = signal<CasaModel[]>([]);
-
+  /** Lista de conceptos consultada al backend. */
+  protected readonly conceptos = signal<ConceptoCobroModel[]>([]);
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
+  /** Filtro de estado seleccionado en el control segmentado. */
   protected readonly filtroEstado = signal<FiltroSancion>('TODAS');
 
   /** Sanciones visibles según el filtro y la búsqueda (casa, tipo o descripción). */
@@ -127,12 +146,18 @@ export class GestionSanciones implements OnInit {
 
   /** Cuántas sanciones hay de cada estado (para los botones del filtro). */
   protected readonly conteos = computed(() => {
-    const conteo: Record<string, number> = { TODAS: this.sanciones().length };
+    const conteo: Record<string, number> = {TODAS: this.sanciones().length};
     for (const estado of ESTADOS_SANCION) {
       conteo[estado] = this.sanciones().filter((s) => s.estadoProceso === estado).length;
     }
     return conteo;
   });
+
+  /** Multa sugerida: valor base del concepto "Sanción"; null si no está en el catálogo. */
+  protected readonly multaSugerida = computed(
+    () =>
+      this.conceptos().find((c) => c.nombre.trim().toLowerCase() === 'sanción')?.valorBase ?? null,
+  );
 
   /** "5 sanciones" o "2 sanciones de 5". */
   protected readonly textoConteo = computed(() => {
@@ -142,53 +167,80 @@ export class GestionSanciones implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Texto de cada estado de sanción (constante del modelo). */
   protected readonly etiquetaEstado = ETIQUETA_ESTADO_SANCION;
+  /** Color de insignia de cada estado de sanción (constante del modelo). */
   protected readonly estilo = ESTILO_SANCION;
+
+  /** Opciones del control segmentado: todas y cada estado. */
   protected readonly opcionesFiltro: FiltroSancion[] = ['TODAS', ...ESTADOS_SANCION];
+  /** Sugerencias del campo tipo (constante del modelo). */
   protected readonly sugerenciasTipo = SUGERENCIAS_TIPO_SANCION;
+  /** Función del modelo para mostrar el nombre de una casa en la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  /** Función del modelo para armar la llave de una casa en la plantilla. */
   protected readonly llaveCasa = llaveCasa;
+  /** Función del modelo para mostrar el tipo de una sanción. */
   protected readonly textoTipo = textoTipoSancion;
+  /** Función del modelo que indica si una sanción no tiene descargos. */
   protected readonly sinDescargos = sinDescargos;
+  /** Longitud máxima del tipo de sanción. */
   protected readonly maxTipo = MAX_TIPO;
+  /** Longitud máxima de la descripción de la sanción. */
   protected readonly maxDescripcion = MAX_DESCRIPCION;
+  /** Longitud máxima de los descargos. */
   protected readonly maxDescargos = MAX_DESCARGOS;
 
-  /** Hoy en formato yyyy-MM-dd: tope de las fechas (el back no acepta fechas futuras). */
+  /** Fecha de hoy (yyyy-MM-dd): tope de las fechas, porque el backend no acepta fechas futuras. */
   protected readonly hoy = hoyISO();
 
   /** Modal de crear. */
   protected readonly modalAbierto = signal(false);
-  protected readonly formulario = signal<FormularioSancion>({ ...FORMULARIO_VACIO });
+  /** Valores actuales del formulario del modal. */
+  protected readonly formulario = signal<FormularioSancion>({...FORMULARIO_VACIO});
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Modal de proceso (descargos o confirmar). null = cerrado. */
   protected readonly proceso = signal<ProcesoSancion | null>(null);
-  protected readonly formProceso = signal<FormularioProceso>({ descargos: '', valor: '' });
+
+  /** Valores del formulario del modal de proceso. */
+  protected readonly formProceso = signal<FormularioProceso>({descargos: '', valor: ''});
+
+  /** true mientras se envía el modal de proceso al backend. */
   protected readonly guardandoProceso = signal(false);
+
+  /** Mensaje de validación del modal de proceso (null si no hay error). */
   protected readonly errorProceso = signal<string | null>(null);
 
   /** Acción (anular o eliminar) pendiente de confirmar. */
   protected readonly accion = signal<AccionSancion | null>(null);
+  /** true mientras se envía la acción al backend. */
   protected readonly procesando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarSanciones();
   }
 
-  /** Consulta sanciones y casas a la vez. */
+  /**
+   * Consulta sanciones, casas y conceptos a la vez. Si el catálogo de conceptos falla, la tabla se
+   * muestra igual y la multa queda vacía para escribirla a mano.
+   */
   cargarSanciones(): void {
     this.cargando.set(true);
     this.errorCarga.set(false);
     forkJoin({
       sanciones: this.sancionService.getTodos(),
       casas: this.casaService.getTodos(),
+      conceptos: this.conceptoService.getTodos().pipe(catchError(() => of([]))),
     }).subscribe({
-      next: ({ sanciones, casas }) => {
+      next: ({ sanciones, casas, conceptos }) => {
         this.sanciones.set(sanciones);
         this.casas.set(casas);
+        this.conceptos.set(conceptos);
         this.cargando.set(false);
       },
       error: (err) => {
@@ -210,23 +262,28 @@ export class GestionSanciones implements OnInit {
     return opcion === 'TODAS' ? 'Todas' : FILTRO_SANCION[opcion];
   }
 
-
-
+  /** Abre el modal vacío para crear una sanción. */
   abrirCrear(): void {
-    this.formulario.set({ ...FORMULARIO_VACIO });
+    this.formulario.set({...FORMULARIO_VACIO});
     this.errorFormulario.set(null);
     this.modalAbierto.set(true);
   }
 
+  /** Cierra el modal de crear sin guardar. */
   cerrarModal(): void {
     this.modalAbierto.set(false);
   }
 
+  /**
+   * Actualiza un campo del formulario de crear.
+   * @param campo Nombre del campo.
+   * @param valor Texto escrito.
+   */
   cambiarCampo(campo: keyof FormularioSancion, valor: string): void {
-    this.formulario.update((f) => ({ ...f, [campo]: valor }));
+    this.formulario.update((f) => ({...f, [campo]: valor}));
   }
 
-  /** Valida lo mismo que el back y crea la sanción (queda EN_DESCARGOS). */
+  /** Valida lo mismo que el backend y crea la sanción (queda EN_DESCARGOS). */
   guardar(): void {
     const f = this.formulario();
     const tipo = f.tipo.trim();
@@ -278,7 +335,7 @@ export class GestionSanciones implements OnInit {
       return;
     }
 
-    const { manzana, numero } = separarLlaveCasa(f.casa);
+    const {manzana, numero} = separarLlaveCasa(f.casa);
     this.errorFormulario.set(null);
     this.guardando.set(true);
 
@@ -288,7 +345,7 @@ export class GestionSanciones implements OnInit {
         fechaNotificacion: f.fechaNotificacion,
         tipo,
         descripcion,
-        ...(descargos ? { descargos } : {}),
+        ...(descargos ? {descargos} : {}),
         casaNumero: numero,
         casaManzana: manzana,
       })
@@ -306,39 +363,57 @@ export class GestionSanciones implements OnInit {
       });
   }
 
-
-
   /** Abre el modal para registrar (o corregir) los descargos de una sanción EN_DESCARGOS. */
   abrirDescargos(s: SancionModel): void {
-    this.formProceso.set({ descargos: sinDescargos(s) ? '' : s.descargos, valor: '' });
+    this.formProceso.set({descargos: sinDescargos(s) ? '' : s.descargos, valor: ''});
     this.errorProceso.set(null);
-    this.proceso.set({ modo: 'DESCARGOS', sancion: s });
+    this.proceso.set({modo: 'DESCARGOS', sancion: s});
   }
 
   /** Abre el modal para confirmar la sanción (con multa opcional). */
   abrirConfirmar(s: SancionModel): void {
-    this.formProceso.set({ descargos: '', valor: '' });
+    const multa = this.multaSugerida();
+    this.formProceso.set({ descargos: '', valor: multa !== null ? String(multa) : '' });
     this.errorProceso.set(null);
     this.proceso.set({ modo: 'CONFIRMAR', sancion: s });
   }
 
+  /** Cierra el modal de proceso sin guardar. */
   cerrarProceso(): void {
     this.proceso.set(null);
   }
 
+  /**
+   * Actualiza un campo del modal de proceso.
+   * @param campo Nombre del campo.
+   * @param valor Texto escrito.
+   */
   cambiarCampoProceso(campo: keyof FormularioProceso, valor: string): void {
-    this.formProceso.update((f) => ({ ...f, [campo]: valor }));
+    this.formProceso.update((f) => ({...f, [campo]: valor}));
   }
 
+  /**
+   * Título del modal de proceso según el modo.
+   * @param p Proceso abierto.
+   * @returns Título del modal.
+   */
   tituloProceso(p: ProcesoSancion): string {
     return p.modo === 'DESCARGOS' ? 'Registrar descargos' : 'Confirmar sanción';
   }
 
+  /**
+   * Texto del botón principal del modal de proceso.
+   * @param p Proceso abierto.
+   * @returns Texto del botón.
+   */
   textoGuardarProceso(p: ProcesoSancion): string {
     return p.modo === 'DESCARGOS' ? 'Guardar descargos' : 'Confirmar sanción';
   }
 
-  /** Arma el PUT según el modo, valida y lo envía. */
+  /**
+   * Arma el PUT según el modo (descargos o confirmar), lo valida y lo envía. La multa solo acepta
+   * dígitos, para que "150.000" no se interprete como 150.
+   */
   guardarProceso(): void {
     const p = this.proceso();
     if (!p) return;
@@ -355,11 +430,10 @@ export class GestionSanciones implements OnInit {
         this.errorProceso.set(`Los descargos no pueden superar ${MAX_DESCARGOS} caracteres.`);
         return;
       }
-      cambios = { descargos };
+      cambios = {descargos};
     } else {
       const texto = f.valor.trim();
       if (texto) {
-        // Solo dígitos: así se evita que "150.000" se lea como 150.
         const valor = Number(texto);
         if (!/^\d+$/.test(texto) || valor <= 0) {
           this.errorProceso.set(
@@ -367,9 +441,9 @@ export class GestionSanciones implements OnInit {
           );
           return;
         }
-        cambios = { estadoProceso: 'CONFIRMADA', valor };
+        cambios = {estadoProceso: 'CONFIRMADA', valor};
       } else {
-        cambios = { estadoProceso: 'CONFIRMADA' };
+        cambios = {estadoProceso: 'CONFIRMADA'};
       }
     }
 
@@ -393,11 +467,20 @@ export class GestionSanciones implements OnInit {
     });
   }
 
-
+  /**
+   * Título del diálogo de confirmación según la acción.
+   * @param a Acción pendiente.
+   * @returns Pregunta del diálogo.
+   */
   tituloAccion(a: AccionSancion): string {
     return a.tipo === 'ANULAR' ? '¿Anular la sanción?' : '¿Eliminar la sanción?';
   }
 
+  /**
+   * Mensaje del diálogo de confirmación según la acción.
+   * @param a Acción pendiente.
+   * @returns Explicación de lo que va a pasar.
+   */
   mensajeAccion(a: AccionSancion): string {
     const s = a.sancion;
     const cual = `${textoTipoSancion(s.tipo)} de ${nombreCasa(s.casaManzana, s.casaNumero)} (incidente del ${s.fechaIncidente})`;
@@ -406,6 +489,11 @@ export class GestionSanciones implements OnInit {
       : `Se eliminará la sanción anulada por ${cual}. Esta acción no se puede deshacer.`;
   }
 
+  /**
+   * Texto del botón de confirmar según la acción.
+   * @param a Acción pendiente.
+   * @returns Texto del botón.
+   */
   textoConfirmarAccion(a: AccionSancion): string {
     return a.tipo === 'ANULAR' ? 'Anular sanción' : 'Eliminar';
   }
@@ -419,7 +507,7 @@ export class GestionSanciones implements OnInit {
     const peticion =
       a.tipo === 'ELIMINAR'
         ? this.sancionService.eliminar(a.sancion.idSancion)
-        : this.sancionService.actualizar(a.sancion.idSancion, { estadoProceso: 'ANULADA' });
+        : this.sancionService.actualizar(a.sancion.idSancion, {estadoProceso: 'ANULADA'});
 
     peticion.subscribe({
       next: () => {

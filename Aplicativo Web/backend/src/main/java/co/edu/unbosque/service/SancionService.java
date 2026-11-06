@@ -12,18 +12,44 @@ import co.edu.unbosque.exception.DatoInvalidoException;
 import co.edu.unbosque.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.model.Sancion;
 
+/**
+ * Lógica de negocio de las sanciones.
+ * <p>
+ * Valida los datos recibidos y las reglas del conjunto antes de llamar al DAO, y comunica los
+ * errores con las excepciones del paquete {@code exception}.
+ */
 public class SancionService {
 
+	/** Decisiones con las que se cierra el proceso de descargos. */
 	private static final Set<String> DECISIONES = Set.of("CONFIRMADA", "ANULADA");
 
+	/** Texto de descargos que se guarda cuando la sanción se crea sin descargos. */
 	private static final String DESCARGOS_PENDIENTES = "Pendiente de descargos";
 
+	/** Acceso a datos de las sanciones. */
 	private final SancionDAO sancionDao = new SancionDAO();
 
+	/**
+	 * Lista las sanciones registradas.
+	 *
+	 * @return lista de sanciones; vacía si no hay registros
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public List<Sancion> listar() throws SQLException {
 		return sancionDao.listar();
 	}
 
+	/**
+	 * Registra una sanción {@code EN_DESCARGOS} para una casa. El tipo se guarda en mayúsculas y, si
+	 * no llegan descargos, se guarda un texto de descargos pendientes. El valor de la multa no se
+	 * define al crear.
+	 *
+	 * @param s sanción que se va a crear
+	 * @return identificador de la sanción creada
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 * @throws RecursoNoEncontradoException si la casa no existe
+	 */
 	public int crear(Sancion s) throws SQLException, DatoInvalidoException, RecursoNoEncontradoException {
 		validarCampos(s);
 		LocalDate incidente = parsear("fechaIncidente", s.getFechaIncidente());
@@ -42,7 +68,17 @@ public class SancionService {
 		return sancionDao.insertar(s, incidente, notificacion);
 	}
 
-	
+	/**
+	 * Registra los descargos y/o la decisión ({@code CONFIRMADA} con valor de multa, o
+	 * {@code ANULADA}) de una sanción {@code EN_DESCARGOS}.
+	 *
+	 * @param id identificador de la sanción
+	 * @param cambios descargos, estado del proceso y valor de la multa
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 * @throws RecursoNoEncontradoException si la sanción no existe
+	 * @throws ConflictoException si la sanción ya no está {@code EN_DESCARGOS}
+	 */
 	public void actualizar(int id, Sancion cambios) throws SQLException, DatoInvalidoException,
 			RecursoNoEncontradoException, ConflictoException {
 		String descargos = cambios.getDescargos();
@@ -92,6 +128,14 @@ public class SancionService {
 		}
 	}
 
+	/**
+	 * Elimina una sanción {@code ANULADA} que no se haya facturado.
+	 *
+	 * @param id identificador de la sanción
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 * @throws RecursoNoEncontradoException si la sanción no existe
+	 * @throws ConflictoException si la sanción no está {@code ANULADA} o ya fue facturada
+	 */
 	public void eliminar(int id) throws SQLException, RecursoNoEncontradoException, ConflictoException {
 		Sancion actual = sancionDao.buscarPorId(id);
 		if (actual == null) {
@@ -114,6 +158,12 @@ public class SancionService {
 		}
 	}
 
+	/**
+	 * Valida el tipo, la descripción y los descargos, y que el valor de la multa no se envíe al crear.
+	 *
+	 * @param s sanción que se valida
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 */
 	private void validarCampos(Sancion s) throws DatoInvalidoException {
 		if (s.getTipo() == null || s.getTipo().isBlank()) {
 			throw new DatoInvalidoException("tipo es obligatorio");
@@ -136,6 +186,13 @@ public class SancionService {
 		}
 	}
 
+	/**
+	 * Valida que las fechas no sean futuras y que la notificación no sea anterior al incidente.
+	 *
+	 * @param incidente fecha del incidente
+	 * @param notificacion fecha de notificación
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 */
 	private void validarFechas(LocalDate incidente, LocalDate notificacion) throws DatoInvalidoException {
 		LocalDate hoy = LocalDate.now();
 		if (incidente.isAfter(hoy)) {
@@ -149,6 +206,14 @@ public class SancionService {
 		}
 	}
 
+	/**
+	 * Convierte el texto de una fecha ({@code AAAA-MM-DD}) en un {@link LocalDate}.
+	 *
+	 * @param campo nombre del campo, para el mensaje de error
+	 * @param texto fecha recibida
+	 * @return fecha convertida
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 */
 	private LocalDate parsear(String campo, String texto) throws DatoInvalidoException {
 		if (texto == null || texto.isBlank()) {
 			throw new DatoInvalidoException(campo + " es obligatoria");

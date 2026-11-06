@@ -46,6 +46,16 @@
     }
   </nav>
 
+  <button
+    type="button"
+    class="boton-cerrar-sesion"
+    [attr.title]="isCollapsed() ? 'Cerrar sesión' : null"
+    [attr.aria-label]="isCollapsed() ? 'Cerrar sesión' : null"
+    (click)="cerrarSesion()">
+    <i class="fa-solid fa-right-from-bracket icono-item" aria-hidden="true"></i>
+    <span class="texto-item">Cerrar sesión</span>
+  </button>
+
   <div class="pie-sidebar" [attr.title]="isCollapsed() ? textoEstadoBd() : null">
     <span
       class="punto-estado"

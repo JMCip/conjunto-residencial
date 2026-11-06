@@ -1,9 +1,5 @@
 <header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
-  <h1 class="titulo-pagina">Resumen del conjunto</h1>
-  <p class="descripcion-pagina">
-    <span class="mes-actual">{{ hoy() | date: 'MMMM y' }}</span>
-    · Administración del conjunto residencial
-  </p>
+  <h1 class="titulo-pagina">Datos Conjunto Residencial</h1>
 </header>
 
 <app-metricas-dashboard [metricas]="metricas()" [cargando]="cargando()" />

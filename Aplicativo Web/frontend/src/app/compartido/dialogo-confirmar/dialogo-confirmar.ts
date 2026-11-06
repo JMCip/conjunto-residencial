@@ -34,11 +34,23 @@ export class DialogoConfirmar {
   /** Botón Cancelar: recibe el foco al abrir, para que Enter no borre por accidente. */
   private readonly botonCancelar = viewChild.required<ElementRef<HTMLButtonElement>>('cancelarBtn');
 
+  /** Al abrir el diálogo, enfoca el botón Cancelar. */
   constructor() {
     afterNextRender(() => this.botonCancelar().nativeElement.focus());
   }
 
-  /** Cancela con Escape */
+  /** Momento de la última confirmación, para ignorar el doble clic. */
+  private ultimaConfirmacion = 0;
+
+  /** Confirma una sola vez aunque se haga doble clic (evita dos DELETE seguidos). */
+  confirmarUnaVez(): void {
+    const ahora = Date.now();
+    if (this.procesando() || ahora - this.ultimaConfirmacion < 800) return;
+    this.ultimaConfirmacion = ahora;
+    this.confirmar.emit();
+  }
+
+  /** Cancela con Escape, salvo mientras se está procesando. */
   cancelarSiSePuede(): void {
     if (!this.procesando()) this.cancelar.emit();
   }

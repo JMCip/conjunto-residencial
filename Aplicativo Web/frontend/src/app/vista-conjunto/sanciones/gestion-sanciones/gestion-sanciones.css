@@ -2,7 +2,6 @@
   display: block;
 }
 
-/* Tarjeta con buscador, botón y tabla */
 .tarjeta-seccion {
   background: var(--bg-tarjeta);
   border: 1px solid var(--borde);
@@ -33,7 +32,6 @@
   gap: 16px;
 }
 
-/* Buscador */
 .campo-busqueda {
   display: flex;
   flex-direction: column;
@@ -72,7 +70,6 @@
   color: var(--texto-secundario);
 }
 
-/* Tabla */
 .contenedor-tabla {
   overflow-x: auto;
 }
@@ -127,7 +124,6 @@
   color: var(--texto-secundario);
 }
 
-/* Botones de editar / eliminar de cada fila */
 .boton-icono {
   width: 40px;
   height: 40px;
@@ -151,7 +147,6 @@
   color: var(--estado-alerta-texto);
 }
 
-/* Insignias */
 .insignia-estado {
   display: inline-block;
   padding: 3px 10px;
@@ -174,7 +169,6 @@
   color: var(--estado-neutro-texto);
 }
 
-/* Botones */
 .boton-primario,
 .boton-secundario {
   min-height: 44px;
@@ -210,7 +204,6 @@
   background: var(--bg-app);
 }
 
-/* Cargando */
 .esqueleto {
   display: block;
   border-radius: var(--radio-esqueleto);
@@ -229,7 +222,6 @@
   padding: 20px;
 }
 
-/* Vacío y error */
 .estado-vacio {
   display: flex;
   flex-direction: column;
@@ -266,7 +258,6 @@
   color: var(--texto-secundario);
 }
 
-/* Campos del formulario (dentro del modal) */
 .fila-campos {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -302,7 +293,6 @@
   color: var(--texto-secundario);
 }
 
-/* Foco visible en todo lo que se puede usar con teclado */
 .input-busqueda:focus-visible,
 .input-formulario:focus-visible,
 .boton-icono:focus-visible,
@@ -359,7 +349,7 @@
 }
 
 .texto-cortado {
-  max-width: 220px;
+  max-width: 150px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -381,7 +371,7 @@
   font-size: 16px;
 }
 
-/* Control segmentado (filtro por estado) */
+
 .control-segmentado {
   display: flex;
   gap: 4px;
@@ -426,14 +416,13 @@
   outline-offset: 1px;
 }
 
-/* Tabla con muchas columnas: celdas un poco más angostas para que quepa en 1280 px */
+
 .tabla-conjunto th,
 .tabla-conjunto td {
-  padding-left: 14px;
-  padding-right: 14px;
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
-/* Cabecera en dos filas: título + botón arriba, filtros + buscador abajo */
 .cabecera-dos-filas {
   flex-direction: column;
   align-items: stretch;

@@ -4,8 +4,7 @@ import { NOMBRES_VISTA, Vista } from '../../models/vista.enum';
 
 /**
  * @component TopbarConjunto
- * @description Barra superior: migas de pan de la sección actual, chip "Solo consulta"
- * y la fecha de hoy en español.
+ * @description Barra superior: migas de pan de la sección actual y la fecha de hoy en español.
  */
 @Component({
   selector: 'app-topbar-conjunto',

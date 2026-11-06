@@ -20,21 +20,21 @@
   <div class="contenedor-tabla">
     <table class="tabla-conjunto">
       <thead>
-        <tr>
-          <th scope="col">Número</th>
-          <th scope="col">Casa</th>
-          <th scope="col">Periodo</th>
-          <th scope="col">Vencimiento</th>
-          <th scope="col" class="col-dinero">Valor</th>
-          <th scope="col">Estado</th>
-          <th scope="col" class="col-acciones">Acciones</th>
-        </tr>
+      <tr>
+        <th scope="col">Número</th>
+        <th scope="col">Casa</th>
+        <th scope="col">Periodo</th>
+        <th scope="col">Vencimiento</th>
+        <th scope="col" class="col-dinero">Valor</th>
+        <th scope="col">Estado</th>
+        <th scope="col" class="col-acciones">Acciones</th>
+      </tr>
       </thead>
       <tbody>
         @for (f of facturas(); track f.numeroFactura) {
           <tr>
             <td class="num">{{ f.numeroFactura }}</td>
-            <td class="col-principal">Casa {{ f.casaNumero }} · Mz {{ f.casaManzana }}</td>
+            <td class="col-principal">Mz {{ f.casaManzana }} · Casa {{ f.casaNumero }}</td>
             <td>{{ f.periodo }}</td>
             <td class="num">{{ f.fechaVencimiento | date: 'dd/MM/y' }}</td>
             <td class="col-dinero num">
