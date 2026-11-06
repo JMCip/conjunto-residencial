@@ -1,0 +1,6 @@
+{
+  "/api": {
+    "target": "http://bd1-webserver:8080",
+    "secure": false
+  }
+}

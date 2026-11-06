@@ -1,0 +1,26 @@
+<header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
+  <h1 class="titulo-pagina">Datos Conjunto Residencial</h1>
+</header>
+
+<app-metricas-dashboard [metricas]="metricas()" [cargando]="cargando()" />
+
+<div class="rejilla-paneles">
+  <app-ultimas-facturas
+    [facturas]="ultimasFacturas()"
+    [cargando]="cargando()"
+    [error]="errorFacturas()"
+    (verTodas)="irA('finanzas')"
+  />
+
+  <app-proximas-reservas
+    [reservas]="proximasReservas()"
+    [cargando]="cargando()"
+    (verTodas)="irA('salon-comunal')"
+  />
+</div>
+
+<app-estado-conexion
+  [estadoBackend]="estadoBackend()"
+  [estadoBd]="estadoBd()"
+  [infoBd]="infoBd()"
+/>

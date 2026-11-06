@@ -1,0 +1,23 @@
+<header class="cabecera-pagina animate__animated animate__fadeIn animate__faster">
+  <h1 class="titulo-pagina">Parqueadero</h1>
+  <p class="descripcion-pagina">
+    Vehículos de los residentes, celdas del parqueadero, a qué casa está asignada cada una y
+    las entradas y salidas.
+  </p>
+</header>
+
+<nav class="control-segmentado" aria-label="Pestañas de Parqueadero">
+  @for (p of pestanas; track p.ruta) {
+    <a
+      class="boton-segmento"
+      [routerLink]="p.ruta"
+      routerLinkActive="activo"
+      ariaCurrentWhenActive="page"
+    >
+      <i class="fa-solid" [class]="p.icono" aria-hidden="true"></i>
+      {{ p.texto }}
+    </a>
+  }
+</nav>
+
+<router-outlet />

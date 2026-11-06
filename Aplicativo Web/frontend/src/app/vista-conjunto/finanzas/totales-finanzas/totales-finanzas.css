@@ -1,0 +1,76 @@
+:host {
+  display: block;
+}
+
+.rejilla-metricas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.tarjeta-metrica {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 20px;
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+}
+
+.etiqueta-metrica {
+  font-size: 14px;
+  color: var(--texto-secundario);
+}
+
+.cifra-metrica {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.contexto-metrica {
+  font-size: 13px;
+  color: var(--texto-secundario);
+}
+
+.contexto-positivo {
+  color: var(--estado-ok-texto);
+}
+
+.contexto-atencion {
+  color: var(--estado-pendiente-texto);
+}
+
+/* Barra de recaudo */
+.barra-progreso {
+  height: 6px;
+  margin-top: 4px;
+  border-radius: var(--radio-pildora);
+  background: var(--borde-suave);
+  overflow: hidden;
+}
+
+.relleno-progreso {
+  display: block;
+  height: 100%;
+  border-radius: var(--radio-pildora);
+  background: var(--verde-hoja);
+}
+
+/* Esqueletos de carga */
+.esqueleto {
+  display: block;
+  border-radius: var(--radio-esqueleto);
+  background: var(--borde-suave);
+}
+
+.esqueleto-cifra {
+  width: 60%;
+  height: 34px;
+}
+
+.esqueleto-texto {
+  width: 80%;
+  height: 14px;
+}

@@ -1,0 +1,283 @@
+<app-modal-formulario
+  [titulo]="'Factura N.º ' + factura().numeroFactura"
+  ancho="amplio"
+  [soloCerrar]="true"
+  [error]="errorFormulario()"
+  (guardar)="agregarLinea()"
+  (cerrar)="cerrar.emit()"
+>
+  <!-- Resumen -->
+  <div class="resumen-factura">
+    <div class="dato">
+      <span class="etiqueta-dato">Casa</span>
+      <strong>{{ nombreCasa(factura().casaManzana, factura().casaNumero) }}</strong>
+    </div>
+    <div class="dato">
+      <span class="etiqueta-dato">Periodo</span>
+      <strong class="num">{{ factura().periodo }}</strong>
+    </div>
+    <div class="dato">
+      <span class="etiqueta-dato">Vencimiento</span>
+      <strong class="num">{{ factura().fechaVencimiento | date: 'dd/MM/y' }}</strong>
+    </div>
+    <div class="dato">
+      <span class="etiqueta-dato">Estado</span>
+      <span class="insignia-estado" [class]="'insignia-' + estiloFactura[factura().estado]">
+        {{ etiquetaFactura[factura().estado] }}
+      </span>
+    </div>
+    <div class="dato">
+      <span class="etiqueta-dato">Total</span>
+      <strong class="num">{{ factura().total ?? 0 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+    </div>
+    <div class="dato">
+      <span class="etiqueta-dato">Pagado</span>
+      <strong class="num">{{ factura().totalPagado | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+    </div>
+    <div class="dato">
+      <span class="etiqueta-dato">Saldo</span>
+      <strong class="num">{{ factura().saldo ?? 0 | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <p class="titulo-vacio">No se pudo consultar el detalle</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="reintentar()">Reintentar</button>
+    </div>
+  } @else {
+    <!-- Líneas -->
+    @if (lineas().length === 0) {
+      <p class="sin-lineas">
+        Esta factura todavía no tiene líneas.
+        @if (abierta()) {
+          Agrega los cargos pendientes o un cobro desde abajo.
+        }
+      </p>
+    } @else {
+      <div class="contenedor-tabla">
+        <table class="tabla-conjunto">
+          <thead>
+          <tr>
+            <th scope="col">N.º</th>
+            <th scope="col">Concepto</th>
+            <th scope="col">Origen</th>
+            <th scope="col" class="col-numero">Valor</th>
+            @if (abierta()) {
+              <th scope="col" class="col-acciones">Acciones</th>
+            }
+          </tr>
+          </thead>
+          <tbody>
+            @for (l of lineas(); track l.numeroLinea) {
+              <tr>
+                <td class="num">{{ l.numeroLinea }}</td>
+                <td class="col-principal">{{ nombreConcepto(l.idConcepto) }}</td>
+                <td class="col-secundaria">{{ textoOrigen(l) }}</td>
+                <td class="col-numero num">
+                  @if (lineaEditando() === l.numeroLinea) {
+                    <input
+                      class="input-formulario input-edicion"
+                      inputmode="numeric"
+                      autocomplete="off"
+                      aria-label="Nuevo valor de la línea"
+                      [value]="valorEdicion()"
+                      (input)="valorEdicion.set($any($event.target).value)"
+                      (keydown.enter)="$event.preventDefault(); guardarEdicion(l)"
+                      (keydown.escape)="$event.stopPropagation(); cancelarEdicion()"
+                    />
+                  } @else {
+                    {{ l.valor | currency: 'COP' : 'symbol' : '1.0-0' }}
+                  }
+                </td>
+                @if (abierta()) {
+                  <td class="col-acciones">
+                    @if (lineaEditando() === l.numeroLinea) {
+                      <button
+                        type="button"
+                        class="boton-icono"
+                        aria-label="Guardar valor"
+                        title="Guardar valor"
+                        (click)="guardarEdicion(l)"
+                      >
+                        <i class="fa-solid fa-check" aria-hidden="true"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="boton-icono"
+                        aria-label="Cancelar edición"
+                        title="Cancelar"
+                        (click)="cancelarEdicion()"
+                      >
+                        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                      </button>
+                    } @else {
+                      @if (esLibre(l)) {
+                        <button
+                          type="button"
+                          class="boton-icono"
+                          aria-label="Editar valor"
+                          title="Editar valor"
+                          (click)="iniciarEdicion(l)"
+                        >
+                          <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                        </button>
+                      }
+                      <button
+                        type="button"
+                        class="boton-icono boton-icono-peligro"
+                        aria-label="Eliminar línea"
+                        title="Eliminar línea"
+                        (click)="lineaAEliminar.set(l)"
+                      >
+                        <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                      </button>
+                    }
+                  </td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+    @if (abierta()) {
+      <!-- Cargos pendientes: lo que nació en otros módulos y esta factura puede recoger -->
+      <section class="bloque-linea" aria-labelledby="titulo-pendientes">
+        <div class="cabecera-bloque">
+          <h3 id="titulo-pendientes" class="titulo-bloque">Cargos pendientes de la casa</h3>
+          @if (cargosPendientes().length > 1) {
+            <button
+              type="button"
+              class="boton-secundario"
+              [disabled]="agregandoCargo() !== null"
+              (click)="agregarTodos()"
+            >
+              <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+              {{ agregandoCargo() === 'TODOS' ? 'Agregando…' : 'Agregar todos' }}
+              <span class="num">({{ totalPendientes() | currency: 'COP' : 'symbol' : '1.0-0' }})</span>
+            </button>
+          }
+        </div>
+
+        @if (cargosPendientes().length === 0) {
+          <p class="ayuda-campo">
+            Esta casa no tiene cargos pendientes: la administración ya está en la factura y no hay
+            sanciones confirmadas, reservas ni celdas adicionales por cobrar.
+          </p>
+        } @else {
+          <ul class="lista-pendientes">
+            @for (c of cargosPendientes(); track c.clave) {
+              <li class="item-pendiente">
+                <i class="fa-solid icono-pendiente" [class]="c.icono" aria-hidden="true"></i>
+                <span class="texto-pendiente">
+                  <strong>{{ c.titulo }}</strong>
+                  <span class="col-secundaria">{{ c.detalle }}</span>
+                </span>
+                <span class="num">{{ c.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Agregar ' + c.titulo"
+                  [title]="'Agregar ' + c.titulo"
+                  [disabled]="agregandoCargo() !== null"
+                  (click)="agregarCargo(c)"
+                >
+                  <i
+                    class="fa-solid"
+                    [class.fa-plus]="agregandoCargo() !== c.clave"
+                    [class.fa-spinner]="agregandoCargo() === c.clave"
+                    [class.fa-spin]="agregandoCargo() === c.clave"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+              </li>
+            }
+          </ul>
+          <p class="ayuda-campo">
+            Las sanciones, reservas y celdas adicionales se registran en su módulo; aquí solo se
+            cobran. Su valor sale de su origen y no se edita.
+          </p>
+        }
+      </section>
+
+      <!-- Cobro libre: mora, cuotas extraordinarias… -->
+      <section class="bloque-linea" aria-labelledby="titulo-nueva-linea">
+        <h3 id="titulo-nueva-linea" class="titulo-bloque">Otro cobro</h3>
+
+        <div class="fila-linea">
+          <div class="campo">
+            <label for="concepto-linea" class="etiqueta-campo">Concepto</label>
+            <select
+              id="concepto-linea"
+              class="input-formulario"
+              [value]="formulario().idConcepto"
+              (change)="cambiarConcepto($any($event.target).value)"
+            >
+              <option value="">Selecciona un concepto</option>
+              @for (c of conceptosLibres(); track c.idConcepto) {
+                <option
+                  [value]="c.idConcepto"
+                  [selected]="formulario().idConcepto === c.idConcepto.toString()"
+                >
+                  {{ c.nombre }} · {{ c.valorBase | currency: 'COP' : 'symbol' : '1.0-0' }}
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="campo">
+            <label for="valor-linea" class="etiqueta-campo">Valor (COP)</label>
+            <input
+              id="valor-linea"
+              class="input-formulario"
+              inputmode="numeric"
+              autocomplete="off"
+              [value]="formulario().valor"
+              (input)="cambiarValor($any($event.target).value)"
+            />
+          </div>
+
+          <button
+            type="button"
+            class="boton-primario boton-agregar"
+            [disabled]="guardando()"
+            (click)="agregarLinea()"
+          >
+            <i class="fa-solid fa-plus" aria-hidden="true"></i>
+            {{ guardando() ? 'Agregando…' : 'Agregar' }}
+          </button>
+        </div>
+
+        <p class="ayuda-campo">
+          Intereses de mora, cuotas extraordinarias y otros cobros: se propone el valor base y
+          puedes cambiarlo.
+        </p>
+      </section>
+    } @else {
+      <p class="aviso-cerrada">
+        <i class="fa-solid fa-lock" aria-hidden="true"></i>
+        Una factura {{ etiquetaFactura[factura().estado].toLowerCase() }} ya no se modifica. Si falta
+        un cobro, agrégalo en la factura del siguiente periodo.
+      </p>
+    }
+  }
+</app-modal-formulario>
+
+@if (lineaAEliminar(); as l) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la línea?"
+    [mensaje]="mensajeEliminar(l)"
+    [procesando]="eliminando()"
+    (confirmar)="confirmarEliminar()"
+    (cancelar)="lineaAEliminar.set(null)"
+  />
+}

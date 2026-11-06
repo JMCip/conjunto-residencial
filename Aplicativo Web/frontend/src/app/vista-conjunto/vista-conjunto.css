@@ -1,0 +1,25 @@
+
+.contenedor-app {
+  display: flex;
+  height: 100vh;
+}
+
+
+.contenido-principal {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+
+.zona-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 40px 48px;
+}
+
+.contenido-limitado {
+  max-width: var(--contenido-max);
+  margin: 0 auto;
+}

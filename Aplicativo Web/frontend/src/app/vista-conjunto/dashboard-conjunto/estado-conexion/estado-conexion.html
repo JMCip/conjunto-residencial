@@ -1,0 +1,46 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-conexion"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-conexion" class="titulo-tarjeta">Estado de la conexión</h2>
+  </div>
+
+  <div class="cuerpo-conexion" aria-live="polite">
+    <div class="filas-servicio">
+      <div class="fila-servicio">
+        <span class="nombre-servicio">
+          <i class="fa-solid fa-server" aria-hidden="true"></i>
+          Backend
+        </span>
+        <span class="insignia-estado" [class]="'insignia-' + estiloConexion[estadoBackend()]">
+          {{ textoConexion[estadoBackend()] }}
+        </span>
+      </div>
+      <div class="fila-servicio">
+        <span class="nombre-servicio">
+          <i class="fa-solid fa-database" aria-hidden="true"></i>
+          Base de datos
+        </span>
+        <span class="insignia-estado" [class]="'insignia-' + estiloConexion[estadoBd()]">
+          {{ textoConexion[estadoBd()] }}
+        </span>
+      </div>
+    </div>
+
+    <dl class="datos-conexion">
+      <div class="dato-conexion">
+        <dt>Usuario</dt>
+        <dd>{{ infoBd()?.usuario ?? '—' }}</dd>
+      </div>
+      <div class="dato-conexion">
+        <dt>Base</dt>
+        <dd>{{ infoBd()?.base ?? '—' }}</dd>
+      </div>
+      <div class="dato-conexion">
+        <dt>Versión</dt>
+        <dd>{{ infoBd()?.version ?? '—' }}</dd>
+      </div>
+    </dl>
+  </div>
+</section>

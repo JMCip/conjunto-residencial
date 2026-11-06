@@ -1,0 +1,11 @@
+<div class="contenedor-app">
+  <app-sidebar-conjunto />
+  <div class="contenido-principal">
+    <app-topbar-conjunto [vista]="vistaActual()" />
+    <main class="zona-scroll" #zona>
+      <div class="contenido-limitado">
+        <router-outlet />
+      </div>
+    </main>
+  </div>
+</div>

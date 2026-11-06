@@ -1,0 +1,169 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Cabecera de página */
+.titulo-pagina {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.descripcion-pagina {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--texto-secundario);
+}
+
+/* Pestañas: control segmentado hecho con botones */
+.control-segmentado {
+  align-self: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radio-icono);
+  background: var(--borde-suave);
+}
+
+.boton-segmento {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radio-control);
+  background: transparent;
+  color: var(--texto-secundario);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-segmento:hover {
+  color: var(--texto);
+}
+
+.boton-segmento.activo {
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+  box-shadow: var(--sombra-suave);
+}
+
+.boton-segmento:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+}
+
+/* Tarjeta que contiene los filtros y la tabla */
+.tarjeta-seccion {
+  background: var(--bg-tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio-tarjeta);
+  overflow: hidden;
+}
+
+.cabecera-tarjeta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--borde-suave);
+}
+
+.titulo-tarjeta {
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 40px;
+}
+
+/* Error al consultar */
+.mensaje-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 32px;
+  text-align: center;
+}
+
+.circulo-icono {
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+  border-radius: var(--radio-pildora);
+  font-size: 28px;
+}
+
+.circulo-error {
+  background: var(--estado-alerta-bg);
+  color: var(--estado-alerta-texto);
+}
+
+.titulo-vacio {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.texto-vacio {
+  max-width: 420px;
+  color: var(--texto-secundario);
+}
+
+.fila-titulo {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.boton-primario,
+.boton-secundario {
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radio-control);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton-primario {
+  border: 1px solid var(--verde-bosque);
+  background: var(--verde-bosque);
+  color: var(--bg-tarjeta);
+}
+
+.boton-primario:hover {
+  border-color: var(--verde-bosque-oscuro);
+  background: var(--verde-bosque-oscuro);
+}
+
+.boton-secundario {
+  border: 1px solid var(--borde);
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+}
+
+.boton-secundario:hover {
+  background: var(--bg-app);
+}
+
+.boton-primario:focus-visible,
+.boton-secundario:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+}

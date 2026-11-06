@@ -1,0 +1,89 @@
+@if (cargando()) {
+  <div class="lista-esqueleto">
+    @for (fila of [1, 2, 3, 4, 5, 6]; track fila) {
+      <span class="esqueleto esqueleto-fila"></span>
+    }
+  </div>
+} @else if (facturas().length === 0) {
+  <!-- Vacío -->
+  <div class="estado-vacio">
+    <span class="circulo-icono" aria-hidden="true">
+      <i class="fa-solid fa-file-invoice-dollar"></i>
+    </span>
+    <p class="titulo-vacio">No hay registros para este filtro</p>
+    <p class="texto-vacio">Prueba con otro estado o con otro texto de búsqueda.</p>
+    <button type="button" class="boton-secundario" (click)="limpiarFiltros.emit()">
+      Ver todas las facturas
+    </button>
+  </div>
+} @else {
+  <div class="contenedor-tabla">
+    <table class="tabla-conjunto">
+      <thead>
+      <tr>
+        <th scope="col">Número</th>
+        <th scope="col">Casa</th>
+        <th scope="col">Periodo</th>
+        <th scope="col">Vencimiento</th>
+        <th scope="col" class="col-dinero">Valor</th>
+        <th scope="col">Estado</th>
+        <th scope="col" class="col-acciones">Acciones</th>
+      </tr>
+      </thead>
+      <tbody>
+        @for (f of facturas(); track f.numeroFactura) {
+          <tr>
+            <td class="num">{{ f.numeroFactura }}</td>
+            <td class="col-principal">Mz {{ f.casaManzana }} · Casa {{ f.casaNumero }}</td>
+            <td>{{ f.periodo }}</td>
+            <td class="num">{{ f.fechaVencimiento | date: 'dd/MM/y' }}</td>
+            <td class="col-dinero num">
+              {{ f.total ?? 0 | currency: 'COP' : 'symbol' : '1.0-0' }}
+            </td>
+            <td>
+              <span class="insignia-estado" [class]="'insignia-' + estiloFactura[f.estado]">
+                {{ etiquetaFactura[f.estado] }}
+              </span>
+            </td>
+            <td class="col-acciones">
+              <button
+                type="button"
+                class="boton-icono"
+                aria-label="Ver detalle de la factura"
+                title="Ver detalle (líneas)"
+                (click)="verDetalle.emit(f)"
+              >
+                <i class="fa-solid fa-list-ul" aria-hidden="true"></i>
+              </button>
+              @if (abierta(f)) {
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Cambiar vencimiento"
+                  title="Cambiar vencimiento"
+                  (click)="editar.emit(f)"
+                >
+                  <i class="fa-solid fa-calendar-days" aria-hidden="true"></i>
+                </button>
+              }
+              @if (f.estado === 'PENDIENTE') {
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar factura"
+                  title="Eliminar factura"
+                  (click)="eliminar.emit(f)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              }
+            </td>
+
+
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+}

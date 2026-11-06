@@ -1,0 +1,254 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-reservas"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-reservas" class="titulo-tarjeta">Reservas</h2>
+
+    <div class="controles-tabla">
+      <div class="control-segmentado" role="group" aria-label="Filtrar por estado">
+        @for (opcion of opcionesFiltro; track opcion) {
+          <button
+            type="button"
+            class="boton-segmento"
+            [class.activo]="filtroEstado() === opcion"
+            [attr.aria-pressed]="filtroEstado() === opcion"
+            (click)="filtroEstado.set(opcion)"
+          >
+            {{ textoFiltro(opcion) }}
+            @if (!cargando()) {
+              <span class="conteo-segmento num">{{ conteos()[opcion] }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva reserva
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarReservas()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (reservasFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-calendar-check"></i>
+      </span>
+      @if (reservas().length === 0) {
+        <p class="titulo-vacio">Todavía no hay reservas del salón</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para este filtro</p>
+        <p class="texto-vacio">No hay reservas con ese estado.</p>
+        <button type="button" class="boton-secundario" (click)="filtroEstado.set('TODAS')">
+          Ver todas las reservas
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+        <tr>
+          <th scope="col">Fecha</th>
+          <th scope="col">Casa</th>
+          <th scope="col">Franja</th>
+          <th scope="col" class="col-numero">Horas</th>
+          <th scope="col" class="col-numero">Valor / hora</th>
+          <th scope="col" class="col-numero">Total</th>
+          <th scope="col" class="col-numero">Depósito</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (r of reservasFiltradas(); track r.idReserva) {
+            <tr>
+              <td class="col-principal num col-fecha">{{ r.fechaReserva | date: 'dd/MM/y' }}</td>
+              <td>{{ nombreCasa(r.casaManzana, r.casaNumero) }}</td>
+              <td class="num col-fecha">{{ franja(r) }}</td>
+              <td class="col-numero num">{{ r.horasReservadas | number: '1.0-2' }}</td>
+              <td class="col-numero num">{{ r.valorPorHora | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+              <td class="col-numero num col-total">{{ r.valorTotal | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+              <td class="col-numero num">{{ r.valorDeposito | currency: 'COP' : 'symbol' : '1.0-0' }}</td>
+              <td>
+                <span class="insignia-estado" [class]="'insignia-' + estiloReserva[r.estado]">
+                  {{ etiquetaReserva[r.estado] }}
+                </span>
+              </td>
+              <td class="col-acciones">
+                @if (r.estado === 'CONFIRMADA') {
+                  <button
+                    type="button"
+                    class="boton-icono"
+                    aria-label="Finalizar reserva"
+                    [title]="yaComenzo(r) ? 'Finalizar (devuelve el depósito)' : 'Disponible cuando empiece la reserva'"
+                    [disabled]="!yaComenzo(r)"
+                    (click)="accion.set({ tipo: 'FINALIZADA', reserva: r })"
+                  >
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="boton-icono boton-icono-peligro"
+                    aria-label="Retener depósito"
+                    [title]="yaComenzo(r) ? 'Retener depósito (hubo daños)' : 'Disponible cuando empiece la reserva'"
+                    [disabled]="!yaComenzo(r)"
+                    (click)="accion.set({ tipo: 'DEPOSITO_RETENIDO', reserva: r })"
+                  >
+                    <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
+                  </button>
+                  <button
+                    type="button"
+                    class="boton-icono boton-icono-peligro"
+                    aria-label="Cancelar reserva"
+                    title="Cancelar reserva"
+                    (click)="accion.set({ tipo: 'CANCELADA', reserva: r })"
+                  >
+                    <i class="fa-solid fa-ban" aria-hidden="true"></i>
+                  </button>
+                } @else if (r.estado === 'CANCELADA') {
+                  <button
+                    type="button"
+                    class="boton-icono boton-icono-peligro"
+                    aria-label="Eliminar reserva"
+                    title="Eliminar reserva"
+                    (click)="accion.set({ tipo: 'ELIMINAR', reserva: r })"
+                  >
+                    <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                  </button>
+                } @else {
+                  <span class="col-secundaria">—</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    titulo="Nueva reserva"
+    textoGuardar="Crear reserva"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="casa-reserva" class="etiqueta-campo">Casa</label>
+      <select
+        id="casa-reserva"
+        class="input-formulario"
+        [value]="formulario().casa"
+        (change)="cambiarCampo('casa', $any($event.target).value)"
+      >
+        <option value="">Selecciona una casa</option>
+        @for (c of casas(); track llaveCasa(c.manzana, c.numero)) {
+          <option
+            [value]="llaveCasa(c.manzana, c.numero)"
+            [selected]="formulario().casa === llaveCasa(c.manzana, c.numero)"
+          >
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="inicio-reserva" class="etiqueta-campo">Inicio</label>
+        <input
+          id="inicio-reserva"
+          type="datetime-local"
+          class="input-formulario"
+          [value]="formulario().horaInicio"
+          (input)="cambiarCampo('horaInicio', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="final-reserva" class="etiqueta-campo">Final</label>
+        <input
+          id="final-reserva"
+          type="datetime-local"
+          class="input-formulario"
+          [value]="formulario().horaFinal"
+          (input)="cambiarCampo('horaFinal', $any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="valor-hora-reserva" class="etiqueta-campo">Valor por hora (COP)</label>
+        <input
+          id="valor-hora-reserva"
+          class="input-formulario num"
+          inputmode="numeric"
+          autocomplete="off"
+          [disabled]="tarifaHora() !== null"
+          [value]="formulario().valorPorHora"
+          (input)="cambiarCampo('valorPorHora', $any($event.target).value)"
+        />
+        @if (tarifaHora() !== null) {
+          <p class="ayuda-campo">Tarifa vigente del concepto «Salón comunal».</p>
+        } @else {
+          <p class="ayuda-campo">No se encontró el concepto «Salón comunal»: escribe la tarifa.</p>
+        }
+      </div>
+      <div class="campo">
+        <label for="deposito-reserva" class="etiqueta-campo">Depósito (COP)</label>
+        <input
+          id="deposito-reserva"
+          class="input-formulario num"
+          inputmode="numeric"
+          autocomplete="off"
+          [value]="formulario().valorDeposito"
+          (input)="cambiarCampo('valorDeposito', $any($event.target).value)"
+        />
+        <p class="ayuda-campo">Garantía que se devuelve al finalizar; no se factura.</p>
+      </div>
+    </div>
+
+    @if (resumen(); as res) {
+      <div class="resumen-total" aria-live="polite">
+        <span>{{ res.horas | number: '1.0-2' }} horas reservadas</span>
+        @if (res.total !== null) {
+          <strong>Total: {{ res.total | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
+        }
+      </div>
+    }
+  </app-modal-formulario>
+}
+
+@if (accion(); as a) {
+  <app-dialogo-confirmar
+    [titulo]="tituloAccion(a)"
+    [mensaje]="mensajeAccion(a)"
+    [textoConfirmar]="textoConfirmarAccion(a)"
+    [procesando]="procesando()"
+    (confirmar)="confirmarAccion()"
+    (cancelar)="accion.set(null)"
+  />
+}

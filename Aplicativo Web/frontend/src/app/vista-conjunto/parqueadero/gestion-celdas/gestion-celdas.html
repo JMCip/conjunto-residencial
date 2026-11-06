@@ -1,0 +1,168 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-celdas"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-celdas" class="titulo-tarjeta">Celdas</h2>
+
+    <div class="controles-tabla">
+      <div class="control-segmentado" role="group" aria-label="Filtrar por estado">
+        @for (opcion of opcionesFiltro; track opcion) {
+          <button
+            type="button"
+            class="boton-segmento"
+            [class.activo]="filtroEstado() === opcion"
+            [attr.aria-pressed]="filtroEstado() === opcion"
+            (click)="filtroEstado.set(opcion)"
+          >
+            {{ textoFiltro(opcion) }}
+            @if (!cargando()) {
+              <span class="conteo-segmento num">{{ conteos()[opcion] }}</span>
+            }
+          </button>
+        }
+      </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva celda
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarCeldas()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (celdasFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-square-parking"></i>
+      </span>
+      @if (celdas().length === 0) {
+        <p class="titulo-vacio">Todavía no hay celdas registradas</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para este filtro</p>
+        <p class="texto-vacio">No hay celdas con ese estado.</p>
+        <button type="button" class="boton-secundario" (click)="filtroEstado.set('TODAS')">
+          Ver todas las celdas
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+        <tr>
+          <th scope="col">Celda</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Estado</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (c of celdasFiltradas(); track c.idCelda) {
+            <tr>
+              <td class="col-principal num">{{ nombreCelda(c.idCelda) }}</td>
+              <td>{{ etiqueta[c.tipo] ?? c.tipo }}</td>
+              <td>
+                <span
+                  class="insignia-estado"
+                  [class]="c.estado === 'DESOCUPADA' ? 'insignia-ok' : 'insignia-pendiente'"
+                >
+                  {{ etiqueta[c.estado] ?? c.estado }}
+                </span>
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar celda"
+                  (click)="abrirEditar(c)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar celda"
+                  (click)="celdaAEliminar.set(c)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar celda' : 'Nueva celda'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear celda'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    @if (editando(); as celda) {
+      <p class="ayuda-campo-normal">Editando la {{ nombreCelda(celda.idCelda) }}.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="tipo-celda" class="etiqueta-campo">Tipo</label>
+        <select
+          id="tipo-celda"
+          class="input-formulario"
+          [value]="formulario().tipo"
+          (change)="cambiarCampo('tipo', $any($event.target).value)"
+        >
+          @for (t of tiposCelda; track t) {
+            <option [value]="t" [selected]="formulario().tipo === t">{{ etiqueta[t] }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="estado-celda" class="etiqueta-campo">Estado</label>
+        <select
+          id="estado-celda"
+          class="input-formulario"
+          [value]="formulario().estado"
+          (change)="cambiarCampo('estado', $any($event.target).value)"
+        >
+          @for (e of estadosCelda; track e) {
+            <option [value]="e" [selected]="formulario().estado === e">{{ etiqueta[e] }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </app-modal-formulario>
+}
+
+@if (celdaAEliminar(); as celda) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la celda?"
+    [mensaje]="'Se eliminará la ' + nombreCelda(celda.idCelda) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="celdaAEliminar.set(null)"
+  />
+}

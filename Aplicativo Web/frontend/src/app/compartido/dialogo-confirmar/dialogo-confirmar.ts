@@ -1,0 +1,57 @@
+import { afterNextRender, Component, ElementRef, input, output, viewChild } from '@angular/core';
+
+/**
+ * @component DialogoConfirmar
+ * @description Ventana pequeña para confirmar una acción que no se puede deshacer
+ * (eliminar un registro). No hace nada por sí sola: avisa confirmar o cancelar.
+ */
+@Component({
+  selector: 'app-dialogo-confirmar',
+  imports: [],
+  templateUrl: './dialogo-confirmar.html',
+  styleUrl: './dialogo-confirmar.css',
+  host: { '(document:keydown.escape)': 'cancelarSiSePuede()' },
+})
+export class DialogoConfirmar {
+  /** Pregunta en negrita ("¿Eliminar la casa?"). */
+  readonly titulo = input.required<string>();
+
+  /** Explicación de qué se va a borrar. */
+  readonly mensaje = input.required<string>();
+
+  /** Texto del botón de confirmar. */
+  readonly textoConfirmar = input('Eliminar');
+
+  /** true mientras se envía al backend: deshabilita los botones. */
+  readonly procesando = input(false);
+
+  /** Avisa que el usuario confirmó. */
+  readonly confirmar = output<void>();
+
+  /** Avisa que el usuario se arrepintió (Cancelar o Escape). */
+  readonly cancelar = output<void>();
+
+  /** Botón Cancelar: recibe el foco al abrir, para que Enter no borre por accidente. */
+  private readonly botonCancelar = viewChild.required<ElementRef<HTMLButtonElement>>('cancelarBtn');
+
+  /** Al abrir el diálogo, enfoca el botón Cancelar. */
+  constructor() {
+    afterNextRender(() => this.botonCancelar().nativeElement.focus());
+  }
+
+  /** Momento de la última confirmación, para ignorar el doble clic. */
+  private ultimaConfirmacion = 0;
+
+  /** Confirma una sola vez aunque se haga doble clic (evita dos DELETE seguidos). */
+  confirmarUnaVez(): void {
+    const ahora = Date.now();
+    if (this.procesando() || ahora - this.ultimaConfirmacion < 800) return;
+    this.ultimaConfirmacion = ahora;
+    this.confirmar.emit();
+  }
+
+  /** Cancela con Escape, salvo mientras se está procesando. */
+  cancelarSiSePuede(): void {
+    if (!this.procesando()) this.cancelar.emit();
+  }
+}

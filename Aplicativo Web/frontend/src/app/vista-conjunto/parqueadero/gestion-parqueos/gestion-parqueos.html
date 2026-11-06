@@ -1,0 +1,210 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-parqueos"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-parqueos" class="titulo-tarjeta">Parqueos</h2>
+
+    <div class="controles-tabla">
+      <label class="casilla">
+        <input type="checkbox" [checked]="soloAdentro()" (change)="soloAdentro.set(!soloAdentro())" />
+        Solo los que siguen adentro
+      </label>
+      <div class="campo-busqueda">
+        <label for="buscar-parqueo" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-parqueo"
+            type="search"
+            class="input-busqueda"
+            placeholder="Placa o celda"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nuevo parqueo
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarParqueos()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (parqueosFiltrados().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-clock"></i>
+      </span>
+      @if (parqueos().length === 0) {
+        <p class="titulo-vacio">Todavía no hay parqueos registrados</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para este filtro</p>
+        <p class="texto-vacio">Prueba con otra placa o quita "Solo los que siguen adentro".</p>
+        <button
+          type="button"
+          class="boton-secundario"
+          (click)="busqueda.set(''); soloAdentro.set(false)"
+        >
+          Ver todos los parqueos
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+        <tr>
+          <th scope="col">Placa</th>
+          <th scope="col">Vehículo</th>
+          <th scope="col">Celda</th>
+          <th scope="col">Entrada</th>
+          <th scope="col">Salida</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (p of parqueosFiltrados(); track p.idParqueo) {
+            <tr>
+              <td class="col-principal num">{{ p.vehiculoPlaca }}</td>
+              <td class="col-secundaria">{{ descripcionVehiculo(p.vehiculoPlaca) || '—' }}</td>
+              <td class="num">{{ nombreCelda(p.idCelda) }}</td>
+              <td class="num col-fecha">{{ textoFechaHora(p.fechaHoraEntrada) }}</td>
+              <td class="num col-fecha">
+                @if (p.fechaHoraSalida) {
+                  {{ textoFechaHora(p.fechaHoraSalida) }}
+                } @else {
+                  <span class="insignia-estado insignia-pendiente">Adentro</span>
+                }
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar parqueo"
+                  (click)="abrirEditar(p)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar parqueo"
+                  (click)="parqueoAEliminar.set(p)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar parqueo' : 'Nuevo parqueo'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Registrar parqueo'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="vehiculo-parqueo" class="etiqueta-campo">Vehículo</label>
+        <select
+          id="vehiculo-parqueo"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().vehiculo"
+          (change)="cambiarCampo('vehiculo', $any($event.target).value)"
+        >
+          <option value="">Selecciona</option>
+          @for (v of vehiculos(); track v.placa) {
+            <option [value]="v.placa" [selected]="formulario().vehiculo === v.placa">
+              {{ v.placa }}
+            </option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="celda-parqueo" class="etiqueta-campo">Celda</label>
+        <select
+          id="celda-parqueo"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().celda"
+          (change)="cambiarCampo('celda', $any($event.target).value)"
+        >
+          <option value="">Selecciona</option>
+          @for (c of celdas(); track c.idCelda) {
+            <option [value]="c.idCelda" [selected]="formulario().celda === c.idCelda.toString()">
+              {{ nombreCelda(c.idCelda) }} ({{ etiquetaCelda[c.tipo] ?? c.tipo }})
+            </option>
+          }
+        </select>
+      </div>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">El vehículo y la celda no se pueden cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="entrada-parqueo" class="etiqueta-campo">Entrada</label>
+        <input
+          id="entrada-parqueo"
+          type="datetime-local"
+          class="input-formulario"
+          [value]="formulario().entrada"
+          (input)="cambiarCampo('entrada', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="salida-parqueo" class="etiqueta-campo">Salida (opcional)</label>
+        <input
+          id="salida-parqueo"
+          type="datetime-local"
+          class="input-formulario"
+          [value]="formulario().salida"
+          (input)="cambiarCampo('salida', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    <p class="ayuda-campo-normal">Deja la salida vacía mientras el vehículo siga adentro.</p>
+  </app-modal-formulario>
+}
+
+@if (parqueoAEliminar(); as parqueo) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar el parqueo?"
+    [mensaje]="'Se eliminará el registro del vehículo ' + parqueo.vehiculoPlaca + ' en la ' + nombreCelda(parqueo.idCelda) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="parqueoAEliminar.set(null)"
+  />
+}

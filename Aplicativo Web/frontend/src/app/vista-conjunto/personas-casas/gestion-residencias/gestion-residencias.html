@@ -1,0 +1,205 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-residencias"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-residencias" class="titulo-tarjeta">Residencias</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-residencia" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-residencia"
+            type="search"
+            class="input-busqueda"
+            placeholder="Casa o residente"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva residencia
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarResidencias()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (residenciasFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-bed"></i>
+      </span>
+      @if (residencias().length === 0) {
+        <p class="titulo-vacio">Todavía no hay residencias registradas</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otra casa o con otro residente.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todas las residencias
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+        <tr>
+          <th scope="col">Casa</th>
+          <th scope="col">Residente</th>
+          <th scope="col">Ingreso</th>
+          <th scope="col">Salida</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (r of residenciasFiltradas(); track r.idResidencia) {
+            <tr>
+              <td class="col-principal">{{ nombreCasa(r.casaManzana, r.casaNumero) }}</td>
+              <td>{{ residente(r) }}</td>
+              <td class="num">{{ r.fechaIngreso | date: 'dd/MM/y' }}</td>
+              <td class="num">
+                @if (r.fechaSalida) {
+                  {{ r.fechaSalida | date: 'dd/MM/y' }}
+                } @else {
+                  <span class="insignia-estado insignia-ok">Vive aquí</span>
+                }
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar residencia"
+                  (click)="abrirEditar(r)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar residencia"
+                  (click)="residenciaAEliminar.set(r)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar residencia' : 'Nueva residencia'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear residencia'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="campo">
+      <label for="casa-residencia" class="etiqueta-campo">Casa</label>
+      <select
+        id="casa-residencia"
+        class="input-formulario"
+        [disabled]="editando() !== null"
+        [value]="formulario().casa"
+        (change)="cambiarCampo('casa', $any($event.target).value)"
+      >
+        <option value="">Selecciona una casa</option>
+        @for (c of casas(); track llaveCasa(c.manzana, c.numero)) {
+          <option
+            [value]="llaveCasa(c.manzana, c.numero)"
+            [selected]="formulario().casa === llaveCasa(c.manzana, c.numero)"
+          >
+            {{ nombreCasa(c.manzana, c.numero) }}
+          </option>
+        }
+      </select>
+    </div>
+
+    <div class="campo">
+      <label for="residente-residencia" class="etiqueta-campo">Residente</label>
+      <select
+        id="residente-residencia"
+        class="input-formulario"
+        [disabled]="editando() !== null"
+        [value]="formulario().residente"
+        (change)="cambiarCampo('residente', $any($event.target).value)"
+      >
+        <option value="">Selecciona un residente</option>
+        @for (p of residentes(); track llavePersona(p.tipoDocumento, p.numeroDocumento)) {
+          <option
+            [value]="llavePersona(p.tipoDocumento, p.numeroDocumento)"
+            [selected]="formulario().residente === llavePersona(p.tipoDocumento, p.numeroDocumento)"
+          >
+            {{ nombrePersona(p) }} ({{ p.tipoDocumento }} {{ p.numeroDocumento }})
+          </option>
+        }
+      </select>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">La casa y el residente no se pueden cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="ingreso-residencia" class="etiqueta-campo">Fecha de ingreso</label>
+        <input
+          id="ingreso-residencia"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaIngreso"
+          (input)="cambiarCampo('fechaIngreso', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="salida-residencia" class="etiqueta-campo">Fecha de salida (opcional)</label>
+        <input
+          id="salida-residencia"
+          type="date"
+          class="input-formulario"
+          [value]="formulario().fechaSalida"
+          (input)="cambiarCampo('fechaSalida', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    <p class="ayuda-campo-normal">Deja la salida vacía mientras la persona siga viviendo en la casa.</p>
+  </app-modal-formulario>
+}
+
+@if (residenciaAEliminar(); as residencia) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la residencia?"
+    [mensaje]="'Se eliminará el registro de ' + residente(residencia) + ' en ' + nombreCasa(residencia.casaManzana, residencia.casaNumero) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="residenciaAEliminar.set(null)"
+  />
+}

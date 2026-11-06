@@ -1,0 +1,236 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-personas"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-personas" class="titulo-tarjeta">Personas</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-persona" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-persona"
+            type="search"
+            class="input-busqueda"
+            placeholder="Nombre, documento o rol"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+
+      <button type="button" class="boton-primario" (click)="abrirCrear()">
+        <i class="fa-solid fa-plus" aria-hidden="true"></i>
+        Nueva persona
+      </button>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarPersonas()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (personasFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-user"></i>
+      </span>
+      @if (personas().length === 0) {
+        <p class="titulo-vacio">Todavía no hay personas registradas</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otro nombre, documento o rol.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todas las personas
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+        <tr>
+          <th scope="col">Persona</th>
+          <th scope="col">Documento</th>
+          <th scope="col">Correo</th>
+          <th scope="col">Roles</th>
+          <th scope="col" class="col-acciones">Acciones</th>
+        </tr>
+        </thead>
+        <tbody>
+          @for (p of personasFiltradas(); track p.tipoDocumento + p.numeroDocumento) {
+            <tr>
+              <td class="col-principal">{{ nombrePersona(p) }}</td>
+              <td class="num col-documento">{{ p.tipoDocumento }} {{ p.numeroDocumento }}</td>
+              <td class="col-secundaria">{{ p.correo ?? '—' }}</td>
+              <td>
+                <div class="lista-insignias">
+                  @for (rol of rolesDe(p); track rol) {
+                    <span class="insignia-estado insignia-neutro">{{ textoRol(rol) }}</span>
+                  } @empty {
+                    <span class="col-secundaria">Sin rol</span>
+                  }
+                </div>
+              </td>
+              <td class="col-acciones">
+                <button
+                  type="button"
+                  class="boton-icono"
+                  aria-label="Editar persona"
+                  (click)="abrirEditar(p)"
+                >
+                  <i class="fa-solid fa-pen" aria-hidden="true"></i>
+                </button>
+                <button
+                  type="button"
+                  class="boton-icono boton-icono-peligro"
+                  aria-label="Eliminar persona"
+                  (click)="personaAEliminar.set(p)"
+                >
+                  <i class="fa-solid fa-trash-can" aria-hidden="true"></i>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
+
+@if (modalAbierto()) {
+  <app-modal-formulario
+    [titulo]="editando() ? 'Editar persona' : 'Nueva persona'"
+    [textoGuardar]="editando() ? 'Guardar cambios' : 'Crear persona'"
+    [guardando]="guardando()"
+    [error]="errorFormulario()"
+    (guardar)="guardar()"
+    (cerrar)="cerrarModal()"
+  >
+    <div class="fila-campos fila-documento">
+      <div class="campo">
+        <label for="tipo-doc" class="etiqueta-campo">Tipo</label>
+        <select
+          id="tipo-doc"
+          class="input-formulario"
+          [disabled]="editando() !== null"
+          [value]="formulario().tipoDocumento"
+          (change)="cambiarCampo('tipoDocumento', $any($event.target).value)"
+        >
+          @for (t of tiposDocumento; track t) {
+            <option [value]="t">{{ t }}</option>
+          }
+        </select>
+      </div>
+      <div class="campo">
+        <label for="num-doc" class="etiqueta-campo">Número de documento</label>
+        <input
+          id="num-doc"
+          class="input-formulario"
+          autocomplete="off"
+          [disabled]="editando() !== null"
+          [value]="formulario().numeroDocumento"
+          (input)="cambiarCampo('numeroDocumento', $any($event.target).value)"
+        />
+      </div>
+    </div>
+    @if (editando()) {
+      <p class="ayuda-campo">El documento no se puede cambiar.</p>
+    }
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="p-nombre" class="etiqueta-campo">Primer nombre</label>
+        <input
+          id="p-nombre"
+          class="input-formulario"
+          [value]="formulario().primerNombre"
+          (input)="cambiarCampo('primerNombre', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="s-nombre" class="etiqueta-campo">Segundo nombre (opcional)</label>
+        <input
+          id="s-nombre"
+          class="input-formulario"
+          [value]="formulario().segundoNombre"
+          (input)="cambiarCampo('segundoNombre', $any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="fila-campos">
+      <div class="campo">
+        <label for="p-apellido" class="etiqueta-campo">Primer apellido</label>
+        <input
+          id="p-apellido"
+          class="input-formulario"
+          [value]="formulario().primerApellido"
+          (input)="cambiarCampo('primerApellido', $any($event.target).value)"
+        />
+      </div>
+      <div class="campo">
+        <label for="s-apellido" class="etiqueta-campo">Segundo apellido (opcional)</label>
+        <input
+          id="s-apellido"
+          class="input-formulario"
+          [value]="formulario().segundoApellido"
+          (input)="cambiarCampo('segundoApellido', $any($event.target).value)"
+        />
+      </div>
+    </div>
+
+    <div class="campo">
+      <label for="correo" class="etiqueta-campo">Correo (opcional)</label>
+      <input
+        id="correo"
+        type="email"
+        class="input-formulario"
+        [value]="formulario().correo"
+        (input)="cambiarCampo('correo', $any($event.target).value)"
+      />
+    </div>
+
+    <fieldset class="grupo-casillas">
+      <legend class="etiqueta-campo">Roles</legend>
+      @for (r of roles; track r.ruta) {
+        <label class="casilla">
+          <input
+            type="checkbox"
+            [checked]="rolesElegidos().includes(r.ruta)"
+            (change)="alternarRol(r.ruta)"
+          />
+          {{ r.texto }}
+        </label>
+      }
+    </fieldset>
+  </app-modal-formulario>
+}
+
+@if (personaAEliminar(); as persona) {
+  <app-dialogo-confirmar
+    titulo="¿Eliminar la persona?"
+    [mensaje]="'Se eliminará a ' + nombrePersona(persona) + '. Esta acción no se puede deshacer.'"
+    [procesando]="eliminando()"
+    (confirmar)="eliminar()"
+    (cancelar)="personaAEliminar.set(null)"
+  />
+}

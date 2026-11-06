@@ -1,0 +1,56 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.titulo-pagina {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.descripcion-pagina {
+  margin-top: 4px;
+  font-size: 15px;
+  color: var(--texto-secundario);
+}
+
+/* Pestañas internas: control segmentado hecho con enlaces */
+.control-segmentado {
+  align-self: flex-start;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radio-icono);
+  background: var(--borde-suave);
+}
+
+.boton-segmento {
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radio-control);
+  color: var(--texto-secundario);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.boton-segmento:hover {
+  color: var(--texto);
+}
+
+.boton-segmento.activo {
+  background: var(--bg-tarjeta);
+  color: var(--verde-bosque);
+  box-shadow: var(--sombra-suave);
+}
+
+.boton-segmento:focus-visible {
+  outline: 2px solid var(--verde-hoja);
+  outline-offset: 1px;
+}

@@ -1,0 +1,91 @@
+<section
+  class="tarjeta-seccion animate__animated animate__fadeInUp animate__faster"
+  aria-labelledby="titulo-asignaciones"
+>
+  <div class="cabecera-tarjeta">
+    <h2 id="titulo-asignaciones" class="titulo-tarjeta">Asignaciones de celdas</h2>
+
+    <div class="controles-tabla">
+      <div class="campo-busqueda">
+        <label for="buscar-asignacion" class="etiqueta-campo">Buscar</label>
+        <div class="envoltura-input">
+          <i class="fa-solid fa-magnifying-glass icono-input" aria-hidden="true"></i>
+          <input
+            #campo
+            id="buscar-asignacion"
+            type="search"
+            class="input-busqueda"
+            placeholder="Celda o casa"
+            autocomplete="off"
+            [value]="busqueda()"
+            (input)="busqueda.set(campo.value)"
+          />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (cargando()) {
+    <div class="lista-esqueleto">
+      @for (fila of [1, 2, 3, 4, 5]; track fila) {
+        <span class="esqueleto esqueleto-fila"></span>
+      }
+    </div>
+  } @else if (errorCarga()) {
+    <div class="estado-vacio">
+      <span class="circulo-icono circulo-error" aria-hidden="true">
+        <i class="fa-solid fa-plug-circle-xmark"></i>
+      </span>
+      <p class="titulo-vacio">No se pudo consultar la información</p>
+      <p class="texto-vacio">Verifica que el backend esté corriendo.</p>
+      <button type="button" class="boton-secundario" (click)="cargarAsignaciones()">
+        Reintentar
+      </button>
+    </div>
+  } @else if (asignacionesFiltradas().length === 0) {
+    <div class="estado-vacio">
+      <span class="circulo-icono" aria-hidden="true">
+        <i class="fa-solid fa-link"></i>
+      </span>
+      @if (asignaciones().length === 0) {
+        <p class="titulo-vacio">Todavía no hay celdas asignadas</p>
+      } @else {
+        <p class="titulo-vacio">No hay registros para esta búsqueda</p>
+        <p class="texto-vacio">Prueba con otra celda o con otra casa.</p>
+        <button type="button" class="boton-secundario" (click)="busqueda.set('')">
+          Ver todas las asignaciones
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="contenedor-tabla">
+      <table class="tabla-conjunto">
+        <thead>
+          <tr>
+            <th scope="col">Celda</th>
+            <th scope="col">Casa</th>
+            <th scope="col">Inicio</th>
+            <th scope="col">Fin</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (a of asignacionesFiltradas(); track a.idAsignacion) {
+            <tr>
+              <td class="col-principal num">{{ nombreCelda(a.idCelda) }}</td>
+              <td>{{ nombreCasa(a.casaManzana, a.casaNumero) }}</td>
+              <td class="num">{{ a.fechaInicio | date: 'dd/MM/y' }}</td>
+              <td class="num">
+                @if (a.fechaFin) {
+                  {{ a.fechaFin | date: 'dd/MM/y' }}
+                } @else {
+                  <span class="insignia-estado insignia-ok">Vigente</span>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <p class="pie-tabla" aria-live="polite">{{ textoConteo() }}</p>
+  }
+</section>
