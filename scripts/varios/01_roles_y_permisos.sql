@@ -1,5 +1,5 @@
 -- =====================================================================
--- Rol de aplicacion (backend) con permisos CRUD, sin DDL ni TRUNCATE.
+-- Rol de aplicacion (backend) con permisos CRUD
 -- Ejecutar como superusuario (postgres).
 -- =====================================================================
 
