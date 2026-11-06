@@ -25,6 +25,7 @@ interface FormularioResidencia {
   fechaSalida: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioResidencia = {
   casa: '',
   residente: '',
@@ -44,9 +45,13 @@ const FORMULARIO_VACIO: FormularioResidencia = {
   styleUrl: './gestion-residencias.css',
 })
 export class GestionResidencias implements OnInit {
+  /** Servicio de residencias. */
   private residenciaService = inject(ResidenciaService);
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de personas y roles. */
   private personaService = inject(PersonaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Residencias obtenidas del backend. */
@@ -54,6 +59,7 @@ export class GestionResidencias implements OnInit {
 
   /** Casas y residentes para los selectores. */
   protected readonly casas = signal<CasaModel[]>([]);
+  /** Lista de residentes consultada al backend. */
   protected readonly residentes = signal<PersonaModel[]>([]);
 
   /** Nombre de cada residente por su llave "CC|123". */
@@ -67,8 +73,11 @@ export class GestionResidencias implements OnInit {
       ),
   );
 
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** Residencias visibles según la búsqueda (casa o residente). */
@@ -90,9 +99,11 @@ export class GestionResidencias implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Funciones para la plantilla. */
+  /** Función del modelo para mostrar el nombre de una casa en la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  /** Función del modelo para armar la llave de una persona en la plantilla. */
   protected readonly llavePersona = llavePersona;
+  /** Función del modelo para mostrar el nombre de una persona en la plantilla. */
   protected readonly nombrePersona = nombrePersona;
 
   /** Modal de crear/editar. */
@@ -101,14 +112,19 @@ export class GestionResidencias implements OnInit {
   /** Residencia que se edita (null = crear). */
   protected readonly editando = signal<ResidenciaModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioResidencia>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Residencia pendiente de confirmar para eliminar. */
   protected readonly residenciaAEliminar = signal<ResidenciaModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarResidencias();
   }

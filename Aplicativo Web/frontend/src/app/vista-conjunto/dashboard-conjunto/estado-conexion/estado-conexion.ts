@@ -39,7 +39,9 @@ export class EstadoConexion {
   /** Datos de la base, o null si aún no llegan o la consulta falló. */
   readonly infoBd = input.required<InfoBdModel | null>();
 
-  /** Diccionarios de texto y color (constantes). */
+  /** Texto de la insignia para cada estado (constante). */
   protected readonly textoConexion = TEXTO_CONEXION;
+
+  /** Color de la insignia para cada estado (constante). */
   protected readonly estiloConexion = ESTILO_CONEXION;
 }

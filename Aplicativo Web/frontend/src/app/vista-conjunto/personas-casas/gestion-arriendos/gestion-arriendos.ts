@@ -31,6 +31,7 @@ interface FormularioArriendo {
   estadoContrato: ArriendoModel['estadoContrato'];
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioArriendo = {
   casa: '',
   propietario: '',
@@ -53,9 +54,13 @@ const FORMULARIO_VACIO: FormularioArriendo = {
   styleUrl: './gestion-arriendos.css',
 })
 export class GestionArriendos implements OnInit {
+  /** Servicio de contratos de arriendo. */
   private arriendoService = inject(ArriendoService);
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de personas y roles. */
   private personaService = inject(PersonaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Contratos obtenidos del backend. */
@@ -63,7 +68,9 @@ export class GestionArriendos implements OnInit {
 
   /** Casas, propietarios y arrendatarios para los selectores. */
   protected readonly casas = signal<CasaModel[]>([]);
+  /** Lista de propietarios consultada al backend. */
   protected readonly propietarios = signal<PersonaModel[]>([]);
+  /** Lista de arrendatarios consultada al backend. */
   protected readonly arrendatarios = signal<PersonaModel[]>([]);
 
   /** Nombre de cada persona (propietarios y arrendatarios) por su llave "CC|123". */
@@ -77,8 +84,11 @@ export class GestionArriendos implements OnInit {
       ),
   );
 
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** Contratos visibles según la búsqueda (casa, personas o estado). */
@@ -106,10 +116,13 @@ export class GestionArriendos implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Constantes y funciones para la plantilla. */
+  /** Función del modelo para mostrar el nombre de una casa en la plantilla. */
   protected readonly nombreCasa = nombreCasa;
+  /** Función del modelo para armar la llave de una persona en la plantilla. */
   protected readonly llavePersona = llavePersona;
+  /** Función del modelo para mostrar el nombre de una persona en la plantilla. */
   protected readonly nombrePersona = nombrePersona;
+  /** Estados de contrato para el selector. */
   protected readonly estadosContrato = ESTADOS_CONTRATO;
 
   /** Modal de crear/editar. */
@@ -118,14 +131,19 @@ export class GestionArriendos implements OnInit {
   /** Contrato que se edita (null = crear). */
   protected readonly editando = signal<ArriendoModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioArriendo>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Contrato pendiente de confirmar para eliminar. */
   protected readonly arriendoAEliminar = signal<ArriendoModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarArriendos();
   }

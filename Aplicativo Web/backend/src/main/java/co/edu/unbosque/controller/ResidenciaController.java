@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las residencias (rutas {@code /api/residencias}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class ResidenciaController {
 	
+	/** Servicio con la lógica de negocio de las residencias. */
 	private final ResidenciaService residenciaService = new ResidenciaService();
 	
+	/**
+	 * Atiende {@code GET /api/residencias} (listar residencias). Devuelve quién vive o ha vivido en
+	 * cada casa. Si fechaSalida es null, vive ahí actualmente.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/residencias",
 			methods = HttpMethod.GET,
@@ -35,6 +49,13 @@ public class ResidenciaController {
 		conx.json(residenciaService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/residencias/{id}} (consultar residencia).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/residencias/{id}",
 			methods = HttpMethod.GET,
@@ -51,6 +72,15 @@ public class ResidenciaController {
 		ctx.json(residenciaService.consultar(ctx.pathParamAsClass("id", Integer.class).get()));
 	}
 
+	/**
+	 * Atiende {@code POST /api/residencias} (crear residencia). No envíes idResidencia, se genera
+	 * solo. Fechas en formato AAAA-MM-DD. fechaSalida va null mientras la persona viva en la casa.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/residencias",
 			methods = HttpMethod.POST,
@@ -69,6 +99,16 @@ public class ResidenciaController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Residencia creada", "idResidencia", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/residencias/{id}} (actualizar residencia). La casa y el residente no se
+	 * modifican. En el body envía fechaIngreso y fechaSalida (para cerrar la ocupación).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/residencias/{id}",
 			methods = HttpMethod.PUT,
@@ -93,6 +133,13 @@ public class ResidenciaController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Residencia actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/residencias/{id}} (eliminar residencia).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/residencias/{id}",
 			methods = HttpMethod.DELETE,

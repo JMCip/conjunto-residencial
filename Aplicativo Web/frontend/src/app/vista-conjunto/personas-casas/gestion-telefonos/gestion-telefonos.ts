@@ -26,8 +26,11 @@ import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-
   styleUrl: './gestion-telefonos.css',
 })
 export class GestionTelefonos implements OnInit {
+  /** Servicio de teléfonos. */
   private telefonoService = inject(TelefonoService);
+  /** Servicio de personas y roles. */
   private personaService = inject(PersonaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Teléfonos obtenidos del backend. */
@@ -70,8 +73,9 @@ export class GestionTelefonos implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
-  /** Funciones y constantes para la plantilla. */
+  /** Función del modelo para armar la llave de una persona en la plantilla. */
   protected readonly llavePersona = llavePersona;
+  /** Función del modelo para mostrar el nombre de una persona en la plantilla. */
   protected readonly nombrePersona = nombrePersona;
 
   /** Modal de crear/editar. */
@@ -86,13 +90,17 @@ export class GestionTelefonos implements OnInit {
   /** Número escrito en el formulario. */
   protected readonly numeroEscrito = signal('');
 
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Teléfono pendiente de confirmar para eliminar. */
   protected readonly telefonoAEliminar = signal<TelefonoModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarTelefonos();
   }

@@ -204,23 +204,30 @@
         <label for="valor-hora-reserva" class="etiqueta-campo">Valor por hora (COP)</label>
         <input
           id="valor-hora-reserva"
-          class="input-formulario"
+          class="input-formulario num"
           inputmode="numeric"
           autocomplete="off"
+          [disabled]="tarifaHora() !== null"
           [value]="formulario().valorPorHora"
           (input)="cambiarCampo('valorPorHora', $any($event.target).value)"
         />
+        @if (tarifaHora() !== null) {
+          <p class="ayuda-campo">Tarifa vigente del concepto «Salón comunal».</p>
+        } @else {
+          <p class="ayuda-campo">No se encontró el concepto «Salón comunal»: escribe la tarifa.</p>
+        }
       </div>
       <div class="campo">
         <label for="deposito-reserva" class="etiqueta-campo">Depósito (COP)</label>
         <input
           id="deposito-reserva"
-          class="input-formulario"
+          class="input-formulario num"
           inputmode="numeric"
           autocomplete="off"
           [value]="formulario().valorDeposito"
           (input)="cambiarCampo('valorDeposito', $any($event.target).value)"
         />
+        <p class="ayuda-campo">Garantía que se devuelve al finalizar; no se factura.</p>
       </div>
     </div>
 

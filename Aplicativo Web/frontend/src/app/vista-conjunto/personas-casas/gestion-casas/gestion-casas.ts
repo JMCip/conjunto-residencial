@@ -7,6 +7,11 @@ import { extraerError } from '../../../compartido/extraer-error';
 import { ModalFormulario } from '../../../compartido/modal-formulario/modal-formulario';
 import { DialogoConfirmar } from '../../../compartido/dialogo-confirmar/dialogo-confirmar';
 
+/**
+ * Nombre de una casa a partir del registro completo.
+ * @param casa Casa.
+ * @returns Texto con el formato "Mz 1 · Casa 3".
+ */
 function nombreCasa(casa: CasaModel): string {
   return nombreMzCasa(casa.manzana, casa.numero);
 }
@@ -19,6 +24,7 @@ interface FormularioCasa {
   numeroHabitaciones: string;
 }
 
+/** Valores iniciales del formulario (todo vacío). */
 const FORMULARIO_VACIO: FormularioCasa = {
   manzana: '',
   numero: '',
@@ -39,12 +45,18 @@ const FORMULARIO_VACIO: FormularioCasa = {
   styleUrl: './gestion-casas.css',
 })
 export class GestionCasas implements OnInit {
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
+  /** Lista de casas consultada al backend. */
   protected readonly casas = signal<CasaModel[]>([]);
+  /** true mientras se consulta la información. */
   protected readonly cargando = signal(true);
+  /** true si la consulta de la información falló. */
   protected readonly errorCarga = signal(false);
+  /** Texto escrito en el buscador. */
   protected readonly busqueda = signal('');
 
   /** Casas visibles según la búsqueda ("mz 1", "casa 3"…). */
@@ -54,6 +66,7 @@ export class GestionCasas implements OnInit {
     return this.casas().filter((c) => nombreCasa(c).toLowerCase().includes(texto));
   });
 
+  /** Texto del pie de la tabla con la cantidad de registros visibles. */
   protected readonly textoConteo = computed(() => {
     const visibles = this.casasFiltradas().length;
     const total = this.casas().length;
@@ -61,6 +74,7 @@ export class GestionCasas implements OnInit {
     return visibles === total ? `${visibles} ${palabra}` : `${visibles} ${palabra} de ${total}`;
   });
 
+  /** Función del modelo para mostrar el nombre de una casa en la plantilla. */
   protected readonly nombreCasa = nombreCasa;
 
   /** Modal de crear/editar. */
@@ -69,18 +83,24 @@ export class GestionCasas implements OnInit {
   /** Casa que se edita (null = crear). */
   protected readonly editando = signal<CasaModel | null>(null);
 
+  /** Valores actuales del formulario del modal. */
   protected readonly formulario = signal<FormularioCasa>({ ...FORMULARIO_VACIO });
+  /** true mientras se envía el formulario al backend. */
   protected readonly guardando = signal(false);
+  /** Mensaje de validación del formulario (null si no hay error). */
   protected readonly errorFormulario = signal<string | null>(null);
 
   /** Casa pendiente de confirmar para eliminar. */
   protected readonly casaAEliminar = signal<CasaModel | null>(null);
+  /** true mientras se envía la eliminación al backend. */
   protected readonly eliminando = signal(false);
 
+  /** Consulta los datos al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarCasas();
   }
 
+  /** Consulta la información de la pantalla y actualiza el estado de la vista. */
   cargarCasas(): void {
     this.cargando.set(true);
     this.errorCarga.set(false);

@@ -16,10 +16,26 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de los roles de las personas (rutas {@code /api/propietarios},
+ * {@code /api/arrendatarios}, {@code /api/residentes}, {@code /api/visitantes} y
+ * {@code /api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}}).
+ * <p>
+ * Lista las personas por rol y permite asignar o quitar un rol. Las excepciones se traducen a
+ * códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class RolController {
 	
+	/** Servicio con la lógica de negocio de los roles de las personas. */
 	private final RolService rolService = new RolService();
 	
+	/**
+	 * Atiende {@code GET /api/propietarios} (listar propietarios). Devuelve las personas que son
+	 * propietarias de alguna casa.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/propietarios",
 			methods = HttpMethod.GET,
@@ -34,6 +50,13 @@ public class RolController {
 		conx.json(rolService.listarPropietarios());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/arrendatarios} (listar arrendatarios). Devuelve las personas registradas
+	 * como arrendatarias.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/arrendatarios",
 			methods = HttpMethod.GET,
@@ -48,6 +71,13 @@ public class RolController {
 		conx.json(rolService.listarArrendatarios());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/residentes} (listar residentes). Devuelve las personas registradas como
+	 * residentes.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/residentes",
 			methods = HttpMethod.GET,
@@ -62,6 +92,13 @@ public class RolController {
 		conx.json(rolService.listarResidentes());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/visitantes} (listar visitantes). Devuelve las personas registradas como
+	 * visitantes.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/visitantes",
 			methods = HttpMethod.GET,
@@ -76,6 +113,17 @@ public class RolController {
 		conx.json(rolService.listarVisitantes());
 	}
 	
+	/**
+	 * Atiende {@code POST /api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}} (asignar rol a
+	 * una persona). rol: propietario, arrendatario, residente o visitante. La persona debe existir.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code rol}, {@code tipoDocumento} y {@code numeroDocumento}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}",
 			methods = HttpMethod.POST,
@@ -99,6 +147,16 @@ public class RolController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Rol asignado"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}} (quitar rol a
+	 * una persona).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code rol}, {@code tipoDocumento} y {@code numeroDocumento}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/personas/{tipoDocumento}/{numeroDocumento}/roles/{rol}",
 			methods = HttpMethod.DELETE,

@@ -30,19 +30,22 @@ export class TablaFacturas {
   /** Avisa que el usuario pulsó "Ver todas las facturas" en el estado vacío. */
   readonly limpiarFiltros = output<void>();
 
-  /** Diccionarios de texto y color de cada estado (constantes del modelo). */
+  /** Texto de cada estado de factura (constante del modelo). */
   protected readonly etiquetaFactura = ETIQUETA_FACTURA;
+
+  /** Color de insignia de cada estado de factura (constante del modelo). */
   protected readonly estiloFactura = ESTILO_FACTURA;
 
-  /** El usuario quiere ver las líneas de la factura. */
+  /** Avisa que el usuario quiere ver las líneas de la factura. */
   readonly verDetalle = output<FacturaModel>();
 
-  /** El usuario quiere cambiar el vencimiento. */
+  /** Avisa que el usuario quiere cambiar el vencimiento de la factura. */
   readonly editar = output<FacturaModel>();
 
-  /** El usuario quiere eliminar la factura. */
+  /** Avisa que el usuario quiere eliminar la factura. */
   readonly eliminar = output<FacturaModel>();
 
+  /** Indica si una factura todavía se puede modificar (PENDIENTE o ABONADA). */
   protected readonly abierta = facturaAbierta;
 
 }

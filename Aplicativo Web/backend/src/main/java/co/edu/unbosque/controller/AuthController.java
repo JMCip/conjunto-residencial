@@ -13,10 +13,20 @@ import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 
+/** Controlador REST de autenticación (ruta pública {@code POST /api/auth/login}). */
 public class AuthController {
 
+	/** Servicio con la lógica de negocio de la autenticación. */
 	private final AuthService authService = new AuthService();
 
+	/**
+	 * Atiende {@code POST /api/auth/login} (iniciar sesión). Validar las credenciales del
+	 * administrador y devuelve un token JWT.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws NoAutorizadoException si las credenciales no son correctas (HTTP 401)
+	 */
 	@OpenApi(
 	        path = "/api/auth/login",
 	        methods = HttpMethod.POST,

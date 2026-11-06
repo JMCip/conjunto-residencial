@@ -16,10 +16,24 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las celdas de parqueadero (rutas {@code /api/celdas}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class CeldaParqueaderoController {
 	
+	/** Servicio con la lógica de negocio de las celdas de parqueadero. */
 	private final CeldaParqueaderoService celdaParqueaderoService = new CeldaParqueaderoService();
 	
+	/**
+	 * Atiende {@code GET /api/celdas} (listar celdas de parqueadero). Devuelve las celdas del
+	 * parqueadero con su tipo y estado.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/celdas",
 			methods = HttpMethod.GET,
@@ -34,6 +48,13 @@ public class CeldaParqueaderoController {
 		conx.json(celdaParqueaderoService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/celdas/{id}} (consultar celda de parqueadero).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/celdas/{id}",
 			methods = HttpMethod.GET,
@@ -50,6 +71,14 @@ public class CeldaParqueaderoController {
 		ctx.json(celdaParqueaderoService.consultar(ctx.pathParamAsClass("id", Integer.class).get()));
 	}
 
+	/**
+	 * Atiende {@code POST /api/celdas} (crear celda de parqueadero). No envíes idCelda, se genera
+	 * solo. tipo: PROPIA, ADICIONAL o VISITANTES. estado: OCUPADA o DESOCUPADA.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 */
 	@OpenApi(
 			path = "/api/celdas",
 			methods = HttpMethod.POST,
@@ -67,6 +96,15 @@ public class CeldaParqueaderoController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Celda creada", "idCelda", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/celdas/{id}} (actualizar celda de parqueadero). El id viaja en la URL.
+	 * En el body envía tipo y estado.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/celdas/{id}",
 			methods = HttpMethod.PUT,
@@ -90,6 +128,13 @@ public class CeldaParqueaderoController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Celda actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/celdas/{id}} (eliminar celda de parqueadero).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/celdas/{id}",
 			methods = HttpMethod.DELETE,

@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las asignaciones de celda (rutas {@code /api/asignaciones-celda}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class AsignacionCeldaController {
 	
+	/** Servicio con la lógica de negocio de las asignaciones de celda. */
 	private final AsignacionCeldaService asignacionCeldaService = new AsignacionCeldaService();
 	
+	/**
+	 * Atiende {@code GET /api/asignaciones-celda} (listar asignaciones de celda). Devuelve qué celda
+	 * tiene asignada cada casa. Si fechaFin es null, la asignación está vigente.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/asignaciones-celda",
 			methods = HttpMethod.GET,
@@ -35,6 +49,13 @@ public class AsignacionCeldaController {
 		conx.json(asignacionCeldaService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/asignaciones-celda/{id}} (consultar asignación de celda).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/asignaciones-celda/{id}",
 			methods = HttpMethod.GET,
@@ -51,6 +72,16 @@ public class AsignacionCeldaController {
 		ctx.json(asignacionCeldaService.consultar(ctx.pathParamAsClass("id", Integer.class).get()));
 	}
 
+	/**
+	 * Atiende {@code POST /api/asignaciones-celda} (crear asignación de celda). No envíes
+	 * idAsignacion, se genera solo. Fechas en formato AAAA-MM-DD. fechaFin va null mientras la
+	 * asignación esté vigente.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/asignaciones-celda",
 			methods = HttpMethod.POST,
@@ -69,6 +100,16 @@ public class AsignacionCeldaController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Asignación creada", "idAsignacion", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/asignaciones-celda/{id}} (actualizar asignación de celda). La casa y la
+	 * celda no se modifican. En el body envía fechaInicio y fechaFin (para cerrar la asignación).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/asignaciones-celda/{id}",
 			methods = HttpMethod.PUT,
@@ -93,6 +134,13 @@ public class AsignacionCeldaController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Asignación actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/asignaciones-celda/{id}} (eliminar asignación de celda).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/asignaciones-celda/{id}",
 			methods = HttpMethod.DELETE,

@@ -10,8 +10,15 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Acceso a datos de las casas con JDBC.
+ * <p>
+ * Cada método abre su propia conexión con {@link co.edu.unbosque.config.ConexionBD} y usa
+ * {@link java.sql.PreparedStatement} para enviar los parámetros de forma segura.
+ */
 public class CasaDao {
 
+	/** Consulta que lista todos los registros de la tabla {@code casa}. */
 	private static final String LISTAR = """
 			SELECT numero,
 			manzana,
@@ -21,6 +28,12 @@ public class CasaDao {
 			ORDER BY manzana, numero
 			""";
 
+	/**
+	 * Consulta las casas registradas.
+	 *
+	 * @return lista de casas; vacía si no hay registros
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public List<Casa> listar() throws SQLException {
 		List<Casa> casas = new ArrayList<>();
 		try (Connection con = ConexionBD.obtenerConexion();
@@ -34,6 +47,13 @@ public class CasaDao {
 		return casas;
 	}
 
+	/**
+	 * Convierte la fila actual del resultado en una casa.
+	 *
+	 * @param rs resultado de la consulta, ubicado en la fila que se va a leer
+	 * @return casa leída
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	private Casa mapear(ResultSet rs) throws SQLException {
 		return new Casa(
 				rs.getInt("numero"),
@@ -42,6 +62,7 @@ public class CasaDao {
 				rs.getObject("numero_habitaciones", Integer.class));
 	}
 
+	/** Sentencia que inserta un registro en la tabla {@code casa}. */
 	private static final String INSERTAR = """
 			INSERT INTO casa (numero,
 			manzana,
@@ -50,6 +71,12 @@ public class CasaDao {
 			VALUES (?, ?, ?, ?)
 			""";
 
+	/**
+	 * Inserta una casa en la base de datos.
+	 *
+	 * @param c casa que se va a insertara
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public void insertar(Casa c) throws SQLException {
 		try (Connection con = ConexionBD.obtenerConexion();
 				PreparedStatement ps = con.prepareStatement(INSERTAR)) {
@@ -61,6 +88,7 @@ public class CasaDao {
 		}
 	}
 
+	/** Sentencia que actualiza un registro de la tabla {@code casa}. */
 	private static final String ACTUALIZAR = """
 			UPDATE casa
 			SET area = ?,
@@ -69,6 +97,13 @@ public class CasaDao {
 			AND manzana = ?
 			""";
 
+	/**
+	 * Actualiza la casa indicada por su llave primaria.
+	 *
+	 * @param c casa con su llave primaria y los datos nuevosa
+	 * @return {@code true} si el registro existía y se actualizó
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public boolean actualizar(Casa c) throws SQLException {
 		try (Connection con = ConexionBD.obtenerConexion();
 				PreparedStatement ps = con.prepareStatement(ACTUALIZAR)) {
@@ -80,12 +115,21 @@ public class CasaDao {
 		}
 	}
 
+	/** Sentencia que elimina un registro de la tabla {@code casa} por su llave primaria. */
 	private static final String ELIMINAR = """
 			DELETE FROM casa
 			WHERE numero = ?
 			AND manzana = ?
 			""";
 
+	/**
+	 * Elimina la casa indicada por su llave primaria.
+	 *
+	 * @param numero número de la casa
+	 * @param manzana manzana de la casa
+	 * @return {@code true} si el registro existía y se eliminó
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public boolean eliminar(int numero, int manzana) throws SQLException {
 		try (Connection con = ConexionBD.obtenerConexion();
 				PreparedStatement ps = con.prepareStatement(ELIMINAR)) {

@@ -2,7 +2,6 @@
   display: block;
 }
 
-/* Tarjeta con buscador, botón y tabla */
 .tarjeta-seccion {
   background: var(--bg-tarjeta);
   border: 1px solid var(--borde);
@@ -33,7 +32,6 @@
   gap: 16px;
 }
 
-/* Buscador */
 .campo-busqueda {
   display: flex;
   flex-direction: column;
@@ -72,7 +70,6 @@
   color: var(--texto-secundario);
 }
 
-/* Tabla */
 .contenedor-tabla {
   overflow-x: auto;
 }
@@ -127,7 +124,7 @@
   color: var(--texto-secundario);
 }
 
-/* Botones de editar / eliminar de cada fila */
+
 .boton-icono {
   width: 40px;
   height: 40px;
@@ -151,7 +148,6 @@
   color: var(--estado-alerta-texto);
 }
 
-/* Insignias */
 .insignia-estado {
   display: inline-block;
   padding: 3px 10px;
@@ -174,7 +170,6 @@
   color: var(--estado-neutro-texto);
 }
 
-/* Botones */
 .boton-primario,
 .boton-secundario {
   min-height: 44px;
@@ -191,7 +186,7 @@
 .boton-primario {
   border: 1px solid var(--verde-bosque);
   background: var(--verde-bosque);
-  color: var(--bg-tarjeta); /* blanco */
+  color: var(--bg-tarjeta);
 }
 
 .boton-primario:hover {
@@ -210,7 +205,6 @@
   background: var(--bg-app);
 }
 
-/* Cargando */
 .esqueleto {
   display: block;
   border-radius: var(--radio-esqueleto);
@@ -229,7 +223,6 @@
   padding: 20px;
 }
 
-/* Vacío y error */
 .estado-vacio {
   display: flex;
   flex-direction: column;
@@ -266,10 +259,9 @@
   color: var(--texto-secundario);
 }
 
-/* Campos del formulario (dentro del modal) */
 .fila-campos {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
@@ -277,6 +269,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .input-formulario {
@@ -302,7 +295,6 @@
   color: var(--texto-secundario);
 }
 
-/* Foco visible en todo lo que se puede usar con teclado */
 .input-busqueda:focus-visible,
 .input-formulario:focus-visible,
 .boton-icono:focus-visible,
@@ -312,7 +304,6 @@
   outline-offset: 1px;
 }
 
-/* Propio de esta pantalla */
 .col-secundaria {
   color: var(--texto-secundario);
 }
@@ -381,7 +372,6 @@
   font-size: 16px;
 }
 
-/* Control segmentado (filtro por estado) */
 .control-segmentado {
   display: flex;
   gap: 4px;
@@ -426,14 +416,12 @@
   outline-offset: 1px;
 }
 
-/* Tabla con muchas columnas: celdas un poco más angostas para que quepa en 1280 px */
 .tabla-conjunto th,
 .tabla-conjunto td {
-  padding-left: 14px;
-  padding-right: 14px;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
-/* Cabecera en dos filas: título + botón arriba, filtros + buscador abajo */
 .cabecera-dos-filas {
   flex-direction: column;
   align-items: stretch;

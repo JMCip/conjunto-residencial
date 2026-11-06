@@ -16,10 +16,24 @@ import io.javalin.openapi.OpenApi;
 import io.javalin.openapi.OpenApiContent;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las visitas (rutas {@code /api/visitas}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class VisitaController {
 	
+	/** Servicio con la lógica de negocio de las visitas. */
 	private final VisitaService visitaService = new VisitaService();
 	
+	/**
+	 * Atiende {@code GET /api/visitas} (listar visitas). Devuelve las visitas registradas, de la más
+	 * reciente a la más antigua. Si fechaSalida es null, el visitante sigue en el conjunto.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/visitas",
 			methods = HttpMethod.GET,
@@ -33,8 +47,14 @@ public class VisitaController {
 	public void listar(Context conx) throws SQLException {
 		conx.json(visitaService.listar());
 	}
-	
-	
+
+	/**
+	 * Atiende {@code GET /api/visitas/{id}} (consultar visita).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/visitas/{id}",
 			methods = HttpMethod.GET,
@@ -51,6 +71,15 @@ public class VisitaController {
 		ctx.json(visitaService.consultar(ctx.pathParamAsClass("id", Integer.class).get()));
 	}
 
+	/**
+	 * Atiende {@code POST /api/visitas} (crear visita). No envíes idVisita, se genera solo. Fechas en
+	 * formato AAAA-MM-DD. fechaSalida va null mientras la visita siga vigente.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/visitas",
 			methods = HttpMethod.POST,
@@ -69,6 +98,15 @@ public class VisitaController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Visita creada", "idVisita", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/visitas/{id}} (actualizar visita). La casa y el visitante no se
+	 * modifican. En el body envía fechaEntrada y fechaSalida (para cerrar la visita).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/visitas/{id}",
 			methods = HttpMethod.PUT,
@@ -92,6 +130,13 @@ public class VisitaController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Visita actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/visitas/{id}} (eliminar visita).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/visitas/{id}",
 			methods = HttpMethod.DELETE,

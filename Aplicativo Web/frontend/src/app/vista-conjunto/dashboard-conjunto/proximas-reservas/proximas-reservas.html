@@ -22,7 +22,7 @@
             <span class="mes-fecha">{{ r.fechaReserva | date: 'MMM' }}</span>
           </div>
           <div>
-            <p class="titulo-reserva">Casa {{ r.casaNumero }} · Mz {{ r.casaManzana }}</p>
+            <p class="titulo-reserva">Mz {{ r.casaManzana }} · Casa {{ r.casaNumero }}</p>
             <!-- horaInicio/horaFinal llegan como 'AAAA-MM-DD HH:mm:ss': slice saca 'HH:mm' -->
             <p class="franja-reserva num">
               {{ r.horaInicio | slice: 11 : 16 }} – {{ r.horaFinal | slice: 11 : 16 }}

@@ -19,10 +19,23 @@ import io.javalin.http.HttpStatus;
 import io.javalin.openapi.OpenApiParam;
 import io.javalin.openapi.OpenApiRequestBody;
 
-
+/**
+ * Controlador REST de las personas (rutas {@code /api/personas}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class PersonaController {
+	/** Servicio con la lógica de negocio de las personas. */
 	private final PersonaService pService = new PersonaService();
 	
+	/**
+	 * Atiende {@code GET /api/personas} (listar personas). Devuelve todas las personas del conjunto,
+	 * ordenadas por el primer nombre y apellido.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi (
 			path = "/api/personas",
 			methods = HttpMethod.GET,
@@ -38,6 +51,14 @@ public class PersonaController {
 		conx.json(pService.listar());
 	}
 	
+	/**
+	 * Atiende {@code GET /api/personas/{tipoDocumento}/{numeroDocumento}} (consultar persona).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code tipoDocumento} y {@code numeroDocumento}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/personas/{tipoDocumento}/{numeroDocumento}",
 			methods = HttpMethod.GET,
@@ -57,6 +78,13 @@ public class PersonaController {
 				ctx.pathParam("numeroDocumento")));
 	}
 
+	/**
+	 * Atiende {@code POST /api/personas} (crear persona).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 */
 	@OpenApi(
 			path = "/api/personas",
 			methods = HttpMethod.POST,
@@ -74,6 +102,16 @@ public class PersonaController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Persona creada"));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/personas/{tipoDocumento}/{numeroDocumento}} (actualizar persona). El
+	 * documento viaja en la URL y no se modifica. En el body envía correo, nombres y apellidos.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code tipoDocumento} y {@code numeroDocumento} y el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/personas/{tipoDocumento}/{numeroDocumento}",
 			methods = HttpMethod.PUT,
@@ -99,6 +137,14 @@ public class PersonaController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Persona actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/personas/{tipoDocumento}/{numeroDocumento}} (eliminar persona).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code tipoDocumento} y {@code numeroDocumento}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/personas/{tipoDocumento}/{numeroDocumento}",
 			methods = HttpMethod.DELETE,

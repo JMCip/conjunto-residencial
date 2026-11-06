@@ -58,7 +58,7 @@
       <p class="sin-lineas">
         Esta factura todavía no tiene líneas.
         @if (abierta()) {
-          Agrega la primera con el formulario de abajo.
+          Agrega los cargos pendientes o un cobro desde abajo.
         }
       </p>
     } @else {
@@ -149,10 +149,69 @@
       </div>
     }
 
-    <!-- Agregar línea -->
     @if (abierta()) {
+      <!-- Cargos pendientes: lo que nació en otros módulos y esta factura puede recoger -->
+      <section class="bloque-linea" aria-labelledby="titulo-pendientes">
+        <div class="cabecera-bloque">
+          <h3 id="titulo-pendientes" class="titulo-bloque">Cargos pendientes de la casa</h3>
+          @if (cargosPendientes().length > 1) {
+            <button
+              type="button"
+              class="boton-secundario"
+              [disabled]="agregandoCargo() !== null"
+              (click)="agregarTodos()"
+            >
+              <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+              {{ agregandoCargo() === 'TODOS' ? 'Agregando…' : 'Agregar todos' }}
+              <span class="num">({{ totalPendientes() | currency: 'COP' : 'symbol' : '1.0-0' }})</span>
+            </button>
+          }
+        </div>
+
+        @if (cargosPendientes().length === 0) {
+          <p class="ayuda-campo">
+            Esta casa no tiene cargos pendientes: la administración ya está en la factura y no hay
+            sanciones confirmadas, reservas ni celdas adicionales por cobrar.
+          </p>
+        } @else {
+          <ul class="lista-pendientes">
+            @for (c of cargosPendientes(); track c.clave) {
+              <li class="item-pendiente">
+                <i class="fa-solid icono-pendiente" [class]="c.icono" aria-hidden="true"></i>
+                <span class="texto-pendiente">
+                  <strong>{{ c.titulo }}</strong>
+                  <span class="col-secundaria">{{ c.detalle }}</span>
+                </span>
+                <span class="num">{{ c.valor | currency: 'COP' : 'symbol' : '1.0-0' }}</span>
+                <button
+                  type="button"
+                  class="boton-icono"
+                  [attr.aria-label]="'Agregar ' + c.titulo"
+                  [title]="'Agregar ' + c.titulo"
+                  [disabled]="agregandoCargo() !== null"
+                  (click)="agregarCargo(c)"
+                >
+                  <i
+                    class="fa-solid"
+                    [class.fa-plus]="agregandoCargo() !== c.clave"
+                    [class.fa-spinner]="agregandoCargo() === c.clave"
+                    [class.fa-spin]="agregandoCargo() === c.clave"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+              </li>
+            }
+          </ul>
+          <p class="ayuda-campo">
+            Las sanciones, reservas y celdas adicionales se registran en su módulo; aquí solo se
+            cobran. Su valor sale de su origen y no se edita.
+          </p>
+        }
+      </section>
+
+      <!-- Cobro libre: mora, cuotas extraordinarias… -->
       <section class="bloque-linea" aria-labelledby="titulo-nueva-linea">
-        <h3 id="titulo-nueva-linea" class="titulo-bloque">Agregar línea</h3>
+        <h3 id="titulo-nueva-linea" class="titulo-bloque">Otro cobro</h3>
 
         <div class="fila-linea">
           <div class="campo">
@@ -164,7 +223,7 @@
               (change)="cambiarConcepto($any($event.target).value)"
             >
               <option value="">Selecciona un concepto</option>
-              @for (c of conceptos(); track c.idConcepto) {
+              @for (c of conceptosLibres(); track c.idConcepto) {
                 <option
                   [value]="c.idConcepto"
                   [selected]="formulario().idConcepto === c.idConcepto.toString()"
@@ -175,100 +234,17 @@
             </select>
           </div>
 
-          @switch (origenElegido()) {
-            @case ('SANCION') {
-              <div class="campo">
-                <label for="origen-linea" class="etiqueta-campo">Sanción</label>
-                <select
-                  id="origen-linea"
-                  class="input-formulario"
-                  [value]="formulario().idOrigen"
-                  (change)="cambiarCampo('idOrigen', $any($event.target).value)"
-                >
-                  <option value="">Selecciona una sanción</option>
-                  @for (s of sancionesLibres(); track s.idSancion) {
-                    <option
-                      [value]="s.idSancion"
-                      [selected]="formulario().idOrigen === s.idSancion.toString()"
-                    >
-                      #{{ s.idSancion }} · {{ textoTipo(s.tipo) }} ·
-                      {{ s.valor | currency: 'COP' : 'symbol' : '1.0-0' }}
-                    </option>
-                  }
-                </select>
-                @if (sancionesLibres().length === 0) {
-                  <p class="ayuda-campo">
-                    Esta casa no tiene sanciones confirmadas con multa pendientes de cobro.
-                  </p>
-                }
-              </div>
-            }
-            @case ('RESERVA') {
-              <div class="campo">
-                <label for="origen-linea" class="etiqueta-campo">Reserva del salón</label>
-                <select
-                  id="origen-linea"
-                  class="input-formulario"
-                  [value]="formulario().idOrigen"
-                  (change)="cambiarCampo('idOrigen', $any($event.target).value)"
-                >
-                  <option value="">Selecciona una reserva</option>
-                  @for (r of reservasLibres(); track r.idReserva) {
-                    <option
-                      [value]="r.idReserva"
-                      [selected]="formulario().idOrigen === r.idReserva.toString()"
-                    >
-                      #{{ r.idReserva }} · {{ r.fechaReserva | date: 'dd/MM/y' }} ·
-                      {{ r.valorTotal | currency: 'COP' : 'symbol' : '1.0-0' }}
-                    </option>
-                  }
-                </select>
-                @if (reservasLibres().length === 0) {
-                  <p class="ayuda-campo">Esta casa no tiene reservas pendientes de cobro.</p>
-                }
-              </div>
-            }
-            @case ('ASIGNACION') {
-              <div class="campo">
-                <label for="origen-linea" class="etiqueta-campo">Celda adicional</label>
-                <select
-                  id="origen-linea"
-                  class="input-formulario"
-                  [value]="formulario().idOrigen"
-                  (change)="cambiarCampo('idOrigen', $any($event.target).value)"
-                >
-                  <option value="">Selecciona una asignación</option>
-                  @for (a of asignacionesLibres(); track a.idAsignacion) {
-                    <option
-                      [value]="a.idAsignacion"
-                      [selected]="formulario().idOrigen === a.idAsignacion.toString()"
-                    >
-                      #{{ a.idAsignacion }} · celda {{ a.idCelda }} · desde
-                      {{ a.fechaInicio | date: 'dd/MM/y' }}{{ a.fechaFin ? ' (finalizada)' : ' (vigente)' }}
-                    </option>
-                  }
-                </select>
-                @if (asignacionesLibres().length === 0) {
-                  <p class="ayuda-campo">
-                    Esta casa no tiene celdas adicionales por cobrar en esta factura.
-                  </p>
-                }
-              </div>
-            }
-            @case ('LIBRE') {
-              <div class="campo">
-                <label for="valor-linea" class="etiqueta-campo">Valor (COP)</label>
-                <input
-                  id="valor-linea"
-                  class="input-formulario"
-                  inputmode="numeric"
-                  autocomplete="off"
-                  [value]="formulario().valor"
-                  (input)="cambiarCampo('valor', $any($event.target).value)"
-                />
-              </div>
-            }
-          }
+          <div class="campo">
+            <label for="valor-linea" class="etiqueta-campo">Valor (COP)</label>
+            <input
+              id="valor-linea"
+              class="input-formulario"
+              inputmode="numeric"
+              autocomplete="off"
+              [value]="formulario().valor"
+              (input)="cambiarValor($any($event.target).value)"
+            />
+          </div>
 
           <button
             type="button"
@@ -281,18 +257,10 @@
           </button>
         </div>
 
-        @if (valorPrevio() !== null) {
-          <p class="ayuda-campo">
-            Se cobrará
-            <strong class="num">{{ valorPrevio() | currency: 'COP' : 'symbol' : '1.0-0' }}</strong>
-            (el valor sale de {{ origenElegido() === 'ASIGNACION' ? 'la cuota del concepto' : 'su origen' }}
-            y no se puede cambiar aquí).
-          </p>
-        } @else if (origenElegido() === 'LIBRE') {
-          <p class="ayuda-campo">
-            Administración mensual, cuotas extraordinarias y otros cobros: escribe el valor.
-          </p>
-        }
+        <p class="ayuda-campo">
+          Intereses de mora, cuotas extraordinarias y otros cobros: se propone el valor base y
+          puedes cambiarlo.
+        </p>
       </section>
     } @else {
       <p class="aviso-cerrada">

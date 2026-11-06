@@ -8,6 +8,7 @@ import { TablaFacturas } from './tabla-facturas/tabla-facturas';
 import { GestionConceptos } from './gestion-conceptos/gestion-conceptos';
 import { GestionFacturas } from './gestion-facturas/gestion-facturas';
 import { DetalleFacturaModal } from './detalle-factura/detalle-factura-modal';
+import { GestionPagos } from './gestion-pagos/gestion-pagos';
 
 /**
  * Pasa un texto a minúsculas y sin tildes, para que "salon" encuentre "Salón".
@@ -22,28 +23,40 @@ function normalizar(texto: string): string {
 }
 
 /** Pestañas de la sección. */
-type PestanaFinanzas = 'facturas' | 'conceptos';
+type PestanaFinanzas = 'facturas' | 'pagos' | 'conceptos';
 
 /** Datos de cada botón de pestaña: su valor, su texto y su ícono. */
 const PESTANAS: { valor: PestanaFinanzas; texto: string; icono: string }[] = [
   { valor: 'facturas', texto: 'Facturas', icono: 'fa-file-invoice-dollar' },
+  { valor: 'pagos', texto: 'Pagos', icono: 'fa-money-bill-wave' },
   { valor: 'conceptos', texto: 'Conceptos de cobro', icono: 'fa-tags' },
 ];
 
 /**
  * @component Finanzas
- * @description Sección Finanzas con dos pestañas: Facturas (consulta las facturas, guarda el
- * filtro y la búsqueda, y reparte los datos entre sus subcomponentes) y Conceptos de cobro
- * (CRUD del catálogo, que se encarga solo GestionConceptos).
+ * @description Sección Finanzas con tres pestañas: Facturas (consulta las facturas, guarda el
+ * filtro y la búsqueda, y reparte los datos entre sus subcomponentes), Pagos (lista y registro
+ * de pagos, que se encarga solo GestionPagos) y Conceptos de cobro (CRUD del catálogo, que se
+ * encarga solo GestionConceptos).
  */
 @Component({
   selector: 'app-finanzas',
-  imports: [TotalesFinanzas, FiltrosFacturas, TablaFacturas, GestionConceptos, GestionFacturas, DetalleFacturaModal],
+  imports: [
+    TotalesFinanzas,
+    FiltrosFacturas,
+    TablaFacturas,
+    GestionConceptos,
+    GestionFacturas,
+    DetalleFacturaModal,
+    GestionPagos,
+  ],
   templateUrl: './finanzas.html',
   styleUrl: './finanzas.css',
 })
 export class Finanzas implements OnInit {
+  /** Servicio de facturas. */
   private facturaService = inject(FacturaService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
 
   /** Pestañas del control segmentado (constante). */
@@ -114,6 +127,7 @@ export class Finanzas implements OnInit {
     () => this.facturas().find((f) => f.numeroFactura === this.idDetalle()) ?? null,
   );
 
+  /** Consulta las facturas al abrir la pantalla. */
   ngOnInit(): void {
     this.cargarFacturas();
   }
@@ -150,6 +164,7 @@ export class Finanzas implements OnInit {
     this.cargarFacturas(true);
     this.idDetalle.set(numeroFactura);
   }
+
   /**
    * Cambia el filtro de estado.
    * @param filtro Estado elegido en el control segmentado.

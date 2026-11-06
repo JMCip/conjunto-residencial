@@ -3,8 +3,13 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 /** Pestaña interna: su ruta hija (/personas-casas/<ruta>), su texto y su ícono. */
 interface Pestana {
+  /** Ruta hija de la pestaña. */
   ruta: string;
+
+  /** Texto del botón. */
   texto: string;
+
+  /** Ícono de Font Awesome del botón. */
   icono: string;
 }
 

@@ -46,6 +46,11 @@ export class TotalesFinanzas {
     () => this.facturas().filter((f) => f.estado === 'PENDIENTE').length,
   );
 
+  /** Cuántas facturas tienen abonos pero aún saldo. */
+  protected readonly abonadas = computed(
+    () => this.facturas().filter((f) => f.estado === 'ABONADA').length,
+  );
+
   /** Cuántas facturas están vencidas. */
   protected readonly vencidas = computed(
     () => this.facturas().filter((f) => f.estado === 'VENCIDA').length,

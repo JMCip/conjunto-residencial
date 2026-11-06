@@ -3,10 +3,19 @@ import { CurrencyPipe, DecimalPipe } from '@angular/common';
 
 /** Una tarjeta métrica del Inicio. `valor: null` se muestra como "Sin datos". */
 export interface Metrica {
+  /** Texto de arriba de la tarjeta. */
   etiqueta: string;
+
+  /** Cifra principal; null si no hay datos. */
   valor: number | null;
+
+  /** true si la cifra se muestra como moneda (COP). */
   esMoneda: boolean;
+
+  /** Texto de apoyo debajo de la cifra. */
   contexto: string;
+
+  /** Color del texto de apoyo. */
   tono: 'positivo' | 'atencion' | 'neutro';
 }
 

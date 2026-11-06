@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApiParam;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de los conceptos de cobro (rutas {@code /api/conceptos}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class ConceptoCobroController {
 
+	/** Servicio con la lógica de negocio de los conceptos de cobro. */
 	private final ConceptoCobroService conceptoCobroService = new ConceptoCobroService();
 
+	/**
+	 * Atiende {@code GET /api/conceptos} (listar conceptos de cobro). Devuelve los conceptos que se
+	 * pueden cobrar en una factura y su valor base.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/conceptos",
 			methods = HttpMethod.GET,
@@ -35,6 +49,15 @@ public class ConceptoCobroController {
 		ctx.json(conceptoCobroService.listar());
 	}
 
+	/**
+	 * Atiende {@code POST /api/conceptos} (crear concepto de cobro). Envía nombre, descripcion y
+	 * valorBase (mayor que cero). El nombre no puede repetirse.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/conceptos",
 			methods = HttpMethod.POST,
@@ -53,6 +76,17 @@ public class ConceptoCobroController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Concepto de cobro creado", "idConcepto", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/conceptos/{id}} (actualizar concepto de cobro). Envía nombre,
+	 * descripcion y valorBase. Cambiar el valor base no modifica las facturas ya emitidas.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code id} y el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/conceptos/{id}",
 			methods = HttpMethod.PUT,
@@ -76,6 +110,17 @@ public class ConceptoCobroController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Concepto de cobro actualizado"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/conceptos/{id}} (eliminar concepto de cobro). Solo conceptos que no
+	 * se hayan usado en ninguna línea de factura y que no sean Sanción, Salón comunal ni Parqueadero
+	 * adicional.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code id}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/conceptos/{id}",
 			methods = HttpMethod.DELETE,

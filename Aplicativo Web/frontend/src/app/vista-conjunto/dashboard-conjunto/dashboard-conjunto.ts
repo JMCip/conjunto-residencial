@@ -1,5 +1,4 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { catchError, forkJoin, of } from 'rxjs';
 import { Vista } from '../../models/vista.enum';
@@ -21,13 +20,20 @@ import { EstadoConexion, EstadoConsulta } from './estado-conexion/estado-conexio
 
 /** Resultado del forkJoin del Inicio. `null` = esa fuente falló. */
 interface DatosInicio {
+  /** Facturas, o null si la consulta falló. */
   facturas: FacturaModel[] | null;
+
+  /** Casas, o null si la consulta falló. */
   casas: CasaModel[] | null;
+
+  /** Residentes, o null si la consulta falló. */
   residentes: PersonaModel[] | null;
+
+  /** Reservas, o null si la consulta falló. */
   reservas: ReservaSalonModel[] | null;
 }
 
-/** Mensaje de aviso cuando el backend no responde */
+/** Mensaje del aviso cuando alguna consulta al backend falla. */
 const AVISO_BACKEND = 'Verificar el back.';
 
 /**
@@ -47,17 +53,24 @@ function aIsoLocal(fecha: Date): string {
  */
 @Component({
   selector: 'app-dashboard-conjunto',
-  imports: [DatePipe, MetricasDashboard, UltimasFacturas, ProximasReservas, EstadoConexion],
+  imports: [MetricasDashboard, UltimasFacturas, ProximasReservas, EstadoConexion],
   templateUrl: './dashboard-conjunto.html',
   styleUrl: './dashboard-conjunto.css',
 })
 export class DashboardConjunto implements OnInit {
+  /** Servicio de facturas. */
   private facturaService = inject(FacturaService);
+  /** Servicio de casas. */
   private casaService = inject(CasaService);
+  /** Servicio de personas y roles. */
   private personaService = inject(PersonaService);
+  /** Servicio de reservas del salón comunal. */
   private reservaSalonService = inject(ReservaSalonService);
+  /** Servicio que revisa la conexión con el backend y la base de datos. */
   private estadoService = inject(EstadoService);
+  /** Servicio de avisos flotantes. */
   private notificacionService = inject(NotificacionService);
+  /** Router de Angular para navegar entre pantallas. */
   private router = inject(Router);
 
   /** true mientras llegan los datos de las métricas y listas. */
@@ -75,7 +88,7 @@ export class DashboardConjunto implements OnInit {
   /** Datos de la base si la consulta respondió. */
   protected readonly infoBd = signal<InfoBdModel | null>(null);
 
-  /** Fecha de hoy (mes de la cabecera y filtro de próximas reservas). */
+  /** Fecha de hoy (filtro de próximas reservas). */
   protected readonly hoy = signal(new Date());
 
   /** true si la consulta de facturas falló. */
@@ -137,6 +150,7 @@ export class DashboardConjunto implements OnInit {
     ];
   });
 
+  /** Consulta los datos y el estado de la conexión al abrir el Inicio. */
   ngOnInit(): void {
     this.cargarDatos();
     this.cargarConexion();

@@ -17,15 +17,27 @@ import { GestionAsignaciones } from './vista-conjunto/parqueadero/gestion-asigna
 import { GestionParqueos } from './vista-conjunto/parqueadero/gestion-parqueos/gestion-parqueos';
 import { SalonComunal } from './vista-conjunto/salon-comunal/salon-comunal';
 import { Sanciones } from './vista-conjunto/sanciones/sanciones';
+import { Login } from './login/login';
+import { authGuard, loginGuard } from './guards/auth.guard';
 
 /**
- * Rutas de la app. VistaConjunto es el layout (sidebar + topbar) y cada sección es una ruta hija
- * que se pinta en su <router-outlet>. El `path` de cada hija es el mismo texto del tipo `Vista`.
+ * Rutas de la aplicación. /login es pública; el resto vive dentro del layout VistaConjunto
+ * y está protegido por {@link authGuard}. Cualquier ruta desconocida vuelve a /inicio.
  */
 export const routes: Routes = [
+
+  {
+    path: 'login',
+    component: Login,
+    canActivate: [loginGuard],
+    title: 'Iniciar sesión · Conjunto Residencial',
+  },
+
   {
     path: '',
     component: VistaConjunto,
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
     children: [
       { path: '', redirectTo: 'inicio', pathMatch: 'full' },
       { path: 'inicio', component: DashboardConjunto, title: 'Inicio · Conjunto Residencial' },
@@ -33,7 +45,6 @@ export const routes: Routes = [
         path: 'personas-casas',
         component: PersonasCasas,
         title: 'Personas y casas · Conjunto Residencial',
-        // Pestañas internas: /personas-casas/casas, /personas-casas/personas…
         children: [
           { path: '', redirectTo: 'casas', pathMatch: 'full' },
           { path: 'casas', component: GestionCasas },
@@ -66,5 +77,6 @@ export const routes: Routes = [
       { path: 'sanciones', component: Sanciones, title: 'Sanciones · Conjunto Residencial' },
     ],
   },
+
   { path: '**', redirectTo: 'inicio' },
 ];

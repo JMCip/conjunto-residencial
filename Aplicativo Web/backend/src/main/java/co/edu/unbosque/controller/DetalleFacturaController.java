@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApiParam;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las líneas de factura (rutas {@code /api/detalles-factura}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class DetalleFacturaController {
 
+	/** Servicio con la lógica de negocio de las líneas de factura. */
 	private final DetalleFacturaService detalleFacturaService = new DetalleFacturaService();
 
+	/**
+	 * Atiende {@code GET /api/detalles-factura} (listar detalles de factura). Devuelve las líneas de
+	 * cada factura. idAsignacion, idReserva o idSancion indican de dónde sale el cobro.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/detalles-factura",
 			methods = HttpMethod.GET,
@@ -35,6 +49,16 @@ public class DetalleFacturaController {
 		ctx.json(detalleFacturaService.listar());
 	}
 
+	/**
+	 * Atiende {@code POST /api/detalles-factura} (agregar una línea a una factura). Envía
+	 * numeroFactura e idConcepto. El número de línea lo asigna el sistema.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/detalles-factura",
 			methods = HttpMethod.POST,
@@ -62,6 +86,18 @@ public class DetalleFacturaController {
 				"numeroLinea", linea));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/detalles-factura/{factura}/{linea}} (cambiar el valor de una línea).
+	 * Solo líneas sin sanción, reserva ni asignación, de facturas PENDIENTE o ABONADA. Envía "valor":
+	 * 120000.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code factura} y {@code linea} y el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/detalles-factura/{factura}/{linea}",
 			methods = HttpMethod.PUT,
@@ -88,6 +124,17 @@ public class DetalleFacturaController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Línea actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/detalles-factura/{factura}/{linea}} (eliminar una línea de factura).
+	 * Solo de facturas PENDIENTE o ABONADA, y siempre que el total no quede por debajo de lo ya
+	 * pagado.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code factura} y {@code linea}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/detalles-factura/{factura}/{linea}",
 			methods = HttpMethod.DELETE,

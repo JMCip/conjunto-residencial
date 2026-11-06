@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApiParam;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las casas (rutas {@code /api/casas}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class CasaController {
 
+	/** Servicio con la lógica de negocio de las casas. */
 	private final CasaService casaService = new CasaService();
 
+	/**
+	 * Atiende {@code GET /api/casas} (listar casas). Devuelve todas las casas del conjunto, ordenadas
+	 * por manzana y número.
+	 *
+	 * @param conx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
             path = "/api/casas",
             methods = HttpMethod.GET,
@@ -35,6 +49,13 @@ public class CasaController {
 		conx.json(casaService.listar());
 	}
 
+	/**
+	 * Atiende {@code POST /api/casas} (crear casa).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 */
 	@OpenApi(
 	        path = "/api/casas",
 	        methods = HttpMethod.POST,
@@ -52,6 +73,16 @@ public class CasaController {
 	    ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Casa creada"));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/casas/{manzana}/{numero}} (actualizar casa). Envía area y
+	 * numeroHabitaciones. numeroHabitaciones es opcional.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code manzana} y {@code numero} y el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 	        path = "/api/casas/{manzana}/{numero}",
 	        methods = HttpMethod.PUT,
@@ -77,6 +108,14 @@ public class CasaController {
 	    ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Casa actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/casas/{manzana}/{numero}} (eliminar casa).
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen los parámetros de ruta
+	 *         {@code manzana} y {@code numero}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 	        path = "/api/casas/{manzana}/{numero}",
 	        methods = HttpMethod.DELETE,

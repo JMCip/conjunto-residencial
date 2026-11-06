@@ -26,7 +26,7 @@
         type="button"
         class="boton-peligro"
         [disabled]="procesando()"
-        (click)="confirmar.emit()"
+        (click)="confirmarUnaVez()"
       >
         {{ procesando() ? 'Eliminando…' : textoConfirmar() }}
       </button>

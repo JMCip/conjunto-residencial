@@ -14,25 +14,57 @@ import co.edu.unbosque.exception.RecursoNoEncontradoException;
 import co.edu.unbosque.model.Factura;
 import co.edu.unbosque.model.Pago;
 
+/**
+ * Lógica de negocio de los pagos.
+ * <p>
+ * Valida los datos recibidos y las reglas del conjunto antes de llamar al DAO, y comunica los
+ * errores con las excepciones del paquete {@code exception}.
+ */
 public class PagoService {
 
-	
+	/** Métodos de pago válidos. */
 	private static final Set<String> METODOS = Set.of("EFECTIVO", "TRANSFERENCIA", "PSE", "TARJETA");
 
+	/** Valor máximo que admite la columna {@code NUMERIC(12,2)}. */
 	private static final BigDecimal MAXIMO = new BigDecimal("9999999999.99");
 
+	/** Acceso a datos de los pagos. */
 	private final PagoDAO pagoDao = new PagoDAO();
+	/** Acceso a datos de las facturas. */
 	private final FacturaDAO facturaDao = new FacturaDAO();
 
-	
+	/**
+	 * Resultado de registrar un pago.
+	 *
+	 * @param idPago identificador del pago creado
+	 * @param estadoFactura estado de la factura después del pago ({@code ABONADA} o {@code PAGADA})
+	 * @param saldo saldo pendiente de la factura después del pago
+	 */
 	public record Registro(int idPago, String estadoFactura, BigDecimal saldo) {
 	}
 
+	/**
+	 * Lista los pagos registrados.
+	 *
+	 * @return lista de pagos; vacía si no hay registros
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 */
 	public List<Pago> listar() throws SQLException {
 		return pagoDao.listar();
 	}
 
-	
+	/**
+	 * Registra un pago de una factura. Valida la persona, el método, la fecha (no anterior a la
+	 * emisión ni futura) y el valor, que no puede superar el saldo. Después del pago la factura queda
+	 * {@code ABONADA} o {@code PAGADA}.
+	 *
+	 * @param p pago que se va a registrar
+	 * @return identificador del pago, estado de la factura y saldo restante
+	 * @throws SQLException si ocurre un error al acceder a la base de datos
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 * @throws RecursoNoEncontradoException si la factura o la persona no existen
+	 * @throws ConflictoException si la factura ya está pagada o el valor supera el saldo
+	 */
 	public Registro registrar(Pago p) throws SQLException, DatoInvalidoException,
 			RecursoNoEncontradoException, ConflictoException {
 		Factura factura = facturaDao.buscarPorId(p.getNumeroFactura());
@@ -95,10 +127,23 @@ public class PagoService {
 		return new Registro(id, despues.getEstado(), despues.getSaldo());
 	}
 
+	/**
+	 * Quita los espacios al inicio y al final de un texto.
+	 *
+	 * @param texto texto recibido en la petición
+	 * @return texto limpio, o {@code null} si llega vacío
+	 */
 	private String limpiar(String texto) {
 		return (texto == null || texto.isBlank()) ? null : texto.trim();
 	}
 
+	/**
+	 * Convierte el texto de la fecha ({@code AAAA-MM-DD}) en un {@link LocalDate}.
+	 *
+	 * @param texto fecha recibida
+	 * @return fecha convertida
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 */
 	private LocalDate parsearFecha(String texto) throws DatoInvalidoException {
 		if (texto == null || texto.isBlank()) {
 			throw new DatoInvalidoException("fecha es obligatoria");
@@ -110,6 +155,13 @@ public class PagoService {
 		}
 	}
 
+	/**
+	 * Valida que el valor sea positivo, tenga máximo 2 decimales y quepa en la columna.
+	 *
+	 * @param valor valor recibido
+	 * @return valor con escala 2
+	 * @throws DatoInvalidoException si algún dato no cumple las validaciones
+	 */
 	private BigDecimal validarValor(BigDecimal valor) throws DatoInvalidoException {
 		if (valor == null || valor.signum() <= 0) {
 			throw new DatoInvalidoException("valor debe ser mayor que cero");

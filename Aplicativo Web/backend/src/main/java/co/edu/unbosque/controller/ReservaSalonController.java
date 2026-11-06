@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApiParam;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las reservas del salón comunal (rutas {@code /api/reservas}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class ReservaSalonController {
 
+	/** Servicio con la lógica de negocio de las reservas del salón comunal. */
 	private final ReservaSalonService reservaSalonService = new ReservaSalonService();
 
+	/**
+	 * Atiende {@code GET /api/reservas} (listar reservas del salón comunal). Devuelve las reservas del
+	 * salón con los atributos derivados horasReservadas y valorTotal, calculados en la consulta.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/reservas",
 			methods = HttpMethod.GET,
@@ -35,6 +49,16 @@ public class ReservaSalonController {
 		ctx.json(reservaSalonService.listar());
 	}
 
+	/**
+	 * Atiende {@code POST /api/reservas} (crear reserva del salón). Envía horaInicio, horaFinal
+	 * (yyyy-MM-ddTHH:mm:ss), valorDeposito, valorPorHora, casaNumero y casaManzana. Queda CONFIRMADA.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/reservas",
 			methods = HttpMethod.POST,
@@ -55,6 +79,19 @@ public class ReservaSalonController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Reserva creada", "idReserva", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/reservas/{id}} (cambiar el estado de una reserva del salón). Cierra una
+	 * reserva CONFIRMADA. Envía "estado": "CANCELADA", "estado": "FINALIZADA" (salón usado, depósito
+	 * devuelto) o "estado": "DEPOSITO_RETENIDO" (hubo daños, se retiene el depósito). Las horas y los
+	 * valores no se pueden modificar: para otro horario, cancela y crea una reserva nueva.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code id} y el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/reservas/{id}",
 			methods = HttpMethod.PUT,
@@ -77,6 +114,16 @@ public class ReservaSalonController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Estado de la reserva actualizado"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/reservas/{id}} (eliminar reserva del salón). Solo se pueden eliminar
+	 * reservas CANCELADAS. Para borrar una CONFIRMADA, cancélala primero con el PUT.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code id}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/reservas/{id}",
 			methods = HttpMethod.DELETE,

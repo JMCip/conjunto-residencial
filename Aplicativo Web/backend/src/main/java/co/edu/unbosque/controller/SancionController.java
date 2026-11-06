@@ -17,10 +17,24 @@ import io.javalin.openapi.OpenApiParam;
 import io.javalin.openapi.OpenApiRequestBody;
 import io.javalin.openapi.OpenApiResponse;
 
+/**
+ * Controlador REST de las sanciones (rutas {@code /api/sanciones}).
+ * <p>
+ * Lee los parámetros y el cuerpo de la petición, delega en el servicio y responde en JSON. Las
+ * excepciones se traducen a códigos HTTP en {@link co.edu.unbosque.App}.
+ */
 public class SancionController {
 
+	/** Servicio con la lógica de negocio de las sanciones. */
 	private final SancionService sancionService = new SancionService();
 
+	/**
+	 * Atiende {@code GET /api/sanciones} (listar sanciones). Devuelve las sanciones impuestas a las
+	 * casas, de la más reciente a la más antigua.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 */
 	@OpenApi(
 			path = "/api/sanciones",
 			methods = HttpMethod.GET,
@@ -35,6 +49,17 @@ public class SancionController {
 		ctx.json(sancionService.listar());
 	}
 
+	/**
+	 * Atiende {@code POST /api/sanciones} (registrar sanción). Envía fechaIncidente y
+	 * fechaNotificacion (yyyy-MM-dd), tipo (texto libre, máximo 30 caracteres, por ejemplo RUIDO o
+	 * MASCOTAS), descripcion, casaNumero y casaManzana. descargos es opcional. Queda EN_DESCARGOS y
+	 * sin valor.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se lee el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 */
 	@OpenApi(
 			path = "/api/sanciones",
 			methods = HttpMethod.POST,
@@ -53,6 +78,19 @@ public class SancionController {
 		ctx.status(HttpStatus.CREATED).json(Map.of("mensaje", "Sanción registrada", "idSancion", id));
 	}
 
+	/**
+	 * Atiende {@code PUT /api/sanciones/{id}} (avanzar el proceso de una sanción). Solo para sanciones
+	 * EN_DESCARGOS. Envía "descargos": "..." para registrar descargos, "estadoProceso": "CONFIRMADA",
+	 * "valor": 150000 para confirmar (valor opcional, solo si hay multa) o "estadoProceso": "ANULADA"
+	 * para anular. Puedes enviar descargos y decisión juntos.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code id} y el cuerpo JSON
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws DatoInvalidoException si el cuerpo o los parámetros no son válidos (HTTP 400)
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/sanciones/{id}",
 			methods = HttpMethod.PUT,
@@ -75,6 +113,16 @@ public class SancionController {
 		ctx.status(HttpStatus.OK).json(Map.of("mensaje", "Sanción actualizada"));
 	}
 
+	/**
+	 * Atiende {@code DELETE /api/sanciones/{id}} (eliminar sanción). Solo se pueden eliminar sanciones
+	 * ANULADAS. Las CONFIRMADAS y las EN_DESCARGOS se conservan como historial.
+	 *
+	 * @param ctx contexto de la petición y la respuesta HTTP; de él se leen el parámetro de ruta
+	 *         {@code id}
+	 * @throws SQLException si falla el acceso a la base de datos; se traduce a HTTP según su SQLState
+	 * @throws RecursoNoEncontradoException si el registro no existe (HTTP 404)
+	 * @throws ConflictoException si la operación viola una regla de negocio (HTTP 409)
+	 */
 	@OpenApi(
 			path = "/api/sanciones/{id}",
 			methods = HttpMethod.DELETE,

@@ -4,7 +4,10 @@ import { NotificacionModel, TipoNotificacion } from '../models/notificacion.mode
 /** Milisegundos que un aviso permanece en pantalla antes de quitarse solo. */
 const DURACION_MS = 5000;
 
-
+/**
+ * Servicio de avisos flotantes (éxito, error e información). Los avisos se muestran en
+ * el componente Notificaciones y se cierran solos después de unos segundos.
+ */
 @Injectable({ providedIn: 'root' })
 export class NotificacionService {
   /** Lista interna de avisos visibles. Solo este servicio la modifica. */
@@ -52,8 +55,10 @@ export class NotificacionService {
   }
 
   /**
-   * Agrega un aviso y programa su cierre automático.
-   * Si ya hay uno idéntico visible, no lo repite.
+   * Agrega un aviso y programa su cierre automático. Si ya hay uno idéntico visible, no lo repite.
+   * @param tipo Tipo de aviso.
+   * @param titulo Título corto en negrita.
+   * @param mensaje Texto del aviso.
    */
   private mostrar(tipo: TipoNotificacion, titulo: string, mensaje: string): void {
     const repetido = this.lista().some(

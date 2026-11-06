@@ -2,7 +2,6 @@
   display: contents;
 }
 
-/* Resumen */
 .resumen-factura {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
@@ -29,7 +28,6 @@
   font-size: 15px;
 }
 
-/* Tabla de líneas */
 .contenedor-tabla {
   overflow-x: auto;
   border: 1px solid var(--borde-suave);
@@ -94,7 +92,6 @@
   text-align: center;
 }
 
-/* Agregar línea */
 .bloque-linea {
   display: flex;
   flex-direction: column;
@@ -118,7 +115,7 @@
 }
 
 .boton-agregar {
-  margin-top: 22px; /* alinea con los campos (la etiqueta ocupa esa altura) */
+  margin-top: 22px;
 }
 
 .campo {
@@ -160,7 +157,6 @@
   font-size: 14px;
 }
 
-/* Botones */
 .boton-icono {
   width: 40px;
   height: 40px;
@@ -227,7 +223,6 @@ button:disabled {
   outline-offset: 1px;
 }
 
-/* Insignias de estado */
 .insignia-estado {
   align-self: flex-start;
   display: inline-block;
@@ -251,7 +246,6 @@ button:disabled {
   color: var(--estado-alerta-texto);
 }
 
-/* Cargando y error */
 .esqueleto {
   display: block;
   border-radius: var(--radio-esqueleto);
@@ -295,4 +289,38 @@ button:disabled {
   .boton-agregar {
     margin-top: 0;
   }
+}
+
+.cabecera-bloque {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lista-pendientes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  list-style: none;
+}
+
+.item-pendiente {
+  display: grid;
+  grid-template-columns: 20px 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border: 1px solid var(--borde-suave);
+  border-radius: var(--radio-control);
+  background: var(--bg-tarjeta);
+}
+
+.icono-pendiente {
+  color: var(--verde-bosque);
+}
+
+.texto-pendiente {
+  display: flex;
+  flex-direction: column;
 }
