@@ -42,16 +42,19 @@ psql -U admin_conjunto -d conjunto_residencial -f dml/09_consulta_sanciones.sql
 psql -U admin_conjunto -d conjunto_residencial -f dml/10_consulta_finanzas.sql
 ```
 
+**Datos adicionales** (opcional, no hace parte de la carga base — agrega más volumen de datos para probar la capacidad de la base):
+- `11_datos_adicionales.sql` — personas, casas, arriendos, vehículos, reservas, facturas y una sanción extra, con documentos y números de casa distintos a los de la carga base (01-05) para no chocar con ellos.
+
+```bash
+psql -U admin_conjunto -d conjunto_residencial -f dml/11_datos_adicionales.sql
+```
+
 ## 3. `varios/` — Scripts varios (roles, permisos y ajustes del modelo físico)
 
 Ejecutar después de que el esquema y los datos ya existen:
 
 1. `01_roles_y_permisos.sql` — crea/ajusta el rol `app_backend` que usa el aplicativo web (permisos CRUD, sin DDL ni `TRUNCATE`). **Ejecutar como superusuario (`postgres`)**, no como `admin_conjunto`.
-2. `02_vista_factura_total.sql` — reemplaza la columna `factura.total` (atributo derivado, riesgo de quedar desincronizado) por la vista `factura_con_total`, que lo calcula sumando `detalle_factura`. Ejecutar como `admin_conjunto`.
 
 ```bash
 sudo -u postgres psql -d conjunto_residencial -f varios/01_roles_y_permisos.sql
-psql -U admin_conjunto -d conjunto_residencial -f varios/02_vista_factura_total.sql
 ```
-
-> **Importante:** después de ejecutar `02_vista_factura_total.sql`, el backend debe consultar `factura_con_total` en lugar de `factura` para obtener el total — la tabla `factura` ya no tiene esa columna.
