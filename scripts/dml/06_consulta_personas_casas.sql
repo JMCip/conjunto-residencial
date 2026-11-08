@@ -8,7 +8,6 @@ WHERE a.estado_contrato = 'VIGENTE';
 -- Casas desocupadas (sin contrato de arriendo vigente)
 SELECT numero, manzana, area, numero_habitaciones
 FROM casa
-WHERE estado = 'DESOCUPADA';
 
 -- Propietarios y el porcentaje de posesion de cada casa que tienen
 SELECT p.primer_nombre, p.primer_apellido, po.casa_numero, po.casa_manzana, po.porcentaje

@@ -28,11 +28,11 @@ INSERT INTO visitante (tipo_documento, numero_documento) VALUES
 ('CC','2000000003'), ('CC','2000000005');
 
 -- 2. Casas nuevas
-INSERT INTO casa (numero, manzana, area, estado, numero_habitaciones) VALUES
-(10, 2, 95.0,  'OCUPADA', 2),
-(11, 2, 130.0, 'OCUPADA', 3),
-(12, 2, 110.5, 'DESOCUPADA', 3),
-(13, 2, 88.0,  'OCUPADA', 2);
+INSERT INTO casa (numero, manzana, area, numero_habitaciones) VALUES
+(10, 2, 95.0, 2),
+(11, 2, 130.0, 3),
+(12, 2, 110.5, 3),
+(13, 2, 88.0, 2);
 
 -- 3. Posesion (propietarios sobre las casas nuevas)
 INSERT INTO posesion (porcentaje, fecha_compra, fecha_venta, casa_numero, casa_manzana, propietario_tipo_documento, propietario_numero_documento) VALUES
